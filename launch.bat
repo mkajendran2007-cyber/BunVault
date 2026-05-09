@@ -1,0 +1,13 @@
+@echo off
+title Launching Bun Vault...
+echo ===================================================
+echo   🚀 STARTING BUN VAULT WEALTH PLATFORM...
+echo   (This window will host your local app server)
+echo ===================================================
+echo.
+echo Opening browser at http://localhost:3000...
+start http://localhost:3000
+echo.
+echo Starting server...
+npm run dev
+pause
