@@ -36,7 +36,9 @@ export default function SIPPlannerPage() {
   const [calcRate, setCalcRate] = useState(12)
   const [calcYears, setCalcYears] = useState(10)
   const [dashboardYears, setDashboardYears] = useState(30)
+  const [dashYearsInput, setDashYearsInput] = useState("30")
   const [dashboardRate, setDashboardRate] = useState(12)
+  const [dashRateInput, setDashRateInput] = useState("12")
 
   // Multi-calculator States
   const [calcMode, setCalcMode] = useState<'SIP' | 'SWP' | 'Inflation' | 'Lumpsum'>('SIP')
@@ -202,7 +204,7 @@ export default function SIPPlannerPage() {
   const lumpReturns = lumpTotalValue - lumpInvested;
 
   return (
-    <div className="flex-1 space-y-4 relative">
+    <div className="flex-1 space-y-4 relative w-full max-w-full min-w-0 overflow-x-hidden">
       <div className="flex items-center justify-between">
         <div>
            <h2 className="text-2xl font-bold tracking-tight">SIP Planner</h2>
@@ -213,32 +215,37 @@ export default function SIPPlannerPage() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-           <CardContent className="p-6">
-              <div className="text-sm font-medium text-muted-foreground mb-2">Total Monthly SIP</div>
-              <div className="text-3xl font-bold private-value">₹{totalMonthlySIP.toFixed(2)}</div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="glass-panel">
+           <CardContent className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                 <div className="text-sm font-medium text-muted-foreground mb-1">Total Monthly SIP</div>
+                 <div className="text-4xl font-bold tracking-tight private-value">₹{totalMonthlySIP.toFixed(2)}</div>
+              </div>
+              <div className="flex items-center gap-2 bg-secondary/40 px-3 py-2 rounded-lg border border-border/30 self-start md:self-center">
+                 <div className="text-2xl font-bold text-foreground leading-none">{activeSipsCount}</div>
+                 <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground leading-tight">Active<br/>SIPs</div>
+              </div>
            </CardContent>
         </Card>
-        <Card>
+        <Card className="glass-panel">
            <CardContent className="p-6">
-              <div className="text-sm font-medium text-muted-foreground mb-2">Active SIPs</div>
-              <div className="text-3xl font-bold">{activeSipsCount}</div>
-           </CardContent>
-        </Card>
-        <Card>
-           <CardContent className="p-6">
-              <div className="flex justify-between items-start mb-2">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 gap-2">
                  <div className="text-sm font-medium text-muted-foreground">Total Projected Returns ({dashboardYears}Y)</div>
                  <div className="flex flex-wrap gap-1.5">
                     <div className="flex items-center gap-1.5 bg-muted/50 rounded-md px-2 py-1 border border-border/50">
                        <span className="text-[10px] text-muted-foreground font-medium">Target:</span>
                        <input 
                           type="number" 
-                          value={dashboardYears}
+                          value={dashYearsInput}
                           min={1}
                           max={50}
-                          onChange={(e) => setDashboardYears(Number(e.target.value) || 1)}
+                          onChange={(e) => {
+                             const v = e.target.value;
+                             setDashYearsInput(v);
+                             const num = parseInt(v, 10);
+                             if (!isNaN(num)) setDashboardYears(num);
+                          }}
                           className="w-8 bg-transparent font-bold text-primary text-xs text-center focus:outline-none border-b border-primary/30"
                        />
                        <span className="text-[10px] text-muted-foreground">Yrs</span>
@@ -247,19 +254,24 @@ export default function SIPPlannerPage() {
                        <span className="text-[10px] text-muted-foreground font-medium">Rate:</span>
                        <input 
                           type="number" 
-                          value={dashboardRate}
+                          value={dashRateInput}
                           min={1}
                           max={40}
-                          onChange={(e) => setDashboardRate(Number(e.target.value) || 1)}
+                          onChange={(e) => {
+                             const v = e.target.value;
+                             setDashRateInput(v);
+                             const num = parseFloat(v);
+                             if (!isNaN(num)) setDashboardRate(num);
+                          }}
                           className="w-8 bg-transparent font-bold text-emerald-500 text-xs text-center focus:outline-none border-b border-emerald-500/30"
                        />
                        <span className="text-[10px] text-muted-foreground">%</span>
                     </div>
                  </div>
               </div>
-              <div className="text-3xl font-extrabold text-emerald-500 private-value">₹{Math.round(totalProjectedReturn).toLocaleString()}</div>
+              <div className="text-3xl font-extrabold text-emerald-500 tracking-tight private-value">₹{Math.round(totalProjectedReturn).toLocaleString()}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                 Combined returns at {dashboardRate}% p.a.
+                 Combined estimated gain at {dashboardRate}% p.a.
               </p>
            </CardContent>
         </Card>
@@ -276,17 +288,18 @@ export default function SIPPlannerPage() {
                  </div>
               </CardHeader>
               <CardContent>
-                 <div className="relative w-full overflow-auto">
+                 {/* Desktop Table View */}
+                 <div className="relative w-full overflow-x-auto hidden md:block no-scrollbar">
                    <table className="w-full caption-bottom text-sm">
-                     <thead className="[&_tr]:border-b">
-                       <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                         <th className="h-10 px-2 text-left align-middle font-medium text-muted-foreground text-xs sm:text-sm">Asset</th>
-                         <th className="h-10 px-2 text-left align-middle font-medium text-muted-foreground text-xs sm:text-sm">Freq.</th>
-                         <th className="h-10 px-2 text-right align-middle font-medium text-muted-foreground text-xs sm:text-sm">Amount</th>
-                         <th className="h-10 px-2 text-center align-middle font-medium text-muted-foreground text-xs sm:text-sm">Due</th>
-                         <th className="h-10 px-2 text-right align-middle font-medium text-muted-foreground text-xs sm:text-sm">Projected ({dashboardYears}Y)</th>
-                         <th className="h-10 px-2 text-right align-middle font-medium text-muted-foreground text-xs sm:text-sm">Returns</th>
-                         <th className="h-10 px-2 text-right align-middle font-medium text-muted-foreground text-xs sm:text-sm">Actions</th>
+                     <thead className="[&_tr]:border-b bg-muted/30">
+                       <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted whitespace-nowrap">
+                         <th className="h-10 px-1.5 lg:px-2 text-left align-middle font-semibold text-muted-foreground text-[10px] uppercase tracking-wider">Asset</th>
+                         <th className="h-10 px-1.5 lg:px-2 text-left align-middle font-semibold text-muted-foreground text-[10px] uppercase tracking-wider">Freq.</th>
+                         <th className="h-10 px-1.5 lg:px-2 text-right align-middle font-semibold text-muted-foreground text-[10px] uppercase tracking-wider">Amount</th>
+                         <th className="h-10 px-1.5 lg:px-2 text-center align-middle font-semibold text-muted-foreground text-[10px] uppercase tracking-wider">Due</th>
+                         <th className="h-10 px-1.5 lg:px-2 text-right align-middle font-semibold text-muted-foreground text-[10px] uppercase tracking-wider">Projected</th>
+                         <th className="h-10 px-1.5 lg:px-2 text-right align-middle font-semibold text-muted-foreground text-[10px] uppercase tracking-wider">Returns</th>
+                         <th className="h-10 px-1.5 lg:px-2 text-right align-middle font-semibold text-muted-foreground text-[10px] uppercase tracking-wider">Act.</th>
                        </tr>
                      </thead>
                      <tbody className="[&_tr:last-child]:border-0">
@@ -304,19 +317,23 @@ export default function SIPPlannerPage() {
                          const rReturns = rTotal - rInvested;
 
                          return (
-                          <tr key={sip.id} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted text-xs sm:text-sm">
-                            <td className="p-2 sm:p-3 align-middle font-medium max-w-[120px] truncate">{sip.name} {sip.symbol && <span className="text-[10px] text-muted-foreground block sm:inline">({sip.symbol})</span>}</td>
-                            <td className="p-2 sm:p-3 align-middle">{sip.frequency}</td>
-                            <td className="p-2 sm:p-3 align-middle text-right private-value">₹{sip.amount.toLocaleString()}</td>
-                            <td className="p-2 sm:p-3 align-middle text-center">
+                          <tr key={sip.id} className="border-b transition-colors hover:bg-muted/20 data-[state=selected]:bg-muted text-[13px] whitespace-nowrap">
+                            <td className="py-2.5 px-1.5 lg:px-2 align-middle font-semibold max-w-[110px] truncate text-foreground" title={sip.name}>
+                               {sip.name} {sip.symbol && <span className="text-[10px] text-muted-foreground font-normal ml-0.5 hidden xl:inline">({sip.symbol})</span>}
+                            </td>
+                            <td className="py-2.5 px-1.5 lg:px-2 align-middle text-[11px]">
+                               <span className="px-1 py-0.5 bg-secondary/50 text-muted-foreground rounded border border-border/20 font-medium">{sip.frequency}</span>
+                            </td>
+                            <td className="py-2.5 px-1.5 lg:px-2 align-middle text-right font-medium private-value">₹{sip.amount.toLocaleString()}</td>
+                            <td className="py-2.5 px-1.5 lg:px-2 align-middle text-center text-muted-foreground text-[11px]">
                                {sip.frequency === 'Daily' ? 'Daily' : 
                                 sip.frequency === 'Weekly' ? `${new Date(sip.next_date).toLocaleDateString('en-US', {weekday: 'short'})}` : 
-                                `Day ${new Date(sip.next_date).getDate()}`}
+                                `${new Date(sip.next_date).getDate()}`}
                             </td>
-                            <td className="p-2 sm:p-3 align-middle text-right text-primary font-bold private-value">₹{Math.round(rTotal).toLocaleString()}</td>
-                            <td className="p-2 sm:p-3 align-middle text-right text-emerald-500 font-medium private-value">+₹{Math.round(rReturns).toLocaleString()}</td>
-                            <td className="p-2 sm:p-3 align-middle text-right">
-                               <Button variant="ghost" size="icon" onClick={() => handleDelete(sip.id)} className="h-7 w-7 text-destructive hover:bg-destructive/10">
+                            <td className="py-2.5 px-1.5 lg:px-2 align-middle text-right text-primary font-bold private-value">₹{Math.round(rTotal).toLocaleString()}</td>
+                            <td className="py-2.5 px-1.5 lg:px-2 align-middle text-right text-emerald-500 font-bold private-value">+₹{Math.round(rReturns).toLocaleString()}</td>
+                            <td className="py-2.5 px-1.5 lg:px-2 align-middle text-right">
+                               <Button variant="ghost" size="icon" onClick={() => handleDelete(sip.id)} className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors">
                                   <Trash2 className="h-3.5 w-3.5" />
                                </Button>
                             </td>
@@ -324,6 +341,46 @@ export default function SIPPlannerPage() {
                        )})}
                      </tbody>
                    </table>
+                 </div>
+
+                 {/* Mobile List View for SIPs */}
+                 <div className="md:hidden divide-y divide-border/40 -mx-4 sm:mx-0">
+                    {loading ? (
+                       <div className="p-6 text-center text-sm text-muted-foreground">Loading...</div>
+                    ) : sips.length === 0 ? (
+                       <div className="p-6 text-center text-sm text-muted-foreground">No active SIPs scheduled.</div>
+                    ) : sips.map((sip) => {
+                       let monthlyAmt = sip.amount;
+                       if (sip.frequency === 'Weekly') monthlyAmt *= 4;
+                       if (sip.frequency === 'Daily') monthlyAmt *= 30;
+                       
+                       const rTotal = monthlyAmt * ((Math.pow(1 + (dashboardRate/12/100), dashboardYears * 12) - 1) / (dashboardRate/12/100)) * (1 + (dashboardRate/12/100));
+
+                       return (
+                          <div key={sip.id} className="p-4 flex items-center justify-between active:bg-muted/50 transition-colors">
+                             <div className="flex-1 min-w-0 pr-2">
+                                <h4 className="font-bold text-[14px] text-foreground truncate">{sip.name}</h4>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                   <span className="text-[10px] px-1.5 bg-secondary/80 text-muted-foreground rounded font-medium uppercase">{sip.frequency}</span>
+                                   <span className="text-[11px] text-muted-foreground/80">
+                                      Due: {sip.frequency === 'Daily' ? 'Daily' : 
+                                            sip.frequency === 'Weekly' ? `${new Date(sip.next_date).toLocaleDateString('en-US', {weekday: 'short'})}` : 
+                                            `Day ${new Date(sip.next_date).getDate()}`}
+                                   </span>
+                                </div>
+                             </div>
+                             <div className="text-right flex items-center gap-3 shrink-0">
+                                <div>
+                                   <p className="font-extrabold text-sm private-value">₹{sip.amount.toLocaleString()}</p>
+                                   <p className="text-[11px] text-emerald-500 font-bold private-value">Est: ₹{Math.round(rTotal/100000 * 10) / 10}L</p>
+                                </div>
+                                <Button variant="ghost" size="icon" onClick={() => handleDelete(sip.id)} className="h-8 w-8 text-destructive active:bg-destructive/10 -mr-1">
+                                   <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                             </div>
+                          </div>
+                       )
+                    })}
                  </div>
               </CardContent>
             </Card>
@@ -715,6 +772,14 @@ export default function SIPPlannerPage() {
             </Card>
          </div>
       )}
+      {/* Mobile Floating Action Button for New SIP */}
+      <button 
+         onClick={() => setIsModalOpen(true)}
+         className="md:hidden fixed bottom-[72px] right-4 h-14 w-14 bg-emerald-600 text-white rounded-full shadow-lg shadow-emerald-900/30 flex items-center justify-center z-40 active:scale-95 transition-transform border border-emerald-400/20 hover:bg-emerald-500"
+         aria-label="Add SIP"
+      >
+         <Plus className="h-6 w-6" strokeWidth={3} />
+      </button>
     </div>
   )
 }

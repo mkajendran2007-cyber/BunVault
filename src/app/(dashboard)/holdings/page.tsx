@@ -225,13 +225,17 @@ export default function HoldingsPage() {
 
   const filteredHoldings = activeTab === "All" ? holdings : holdings.filter(h => h.type === activeTab)
 
-  const totalInvested = holdings.reduce((acc, h) => acc + (h.qty * h.buy_price), 0);
-  const totalCurrent = holdings.reduce((acc, h) => acc + (h.qty * (h.currentPrice || h.buy_price)), 0);
+  // Retain global total for static % of Portfolio reference
+  const totalPortfolioCurrent = holdings.reduce((acc, h) => acc + (h.qty * (h.currentPrice || h.buy_price)), 0);
+
+  // Dynamically calculate metrics based on current filter (Addresses user request)
+  const totalInvested = filteredHoldings.reduce((acc, h) => acc + (h.qty * h.buy_price), 0);
+  const totalCurrent = filteredHoldings.reduce((acc, h) => acc + (h.qty * (h.currentPrice || h.buy_price)), 0);
   const totalPL = totalCurrent - totalInvested;
   const plPercent = totalInvested > 0 ? (totalPL / totalInvested) * 100 : 0;
 
   return (
-    <div className="flex-1 space-y-4 relative">
+    <div className="flex-1 space-y-4 relative w-full min-w-0 overflow-x-hidden">
       <div className="flex items-center justify-between">
         <div>
            <h2 className="text-2xl font-bold tracking-tight">Your Holdings</h2>
@@ -242,7 +246,8 @@ export default function HoldingsPage() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3 mb-6">
+      {/* Desktop Summary View (Restored for PC View) */}
+      <div className="hidden md:grid md:grid-cols-3 gap-4 mb-6">
         <Card className="glass-panel">
            <CardContent className="p-6">
               <div className="text-sm font-medium text-muted-foreground mb-2">Total Invested</div>
@@ -268,89 +273,182 @@ export default function HoldingsPage() {
         </Card>
       </div>
 
-      <div className="flex space-x-2 border-b pb-2 overflow-x-auto">
+      {/* Consolidated Mobile Summary Card (Matches Mobile Preference) */}
+      <Card className="md:hidden glass-panel border-border/40 shadow-lg shadow-black/5 mb-2 overflow-hidden">
+        <div className="absolute top-0 left-0 w-1 h-full bg-primary/50" />
+        <CardContent className="p-5">
+          <div className="grid grid-cols-2 gap-4 border-b border-white/10 pb-4 mb-4">
+            <div>
+              <p className="text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1">
+                 Invested
+              </p>
+              <p className="text-xl md:text-2xl font-bold private-value tracking-tight">₹{totalInvested.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+            </div>
+            <div className="text-right border-l border-white/10 pl-4">
+              <p className="text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Current Value</p>
+              <p className="text-xl md:text-2xl font-bold text-primary private-value tracking-tight">₹{totalCurrent.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Total Returns / P&L</p>
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <p className={`text-2xl md:text-3xl font-black private-value tracking-tight ${totalPL >= 0 ? 'text-emerald-500' : 'text-destructive'}`}>
+                  {totalPL >= 0 ? '+' : ''}₹{totalPL.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                </p>
+                <span className={`text-sm font-bold px-2 py-0.5 rounded-md private-value ${totalPL >= 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-destructive/10 text-destructive'}`}>
+                  {totalPL >= 0 ? '+' : ''}{plPercent.toFixed(2)}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex space-x-2 border-b border-white/10 pb-2 mb-2 overflow-x-auto no-scrollbar scroll-smooth">
         {["All", "Equity", "Mutual Fund", "Debt", "Crypto", "Commodity"].map(tab => (
            <Button 
              key={tab} 
              variant={activeTab === tab ? "default" : "ghost"} 
              onClick={() => setActiveTab(tab)}
              size="sm"
+             className={`rounded-full px-4 text-xs font-medium transition-all ${activeTab === tab ? "shadow-md shadow-primary/20" : "text-muted-foreground hover:text-foreground bg-muted/30"}`}
            >
              {tab}
            </Button>
         ))}
       </div>
 
-      <Card>
+      <Card className="border-border/50 shadow-md w-full max-w-full overflow-hidden">
         <CardContent className="p-0">
-           <div className="relative w-full overflow-auto">
-             <table className="w-full caption-bottom text-sm">
-               <thead className="[&_tr]:border-b">
-                 <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                   <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Asset Name</th>
-                   <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Type</th>
-                   <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">Qty</th>
-                   <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">Avg. Buy (₹)</th>
-                   <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">Live Price (₹)</th>
-                   <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">Invested (₹)</th>
-                   <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">Current Value (₹)</th>
-                   <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">% of Portfolio</th>
-                   <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">P&L</th>
-                   <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">Actions</th>
-                 </tr>
-               </thead>
-               <tbody className="[&_tr:last-child]:border-0">
-                 {loading ? (
-                    <tr>
-                      <td colSpan={10} className="p-8 text-center text-muted-foreground">
-                        Syncing live data...
-                      </td>
-                    </tr>
-                 ) : filteredHoldings.length === 0 ? (
-                    <tr>
-                      <td colSpan={10} className="p-8 text-center text-muted-foreground">
-                        No assets found. Click "Add Asset" to start building your portfolio.
-                      </td>
-                    </tr>
-                 ) : filteredHoldings.map((holding) => {
+           {/* Desktop Table View */}
+           <div className="relative w-full overflow-x-auto hidden md:block no-scrollbar">
+              <table className="w-full caption-bottom text-sm table-auto">
+                <thead className="[&_tr]:border-b bg-muted/30">
+                  <tr className="border-b border-border/60 transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted whitespace-nowrap">
+                    <th className="h-12 px-2 lg:px-3 text-left align-middle font-semibold text-muted-foreground text-xs uppercase tracking-wider min-w-[160px]">Asset Name</th>
+                    <th className="h-12 px-2 lg:px-3 text-left align-middle font-semibold text-muted-foreground text-xs uppercase tracking-wider">Type</th>
+                    <th className="h-12 px-2 lg:px-3 text-right align-middle font-semibold text-muted-foreground text-xs uppercase tracking-wider">Qty</th>
+                    <th className="h-12 px-2 lg:px-3 text-right align-middle font-semibold text-muted-foreground text-xs uppercase tracking-wider">Avg. Buy</th>
+                    <th className="h-12 px-2 lg:px-3 text-right align-middle font-semibold text-muted-foreground text-xs uppercase tracking-wider">Live Price</th>
+                    <th className="h-12 px-2 lg:px-3 text-right align-middle font-semibold text-muted-foreground text-xs uppercase tracking-wider">Invested</th>
+                    <th className="h-12 px-2 lg:px-3 text-right align-middle font-semibold text-muted-foreground text-xs uppercase tracking-wider">Current</th>
+                    <th className="h-12 px-2 lg:px-3 text-right align-middle font-semibold text-muted-foreground text-xs uppercase tracking-wider">% Port.</th>
+                    <th className="h-12 px-2 lg:px-3 text-right align-middle font-semibold text-muted-foreground text-xs uppercase tracking-wider">P&L</th>
+                    <th className="h-12 px-2 lg:px-3 text-right align-middle font-semibold text-muted-foreground text-xs uppercase tracking-wider">Act.</th>
+                  </tr>
+                </thead>
+                <tbody className="[&_tr:last-child]:border-0">
+                  {loading ? (
+                     <tr>
+                       <td colSpan={10} className="p-8 text-center text-muted-foreground">
+                         <div className="flex justify-center items-center gap-2">
+                            <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" /> Syncing live data...
+                         </div>
+                       </td>
+                     </tr>
+                  ) : filteredHoldings.length === 0 ? (
+                     <tr>
+                       <td colSpan={10} className="p-8 text-center text-muted-foreground">
+                         No assets found. Click "Add Asset" to start building your portfolio.
+                       </td>
+                     </tr>
+                  ) : filteredHoldings.map((holding) => {
+                    const invested = holding.qty * holding.buy_price;
+                    const currentValue = holding.qty * (holding.currentPrice || holding.buy_price);
+                    const pl = currentValue - invested;
+                    const plPercent = invested > 0 ? (pl / invested) * 100 : 0;
+                    const allocationPercent = totalPortfolioCurrent > 0 ? (currentValue / totalPortfolioCurrent) * 100 : 0;
+
+                    return (
+                      <tr key={holding.id} className="border-b border-border/40 transition-colors hover:bg-muted/20 data-[state=selected]:bg-muted whitespace-nowrap text-[13px]">
+                        <td className="py-3 px-2 lg:px-3 align-middle font-semibold text-foreground/90 min-w-[160px] whitespace-normal">
+                           {holding.name} <div className="text-[10px] text-muted-foreground/70 font-mono mt-0.5">{holding.symbol}</div>
+                        </td>
+                        <td className="py-3 px-2 lg:px-3 align-middle"><span className="px-1.5 py-0.5 bg-secondary/50 text-secondary-foreground border border-border/30 rounded text-[10px] font-medium uppercase tracking-wider">{holding.type}</span></td>
+                        <td className="py-3 px-2 lg:px-3 align-middle text-right font-medium private-value">{holding.qty}</td>
+                        <td className="py-3 px-2 lg:px-3 align-middle text-right private-value">₹{holding.buy_price.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                        <td className="py-3 px-2 lg:px-3 align-middle text-right private-value">₹{(holding.currentPrice || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                        <td className="py-3 px-2 lg:px-3 align-middle text-right private-value font-medium">₹{invested.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                        <td className="py-3 px-2 lg:px-3 align-middle text-right font-bold private-value text-foreground">₹{currentValue.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                        <td className="py-3 px-2 lg:px-3 align-middle text-right">
+                           <div className="flex items-center justify-end gap-1.5">
+                              <span className="font-bold text-primary private-value text-[11px]">{allocationPercent.toFixed(1)}%</span>
+                              <div className="w-10 bg-secondary/30 h-1 rounded-full overflow-hidden hidden xl:block border border-white/5">
+                                 <div className="bg-primary h-full" style={{ width: `${allocationPercent}%` }}></div>
+                              </div>
+                           </div>
+                        </td>
+                        <td className={`py-3 px-2 lg:px-3 align-middle text-right font-bold private-value ${pl >= 0 ? 'text-emerald-500' : 'text-destructive'}`}>
+                          <div className="flex flex-col items-end leading-tight">
+                             <span>{pl >= 0 ? '+' : ''}₹{pl.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})}</span>
+                             <span className="text-[9px] opacity-80">({plPercent.toFixed(1)}%)</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-2 lg:px-3 align-middle text-right">
+                           <Button variant="ghost" size="icon" onClick={() => handleDelete(holding.id)} className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors">
+                              <Trash2 className="h-3.5 w-3.5" />
+                           </Button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+           </div>
+
+           {/* Mobile Optimized List View (Matches Image 1 Preference) */}
+           <div className="md:hidden divide-y divide-white/5">
+             {loading ? (
+                <div className="p-8 text-center flex items-center justify-center gap-2 text-muted-foreground text-sm">
+                   <div className="animate-spin h-3 w-3 border border-primary border-t-transparent rounded-full" /> 
+                   Loading your portfolio...
+                </div>
+             ) : filteredHoldings.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground text-sm bg-muted/10">
+                   No assets found in this category.
+                </div>
+             ) : (
+                filteredHoldings.map((holding) => {
                    const invested = holding.qty * holding.buy_price;
                    const currentValue = holding.qty * (holding.currentPrice || holding.buy_price);
                    const pl = currentValue - invested;
                    const plPercent = invested > 0 ? (pl / invested) * 100 : 0;
-                   const allocationPercent = totalCurrent > 0 ? (currentValue / totalCurrent) * 100 : 0;
-
+                   
                    return (
-                     <tr key={holding.id} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                       <td className="p-4 align-middle font-medium">
-                          {holding.name} <span className="text-xs text-muted-foreground ml-1">({holding.symbol})</span>
-                       </td>
-                       <td className="p-4 align-middle"><span className="px-2 py-1 bg-secondary rounded-md text-xs">{holding.type}</span></td>
-                       <td className="p-4 align-middle text-right private-value">{holding.qty}</td>
-                       <td className="p-4 align-middle text-right private-value">₹{holding.buy_price.toFixed(2)}</td>
-                       <td className="p-4 align-middle text-right private-value">₹{(holding.currentPrice || 0).toFixed(2)}</td>
-                       <td className="p-4 align-middle text-right private-value">₹{invested.toFixed(2)}</td>
-                       <td className="p-4 align-middle text-right font-semibold private-value">₹{currentValue.toFixed(2)}</td>
-                       <td className="p-4 align-middle text-right">
-                          <div className="flex items-center justify-end gap-2">
-                             <span className="font-medium text-primary private-value">{allocationPercent.toFixed(1)}%</span>
-                             <div className="w-12 bg-secondary/50 h-1.5 rounded-full overflow-hidden hidden md:block border border-white/5">
-                                <div className="bg-primary h-full" style={{ width: `${allocationPercent}%` }}></div>
-                             </div>
-                          </div>
-                       </td>
-                       <td className={`p-4 align-middle text-right font-medium private-value ${pl >= 0 ? 'text-emerald-500' : 'text-destructive'}`}>
-                         {pl >= 0 ? '+' : ''}{pl.toFixed(2)} ({plPercent.toFixed(2)}%)
-                       </td>
-                       <td className="p-4 align-middle text-right">
-                          <Button variant="ghost" size="icon" onClick={() => handleDelete(holding.id)} className="h-8 w-8 text-destructive hover:text-destructive/90 hover:bg-destructive/10">
-                             <Trash2 className="h-4 w-4" />
-                          </Button>
-                       </td>
-                     </tr>
+                      <div key={holding.id} className="p-4 flex items-center justify-between active:bg-muted/50 transition-colors group relative">
+                         <div className="flex-1 min-w-0 pr-4">
+                            <h4 className="font-bold text-[14px] leading-tight text-foreground mb-0.5 line-clamp-1">
+                               {holding.name}
+                            </h4>
+                            <div className="flex items-center gap-2 flex-wrap">
+                               <span className="text-[9px] font-bold bg-secondary/60 text-muted-foreground px-1.5 py-0.5 rounded border border-border/20 uppercase tracking-wider">
+                                  {holding.type}
+                               </span>
+                               <span className="text-[11px] text-muted-foreground/80 private-value font-medium">
+                                  {holding.type === 'Commodity' && !holding.symbol.includes('ETF') ? 'Wt: ' : 'Qty: '}{holding.qty}
+                               </span>
+                            </div>
+                         </div>
+                         
+                         <div className="text-right flex items-center gap-3">
+                            <div className="flex flex-col items-end">
+                               <div className="font-extrabold text-sm private-value tracking-tight">
+                                  ₹{currentValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                               </div>
+                               <div className={`text-[11px] font-bold flex items-center mt-0.5 private-value ${pl >= 0 ? 'text-emerald-500' : 'text-destructive'}`}>
+                                  {pl >= 0 ? '+' : ''}₹{pl.toLocaleString(undefined, {maximumFractionDigits: 0})}
+                                  <span className="ml-1 text-[10px] font-medium opacity-90">({pl >= 0 ? '+' : ''}{plPercent.toFixed(1)}%)</span>
+                               </div>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={() => handleDelete(holding.id)} className="h-7 w-7 text-destructive/80 hover:text-destructive active:bg-destructive/10 -mr-2">
+                               <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                         </div>
+                      </div>
                    )
-                 })}
-               </tbody>
-             </table>
+                })
+             )}
            </div>
         </CardContent>
       </Card>
@@ -500,6 +598,14 @@ export default function HoldingsPage() {
             </Card>
          </div>
       )}
+      {/* Mobile Floating Action Button (Inspired by Image 1 & 2) */}
+      <button 
+         onClick={() => setIsModalOpen(true)}
+         className="md:hidden fixed bottom-[72px] right-4 h-14 w-14 bg-emerald-600 text-white rounded-full shadow-lg shadow-emerald-900/30 flex items-center justify-center z-40 active:scale-95 transition-transform border border-emerald-400/20 hover:bg-emerald-500"
+         aria-label="Add Asset"
+      >
+         <Plus className="h-6 w-6" strokeWidth={3} />
+      </button>
     </div>
   )
 }

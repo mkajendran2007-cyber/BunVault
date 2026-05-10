@@ -19,6 +19,7 @@ export default function Dashboard() {
   const [enrichedHoldings, setEnrichedHoldings] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [age, setAge] = useState<number>(30)
+  const [ageInput, setAgeInput] = useState<string>("30")
   const [isAgeEditing, setIsAgeEditing] = useState(false)
   const [nifty, setNifty] = useState({ price: 0, change: 0, changePercent: 0, loading: true })
   const [gold, setGold] = useState({ price: 0, change: 0, changePercent: 0, loading: true })
@@ -63,7 +64,9 @@ export default function Dashboard() {
   }, [])
 
   const handleSaveAge = () => {
-    localStorage.setItem('bun_vault_age', age.toString())
+    const parsed = parseInt(ageInput, 10) || 30
+    setAge(parsed)
+    localStorage.setItem('bun_vault_age', parsed.toString())
     setIsAgeEditing(false)
   }
 
@@ -1012,8 +1015,8 @@ export default function Dashboard() {
                       <>
                          <input 
                             type="number" 
-                            value={age} 
-                            onChange={(e) => setAge(Number(e.target.value) || 0)} 
+                            value={ageInput}
+                             onChange={(e) => setAgeInput(e.target.value)} 
                             className="w-16 rounded-md border py-1 px-2 text-center text-sm bg-background" 
                             min="18" max="100" 
                          />
@@ -1023,7 +1026,7 @@ export default function Dashboard() {
                    ) : (
                       <>
                          <span className="font-bold">{age} <span className="text-muted-foreground font-normal text-sm">Yrs</span></span>
-                         <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => setIsAgeEditing(true)}>Edit</Button>
+                         <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => { setAgeInput(age.toString()); setIsAgeEditing(true); }}>Edit</Button>
                       </>
                    )}
                 </div>

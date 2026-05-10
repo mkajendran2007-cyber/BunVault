@@ -447,6 +447,17 @@ export default function GoalsPage() {
             </Card>
          </div>
       </div>
+      {/* Mobile Floating Action Button for New Goal */}
+      <button 
+         onClick={() => {
+            cancelEdit(); // Resets state to new creation mode first
+            setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+         }}
+         className="md:hidden fixed bottom-[72px] right-4 h-14 w-14 bg-emerald-600 text-white rounded-full shadow-lg shadow-emerald-900/30 flex items-center justify-center z-40 active:scale-95 transition-transform border border-emerald-400/20 hover:bg-emerald-500"
+         aria-label="New Goal"
+      >
+         <Plus className="h-6 w-6" strokeWidth={3} />
+      </button>
     </div>
   )
 }
