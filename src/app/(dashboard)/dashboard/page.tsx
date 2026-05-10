@@ -24,17 +24,42 @@ export default function Dashboard() {
   const [gold, setGold] = useState({ price: 0, change: 0, changePercent: 0, loading: true })
   const [silver, setSilver] = useState({ price: 0, change: 0, changePercent: 0, loading: true })
   const [currentDate, setCurrentDate] = useState("")
+  const [isMarketOpen, setIsMarketOpen] = useState(false)
 
   useEffect(() => {
     fetchDashboardData()
-    fetchNifty()
-    fetchMetals()
+    fetchMarketData()
     setCurrentDate(new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }))
     
     const savedAge = localStorage.getItem('bun_vault_age')
     if (savedAge) {
        setAge(parseInt(savedAge, 10))
     }
+
+    // Determine if Indian market is currently trading
+    const checkMarketStatus = () => {
+       const istNow = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+       const istDate = new Date(istNow);
+       const day = istDate.getDay(); // 0 (Sun) to 6 (Sat)
+       const hours = istDate.getHours();
+       const mins = istDate.getMinutes();
+       const absoluteMins = (hours * 60) + mins;
+
+       // Mon(1) to Fri(5) and 9:15 AM to 3:30 PM IST
+       const isOpen = (day >= 1 && day <= 5) && (absoluteMins >= 555 && absoluteMins <= 930);
+       setIsMarketOpen(isOpen);
+    }
+
+    checkMarketStatus();
+
+    // Background sync ticker every 60 seconds
+    const ticker = setInterval(() => {
+       fetchDashboardData()
+       fetchMarketData()
+       checkMarketStatus()
+    }, 60000);
+
+    return () => clearInterval(ticker);
   }, [])
 
   const handleSaveAge = () => {
@@ -42,48 +67,56 @@ export default function Dashboard() {
     setIsAgeEditing(false)
   }
 
-  const fetchNifty = async () => {
+  const fetchMarketData = async () => {
      try {
-        const res = await fetch('/api/sync?symbol=^NSEI')
-        if (res.ok) {
-           const data = await res.json()
+        const res = await fetch('/api/sync?symbols=^NSEI,GOLD_INR_1G,SILVER_INR_1G');
+        if (!res.ok) {
+           throw new Error("Network fail");
+        }
+        const data = await res.json();
+        
+        // Extract Nifty
+        const niftyData = data['^NSEI'];
+        if (niftyData) {
            setNifty({
-              price: data.price || 0,
-              change: data.change || 0,
-              changePercent: data.changePercent || 0,
+              price: niftyData.price || 0,
+              change: niftyData.change || 0,
+              changePercent: niftyData.changePercent || 0,
               loading: false
-           })
+           });
         } else {
-           setNifty(prev => ({ ...prev, loading: false }))
+           setNifty(prev => ({ ...prev, loading: false }));
         }
-     } catch (e) {
-        setNifty(prev => ({ ...prev, loading: false }))
-     }
-  }
 
-  const fetchMetals = async () => {
-     try {
-        const [gRes, sRes] = await Promise.all([
-           fetch('/api/sync?symbol=GOLD_INR_1G'),
-           fetch('/api/sync?symbol=SILVER_INR_1G')
-        ])
-        
-        if (gRes.ok) {
-           const gData = await gRes.json()
-           setGold({ price: gData.price || 0, change: gData.change || 0, changePercent: gData.changePercent || 0, loading: false })
+        // Extract Gold
+        const goldData = data['GOLD_INR_1G'];
+        if (goldData) {
+           setGold({
+              price: goldData.price || 0,
+              change: goldData.change || 0,
+              changePercent: goldData.changePercent || 0,
+              loading: false
+           });
         } else {
-           setGold(prev => ({ ...prev, loading: false }))
+           setGold(prev => ({ ...prev, loading: false }));
         }
-        
-        if (sRes.ok) {
-           const sData = await sRes.json()
-           setSilver({ price: sData.price || 0, change: sData.change || 0, changePercent: sData.changePercent || 0, loading: false })
+
+        // Extract Silver
+        const silverData = data['SILVER_INR_1G'];
+        if (silverData) {
+           setSilver({
+              price: silverData.price || 0,
+              change: silverData.change || 0,
+              changePercent: silverData.changePercent || 0,
+              loading: false
+           });
         } else {
-           setSilver(prev => ({ ...prev, loading: false }))
+           setSilver(prev => ({ ...prev, loading: false }));
         }
      } catch (e) {
-        setGold(prev => ({ ...prev, loading: false }))
-        setSilver(prev => ({ ...prev, loading: false }))
+        setNifty(prev => ({ ...prev, loading: false }));
+        setGold(prev => ({ ...prev, loading: false }));
+        setSilver(prev => ({ ...prev, loading: false }));
      }
   }
 
@@ -105,38 +138,60 @@ export default function Dashboard() {
     let invested = 0
     let current = 0
     const allocation: Record<string, number> = { Equity: 0, "Mutual Fund": 0, Debt: 0, Crypto: 0, Commodity: 0 }
-    const enriched = []
 
-    for (const holding of holdings) {
+    // Fetch all unique symbols in bulk to maximize speed
+    const uniqueSymbols = Array.from(new Set(
+      holdings
+        .filter(h => !(h.type === 'Debt' && h.symbol?.startsWith('FDRD_')))
+        .map(h => h.symbol)
+        .filter(Boolean)
+    ));
+
+    let priceMap: Record<string, any> = {};
+    
+    if (uniqueSymbols.length > 0) {
+       try {
+          const res = await fetch(`/api/sync?symbols=${uniqueSymbols.map(encodeURIComponent).join(',')}`)
+          if (res.ok) {
+             priceMap = await res.json();
+          }
+       } catch (e) {
+          console.error("Dashboard bulk sync error:", e);
+       }
+    }
+
+    // Enrich data with batch resolved prices
+    const enriched = holdings.map((holding) => {
       const holdingInv = holding.qty * holding.buy_price
-      invested += holdingInv
       
-      // Fetch live price
       let livePrice = holding.buy_price
-      try {
-         const res = await fetch(`/api/sync?symbol=${holding.symbol}`)
-         const priceData = await res.json()
-         if (priceData.price) livePrice = priceData.price
-      } catch (e) {
-         console.error("Failed to fetch price for", holding.symbol)
+      if (holding.type === 'Debt' && holding.symbol?.startsWith('FDRD_')) {
+         livePrice = parseFloat(holding.symbol.replace('FDRD_', '')) || holding.buy_price;
+      } else {
+         const priceData = priceMap[holding.symbol];
+         if (priceData?.price) livePrice = priceData.price;
       }
 
       const holdingCurrentValue = holding.qty * livePrice
-      current += holdingCurrentValue
-      
-      enriched.push({
+
+      return {
          ...holding,
          livePrice,
          totalInvestment: holdingInv,
          currentValue: holdingCurrentValue
-      })
-
-      // Add to allocation
-      if (allocation[holding.type] !== undefined) {
-         allocation[holding.type] += holdingCurrentValue
-      } else {
-         allocation[holding.type] = holdingCurrentValue
       }
+    })
+
+    // Aggregate values synchronously
+    for (const h of enriched) {
+       invested += h.totalInvestment
+       current += h.currentValue
+
+       if (allocation[h.type] !== undefined) {
+          allocation[h.type] += h.currentValue
+       } else {
+          allocation[h.type] = h.currentValue
+       }
     }
 
     setEnrichedHoldings(enriched)
@@ -151,11 +206,11 @@ export default function Dashboard() {
     setPieData(formattedPie)
     setLoading(false)
 
-    // Handle Daily Snapshots
-    await handleDailySnapshot(user.id, invested, current)
+    // Handle Daily Snapshots with full breakdown
+    await handleDailySnapshot(user.id, invested, current, allocation)
   }
 
-  const handleDailySnapshot = async (userId: string, invested: number, current: number) => {
+  const handleDailySnapshot = async (userId: string, invested: number, current: number, allocationMap: any) => {
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     
     // Check if snapshot exists for today
@@ -172,7 +227,8 @@ export default function Dashboard() {
          user_id: userId,
          date: today,
          total_investment: invested,
-         current_value: current
+         current_value: current,
+         asset_breakdown: allocationMap
       }])
     }
     
@@ -221,10 +277,21 @@ export default function Dashboard() {
          return;
       }
 
+      // Construct runtime breakdown object for manual save too
+      const currentBreakdown: Record<string, number> = { Equity: 0, "Mutual Fund": 0, Debt: 0, Crypto: 0, Commodity: 0 };
+      enrichedHoldings.forEach(h => {
+         if (currentBreakdown[h.type] !== undefined) {
+            currentBreakdown[h.type] += h.currentValue;
+         } else {
+            currentBreakdown[h.type] = h.currentValue;
+         }
+      });
+
       if (existingSnapshot) {
          const { error: updateErr } = await supabase.from('portfolio_snapshots').update({
             total_investment: totalInvestment,
-            current_value: currentValue
+            current_value: currentValue,
+            asset_breakdown: currentBreakdown
          }).eq('id', existingSnapshot.id)
          if (updateErr) throw updateErr;
       } else {
@@ -232,7 +299,8 @@ export default function Dashboard() {
             user_id: user.id,
             date: today,
             total_investment: totalInvestment,
-            current_value: currentValue
+            current_value: currentValue,
+            asset_breakdown: currentBreakdown
          }])
          if (insertErr) throw insertErr;
       }
@@ -286,6 +354,25 @@ export default function Dashboard() {
       const pageWidth = doc.internal.pageSize.width
       const pageHeight = doc.internal.pageSize.height
 
+      // Fetch and embed app logo
+      const getBase64ImageFromUrl = async (imageUrl: string): Promise<string> => {
+        const res = await fetch(imageUrl);
+        const blob = await res.blob();
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      };
+
+      let logoBase64 = "";
+      try {
+         logoBase64 = await getBase64ImageFromUrl('/logo.png');
+      } catch (e) {
+         console.warn("Could not fetch logo for PDF", e);
+      }
+
       // --- Aesthetic Dark Background ---
       doc.setFillColor(15, 23, 42) // Slate 900 background
       doc.rect(0, 0, pageWidth, pageHeight, 'F')
@@ -324,126 +411,173 @@ export default function Dashboard() {
       // @ts-ignore
       doc.setGState(new doc.GState({opacity: 1.0}))
 
-      // Title
-      doc.setFontSize(26)
-      doc.setTextColor(59, 130, 246)
-      doc.text("BUN VAULT - AI WEALTH REPORT", pageWidth / 2, 22, { align: "center" })
-      
+      // Logo and Title Section
+      let titleY = 26;
+      if (logoBase64) {
+         // Draw a small logo circle or square next to title
+         doc.setFillColor(255, 255, 255);
+         doc.roundedRect(14, 12, 12, 12, 2, 2, 'F');
+         doc.addImage(logoBase64, 'PNG', 15, 13, 10, 10);
+      }
+
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(24)
+      doc.setTextColor(59, 130, 246) // Royal Blue
+      doc.text("BUN VAULT", logoBase64 ? 30 : 14, 21)
+
+      doc.setFont("helvetica", "normal")
       doc.setFontSize(10)
-      doc.setTextColor(148, 163, 184)
-      doc.text(`Generated securely on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, pageWidth / 2, 30, { align: "center" })
-
-      // AI Insight Logic
-      const safeAge = Math.min(100, Math.max(1, age));
-      const equityPortion = (100 - safeAge) / 100;
-      const safePortion = 1.0 - equityPortion;
-
-      const targetAllocations: Record<string, number> = {
-        "Equity": equityPortion * 0.6,
-        "Mutual Fund": equityPortion * 0.4,
-        "Debt": safePortion * 0.6,
-        "Commodity": safePortion * 0.3,
-        "Crypto": safePortion * 0.1,
-      }
-
-      const threshold = currentValue * 0.05
-      let insightsText: string[] = []
-
-      if (currentValue === 0) {
-         insightsText.push("Your portfolio is currently empty. Start adding assets to get AI insights!")
-      } else {
-         Object.keys(targetAllocations).forEach(asset => {
-           const targetVal = currentValue * targetAllocations[asset]
-           const actualVal = pieData.find(p => p.name === asset)?.value || 0
-           const diff = actualVal - targetVal
-
-           if (Math.abs(diff) > threshold) {
-              if (diff > 0) {
-                 insightsText.push(`Overexposed in ${asset}: Consider moving Rs ${diff.toLocaleString(undefined, {maximumFractionDigits: 0})} to safer assets.`)
-              } else {
-                 insightsText.push(`Underexposed in ${asset}: Recommend investing Rs ${Math.abs(diff).toLocaleString(undefined, {maximumFractionDigits: 0})} here.`)
-              }
-           }
-         })
-         if (insightsText.length === 0) {
-            insightsText.push("Perfectly Balanced! Your portfolio aligns perfectly with your age-based target.")
-         }
-      }
-
-      // Section 1: AI Analysis
-      let startY = 45
-      doc.setFontSize(16)
-      doc.setTextColor(255, 255, 255)
-      doc.text("1. AI Risk & Portfolio Health Analysis", 14, startY)
+      doc.setTextColor(148, 163, 184) // Muted text
+      doc.text("INTELLIGENT WEALTH REPORT", logoBase64 ? 30 : 14, 26)
       
-      doc.setFontSize(12)
-      doc.setTextColor(200, 200, 200)
-      startY += 10
-      insightsText.forEach(text => {
-         const lines = doc.splitTextToSize(`• ${text}`, pageWidth - 28)
-         doc.text(lines, 14, startY)
-         startY += (lines.length * 7)
-      })
+      doc.setFontSize(9)
+      doc.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, pageWidth - 14, 21, { align: "right" })
 
-      // Section 2: Portfolio Summary
-      startY += 8
-      doc.setFontSize(16)
+      // Decorative separating line
+      doc.setDrawColor(51, 65, 85)
+      doc.setLineWidth(0.5)
+      doc.line(14, 32, pageWidth - 14, 32)
+
+      // --- RENDER START ---
+      let startY = 42;
+
+      // Section 1: Executive Summary
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(14)
       doc.setTextColor(255, 255, 255)
-      doc.text("2. Portfolio Summary", 14, startY)
-      
+      doc.text("1. EXECUTIVE PORTFOLIO SUMMARY", 14, startY)
       startY += 10
-      doc.setFontSize(12)
-      doc.setTextColor(200, 200, 200)
-      doc.text(`Total Invested Capital: Rs ${totalInvestment.toLocaleString()}`, 14, startY)
-      startY += 8
-      doc.text(`Current Live Value: Rs ${currentValue.toLocaleString()}`, 14, startY)
-      startY += 8
+
+      // Calculation logic
       const pl = currentValue - totalInvestment
       const plColor = pl >= 0 ? [16, 185, 129] : [239, 68, 68]
-      doc.text("Overall Profit/Loss: ", 14, startY)
-      doc.setTextColor(plColor[0], plColor[1], plColor[2])
-      doc.text(`${pl >= 0 ? '+' : ''}Rs ${pl.toLocaleString()}`, 58, startY)
+      const plPercent = totalInvestment > 0 ? ((pl / totalInvestment) * 100).toFixed(2) : "0.00"
 
-      // Section 3: Holdings Table
-      startY += 18
-      doc.setFontSize(16)
+      // --- Visual Scorecards Section ---
+      const boxW = (pageWidth - 36) / 3;
+      let cardX = 14;
+      
+      // Card 1: Invested
+      doc.setFillColor(30, 41, 59);
+      doc.roundedRect(cardX, startY, boxW, 28, 2, 2, 'F');
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(148, 163, 184);
+      doc.text("TOTAL INVESTED", cardX + (boxW / 2), startY + 8, { align: 'center' });
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(255, 255, 255);
+      doc.text(`Rs ${totalInvestment.toLocaleString()}`, cardX + (boxW / 2), startY + 20, { align: 'center' });
+      
+      cardX += boxW + 4;
+
+      // Card 2: Current
+      doc.setFillColor(30, 41, 59);
+      doc.roundedRect(cardX, startY, boxW, 28, 2, 2, 'F');
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(148, 163, 184);
+      doc.text("CURRENT VALUE", cardX + (boxW / 2), startY + 8, { align: 'center' });
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(59, 130, 246); // Blue
+      doc.text(`Rs ${currentValue.toLocaleString()}`, cardX + (boxW / 2), startY + 20, { align: 'center' });
+
+      cardX += boxW + 4;
+
+      // Card 3: Returns
+      doc.setFillColor(30, 41, 59);
+      doc.roundedRect(cardX, startY, boxW, 28, 2, 2, 'F');
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(148, 163, 184);
+      doc.text("OVERALL P&L", cardX + (boxW / 2), startY + 8, { align: 'center' });
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(plColor[0], plColor[1], plColor[2]);
+      doc.text(`${pl >= 0 ? '+' : ''}Rs ${pl.toLocaleString()}`, cardX + (boxW / 2), startY + 18, { align: 'center' });
+      doc.setFontSize(8);
+      doc.text(`(${plPercent}%)`, cardX + (boxW / 2), startY + 24, { align: 'center' });
+
+      startY += 40
+
+      // --- Asset Class Breakdown Subtable ---
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(11)
+      doc.setTextColor(200, 200, 200)
+      doc.text("Asset Allocation Mix", 14, startY)
+      startY += 4
+
+      const allocationBody = pieData.map(item => {
+         const pct = currentValue > 0 ? ((item.value / currentValue) * 100).toFixed(1) : "0"
+         return [item.name, `Rs ${item.value.toLocaleString()}`, `${pct}%`]
+      })
+
+      autoTable(doc, {
+         startY: startY,
+         head: [['Asset Category', 'Current Valuation', 'Portfolio Weight %']],
+         body: allocationBody,
+         theme: 'plain',
+         headStyles: { fillColor: [15, 23, 42], textColor: [148, 163, 184], fontStyle: 'bold', cellPadding: 2 },
+         bodyStyles: { fillColor: [15, 23, 42], textColor: [226, 232, 240], fontSize: 9, cellPadding: 2 },
+         columnStyles: {
+            1: { halign: 'right' },
+            2: { halign: 'right', fontStyle: 'bold' }
+         },
+         margin: { left: 14, right: 14 }
+      })
+
+      // @ts-ignore
+      startY = doc.lastAutoTable?.finalY + 14 || startY + 40
+
+      // Section 2: Holdings Table
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(14)
       doc.setTextColor(255, 255, 255)
-      doc.text("3. Current Holdings", 14, startY)
+      doc.text("2. ITEMISED CURRENT HOLDINGS", 14, startY)
     
-    const holdingsBody = enrichedHoldings.map(h => {
-       const pl = h.currentValue - h.totalInvestment
-       return [
-         h.name,
-         h.symbol,
-         h.qty.toString(),
-         `Rs ${h.buy_price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
-         `Rs ${h.totalInvestment.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
-         `Rs ${h.livePrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
-         `${pl >= 0 ? '+' : ''}Rs ${pl.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
-       ]
-    })
+      const holdingsBody = enrichedHoldings.map(h => {
+         const pl = h.currentValue - h.totalInvestment
+         return [
+           h.name,
+           h.symbol,
+           h.qty.toString(),
+           `Rs ${h.buy_price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+           `Rs ${h.totalInvestment.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+           `Rs ${h.livePrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+           `${pl >= 0 ? '+' : ''}Rs ${pl.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
+         ]
+      })
 
       autoTable(doc, {
          startY: startY + 6,
          head: [['Asset', 'Symbol', 'Qty', 'Buy Price', 'Total Inv', 'Live Price', 'P&L']],
          body: holdingsBody,
          theme: 'grid',
-         headStyles: { fillColor: [59, 130, 246], textColor: [255, 255, 255] },
-         bodyStyles: { fillColor: [30, 41, 59], textColor: [200, 200, 200] },
+         headStyles: { fillColor: [59, 130, 246], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+         bodyStyles: { fillColor: [30, 41, 59], textColor: [226, 232, 240], font: 'helvetica' },
+         columnStyles: {
+            2: { halign: 'center' },
+            3: { halign: 'right' },
+            4: { halign: 'right' },
+            5: { halign: 'right' },
+            6: { halign: 'right', fontStyle: 'bold' }
+         },
          alternateRowStyles: { fillColor: [15, 23, 42] },
          margin: { left: 14, right: 14 },
-         styles: { fontSize: 9 }
+         styles: { fontSize: 8.5, cellPadding: 3 }
       })
 
-      // Section 4: SIP Table
+      // Section 3: SIP Table
       // @ts-ignore
       let finalY = doc.lastAutoTable?.finalY || startY + 20
       
       if (sips && sips.length > 0) {
-         finalY += 18
-         doc.setFontSize(16)
+         finalY += 15
+         doc.setFont("helvetica", "bold")
+         doc.setFontSize(14)
          doc.setTextColor(255, 255, 255)
-         doc.text("4. Active Systematic Investment Plans (SIPs)", 14, finalY)
+         doc.text("3. ACTIVE SYSTEMATIC INVESTMENT PLANS (SIPs)", 14, finalY)
          
          const sipsBody = sips.filter((s: any) => s.status === 'Active').map((s: any) => [
             s.name,
@@ -458,11 +592,16 @@ export default function Dashboard() {
             head: [['SIP Name', 'Type', 'Amount', 'Frequency', 'Next Date']],
             body: sipsBody,
             theme: 'grid',
-            headStyles: { fillColor: [16, 185, 129], textColor: [255, 255, 255] },
-            bodyStyles: { fillColor: [30, 41, 59], textColor: [200, 200, 200] },
+            headStyles: { fillColor: [16, 185, 129], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+            bodyStyles: { fillColor: [30, 41, 59], textColor: [226, 232, 240], font: 'helvetica' },
+            columnStyles: {
+               2: { halign: 'right', fontStyle: 'bold' },
+               3: { halign: 'center' },
+               4: { halign: 'center' }
+            },
             alternateRowStyles: { fillColor: [15, 23, 42] },
             margin: { left: 14, right: 14 },
-            styles: { fontSize: 9 }
+            styles: { fontSize: 8.5, cellPadding: 3 }
          })
       }
 
@@ -563,10 +702,21 @@ export default function Dashboard() {
       <div className="grid gap-4 md:grid-cols-3 mb-6">
         <Card className="relative overflow-hidden border-indigo-500/20 bg-gradient-to-br from-card to-indigo-500/5 shadow-[0_0_15px_rgba(99,102,241,0.05)] transition-all duration-300 hover:shadow-[0_0_20px_rgba(99,102,241,0.12)]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div>
-               <CardTitle className="text-sm font-semibold text-indigo-400 tracking-wide uppercase">NIFTY 50 Trend</CardTitle>
-               <p className="text-[10px] text-muted-foreground">NSE Index • Live Feed</p>
-            </div>
+             <div>
+                <div className="flex items-center gap-2">
+                   <CardTitle className="text-sm font-semibold text-indigo-400 tracking-wide uppercase">NIFTY 50 Trend</CardTitle>
+                   {isMarketOpen && (
+                      <div className="flex items-center gap-1 animate-pulse bg-rose-500/10 px-1.5 rounded py-0.5 border border-rose-500/20">
+                         <span className="relative flex h-1.5 w-1.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></span>
+                         </span>
+                         <span className="text-[8px] text-rose-400 font-black tracking-tighter">LIVE</span>
+                      </div>
+                   )}
+                </div>
+                <p className="text-[10px] text-muted-foreground">NSE Index • Live Feed</p>
+             </div>
             {/* Beautiful Nifty50 Custom SVG Logo */}
             <div className="flex items-center bg-white/5 py-1 px-2 rounded-md border border-white/5 shadow-inner">
                <svg viewBox="0 0 160 50" className="h-7 w-auto flex-shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -620,10 +770,21 @@ export default function Dashboard() {
         </Card>
         <Card className="relative overflow-hidden border-yellow-500/20 bg-gradient-to-br from-card to-yellow-500/5 shadow-[0_0_15px_rgba(234,179,8,0.05)] transition-all duration-300 hover:shadow-[0_0_20px_rgba(234,179,8,0.12)]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div>
-               <CardTitle className="text-sm font-semibold text-yellow-500 tracking-wide uppercase">Live Gold (1g)</CardTitle>
-               <p className="text-[10px] text-muted-foreground">24 Karat • Live Rate</p>
-            </div>
+             <div>
+                <div className="flex items-center gap-2">
+                   <CardTitle className="text-sm font-semibold text-yellow-500 tracking-wide uppercase">Live Gold (1g)</CardTitle>
+                   {isMarketOpen && (
+                      <div className="flex items-center gap-1 animate-pulse bg-rose-500/10 px-1.5 rounded py-0.5 border border-rose-500/20">
+                         <span className="relative flex h-1.5 w-1.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></span>
+                         </span>
+                         <span className="text-[8px] text-rose-400 font-black tracking-tighter">LIVE</span>
+                      </div>
+                   )}
+                </div>
+                <p className="text-[10px] text-muted-foreground">24 Karat • Live Rate</p>
+             </div>
             <div className="h-10 w-10 flex items-center justify-center rounded-full bg-yellow-500/10 border border-yellow-500/20">
                <svg viewBox="0 0 24 24" className="h-6 w-6 text-yellow-500 filter drop-shadow-[0_0_4px_rgba(234,179,8,0.4)]" fill="none" stroke="currentColor" strokeWidth="1.5">
                  <circle cx="12" cy="12" r="10" fill="url(#goldGradient)" stroke="#eab308" strokeWidth="1" />
@@ -677,10 +838,21 @@ export default function Dashboard() {
         </Card>
         <Card className="relative overflow-hidden border-slate-400/20 bg-gradient-to-br from-card to-slate-400/5 shadow-[0_0_15px_rgba(148,163,184,0.05)] transition-all duration-300 hover:shadow-[0_0_20px_rgba(148,163,184,0.12)]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div>
-               <CardTitle className="text-sm font-semibold text-slate-400 tracking-wide uppercase">Live Silver (1g)</CardTitle>
-               <p className="text-[10px] text-muted-foreground">999 Fine • Live Rate</p>
-            </div>
+             <div>
+                <div className="flex items-center gap-2">
+                   <CardTitle className="text-sm font-semibold text-slate-400 tracking-wide uppercase">Live Silver (1g)</CardTitle>
+                   {isMarketOpen && (
+                      <div className="flex items-center gap-1 animate-pulse bg-rose-500/10 px-1.5 rounded py-0.5 border border-rose-500/20">
+                         <span className="relative flex h-1.5 w-1.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></span>
+                         </span>
+                         <span className="text-[8px] text-rose-400 font-black tracking-tighter">LIVE</span>
+                      </div>
+                   )}
+                </div>
+                <p className="text-[10px] text-muted-foreground">999 Fine • Live Rate</p>
+             </div>
             <div className="h-10 w-10 flex items-center justify-center rounded-full bg-slate-400/10 border border-slate-400/20">
                <svg viewBox="0 0 24 24" className="h-6 w-6 text-slate-300 filter drop-shadow-[0_0_4px_rgba(203,213,225,0.4)]" fill="none" stroke="currentColor" strokeWidth="1.5">
                  <circle cx="12" cy="12" r="10" fill="url(#silverGradient)" stroke="#94a3b8" strokeWidth="1" />

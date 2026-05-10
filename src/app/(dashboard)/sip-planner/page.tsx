@@ -35,9 +35,11 @@ export default function SIPPlannerPage() {
   const [calcAmount, setCalcAmount] = useState(5000)
   const [calcRate, setCalcRate] = useState(12)
   const [calcYears, setCalcYears] = useState(10)
+  const [dashboardYears, setDashboardYears] = useState(30)
+  const [dashboardRate, setDashboardRate] = useState(12)
 
   // Multi-calculator States
-  const [calcMode, setCalcMode] = useState<'SIP' | 'SWP' | 'Inflation'>('SIP')
+  const [calcMode, setCalcMode] = useState<'SIP' | 'SWP' | 'Inflation' | 'Lumpsum'>('SIP')
 
   // SWP States
   const [swpInvested, setSwpInvested] = useState(1000000)
@@ -49,6 +51,11 @@ export default function SIPPlannerPage() {
   const [infCost, setInfCost] = useState(100000)
   const [infRate, setInfRate] = useState(6)
   const [infYears, setInfYears] = useState(10)
+
+  // Lumpsum States
+  const [lumpInvested, setLumpInvested] = useState(100000)
+  const [lumpRate, setLumpRate] = useState(12)
+  const [lumpYears, setLumpYears] = useState(10)
 
   useEffect(() => {
     fetchSIPs()
@@ -161,8 +168,8 @@ export default function SIPPlannerPage() {
       if (curr.frequency === 'Weekly') monthlyAmt *= 4;
       if (curr.frequency === 'Daily') monthlyAmt *= 30;
       
-      const rInvested = monthlyAmt * (calcYears * 12);
-      const rTotal = monthlyAmt * ((Math.pow(1 + (calcRate/12/100), calcYears * 12) - 1) / (calcRate/12/100)) * (1 + (calcRate/12/100));
+      const rInvested = monthlyAmt * (dashboardYears * 12);
+      const rTotal = monthlyAmt * ((Math.pow(1 + (dashboardRate/12/100), dashboardYears * 12) - 1) / (dashboardRate/12/100)) * (1 + (dashboardRate/12/100));
       const rReturns = rTotal - rInvested;
       return acc + rReturns;
     }, 0)
@@ -189,6 +196,10 @@ export default function SIPPlannerPage() {
   // Inflation Calculations
   const infFutureCost = infCost * Math.pow(1 + infRate / 100, infYears);
   const infCostIncrease = infFutureCost - infCost;
+
+  // Lumpsum Calculations
+  const lumpTotalValue = lumpInvested * Math.pow(1 + (lumpRate / 100), lumpYears);
+  const lumpReturns = lumpTotalValue - lumpInvested;
 
   return (
     <div className="flex-1 space-y-4 relative">
@@ -217,10 +228,38 @@ export default function SIPPlannerPage() {
         </Card>
         <Card>
            <CardContent className="p-6">
-              <div className="text-sm font-medium text-muted-foreground mb-2">Total Projected Returns ({calcYears}Y)</div>
+              <div className="flex justify-between items-start mb-2">
+                 <div className="text-sm font-medium text-muted-foreground">Total Projected Returns ({dashboardYears}Y)</div>
+                 <div className="flex flex-wrap gap-1.5">
+                    <div className="flex items-center gap-1.5 bg-muted/50 rounded-md px-2 py-1 border border-border/50">
+                       <span className="text-[10px] text-muted-foreground font-medium">Target:</span>
+                       <input 
+                          type="number" 
+                          value={dashboardYears}
+                          min={1}
+                          max={50}
+                          onChange={(e) => setDashboardYears(Number(e.target.value) || 1)}
+                          className="w-8 bg-transparent font-bold text-primary text-xs text-center focus:outline-none border-b border-primary/30"
+                       />
+                       <span className="text-[10px] text-muted-foreground">Yrs</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-muted/50 rounded-md px-2 py-1 border border-border/50">
+                       <span className="text-[10px] text-muted-foreground font-medium">Rate:</span>
+                       <input 
+                          type="number" 
+                          value={dashboardRate}
+                          min={1}
+                          max={40}
+                          onChange={(e) => setDashboardRate(Number(e.target.value) || 1)}
+                          className="w-8 bg-transparent font-bold text-emerald-500 text-xs text-center focus:outline-none border-b border-emerald-500/30"
+                       />
+                       <span className="text-[10px] text-muted-foreground">%</span>
+                    </div>
+                 </div>
+              </div>
               <div className="text-3xl font-extrabold text-emerald-500 private-value">₹{Math.round(totalProjectedReturn).toLocaleString()}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                 Combined returns at {calcRate}% p.a.
+                 Combined returns at {dashboardRate}% p.a.
               </p>
            </CardContent>
         </Card>
@@ -235,17 +274,6 @@ export default function SIPPlannerPage() {
                     <CardTitle>Your Scheduled SIPs</CardTitle>
                     <CardDescription>Manage and track your recurring investments.</CardDescription>
                  </div>
-                 <div className="flex items-center gap-2 bg-secondary/30 py-1 px-3 rounded-lg border border-white/5 shadow-inner">
-                    <span className="text-xs text-muted-foreground font-medium">Projection Period:</span>
-                    <input 
-                       type="number" 
-                       min="1" max="50" 
-                       value={calcYears} 
-                       onChange={(e) => setCalcYears(Number(e.target.value) || 10)} 
-                       className="w-14 h-8 rounded-md border text-center text-xs bg-background font-bold text-primary" 
-                    />
-                    <span className="text-xs text-muted-foreground font-semibold">Yrs</span>
-                 </div>
               </CardHeader>
               <CardContent>
                  <div className="relative w-full overflow-auto">
@@ -256,7 +284,7 @@ export default function SIPPlannerPage() {
                          <th className="h-10 px-2 text-left align-middle font-medium text-muted-foreground text-xs sm:text-sm">Freq.</th>
                          <th className="h-10 px-2 text-right align-middle font-medium text-muted-foreground text-xs sm:text-sm">Amount</th>
                          <th className="h-10 px-2 text-center align-middle font-medium text-muted-foreground text-xs sm:text-sm">Due</th>
-                         <th className="h-10 px-2 text-right align-middle font-medium text-muted-foreground text-xs sm:text-sm">Projected ({calcYears}Y)</th>
+                         <th className="h-10 px-2 text-right align-middle font-medium text-muted-foreground text-xs sm:text-sm">Projected ({dashboardYears}Y)</th>
                          <th className="h-10 px-2 text-right align-middle font-medium text-muted-foreground text-xs sm:text-sm">Returns</th>
                          <th className="h-10 px-2 text-right align-middle font-medium text-muted-foreground text-xs sm:text-sm">Actions</th>
                        </tr>
@@ -271,8 +299,8 @@ export default function SIPPlannerPage() {
                          if (sip.frequency === 'Weekly') monthlyAmt *= 4;
                          if (sip.frequency === 'Daily') monthlyAmt *= 30;
                          
-                         const rInvested = monthlyAmt * (calcYears * 12);
-                         const rTotal = monthlyAmt * ((Math.pow(1 + (calcRate/12/100), calcYears * 12) - 1) / (calcRate/12/100)) * (1 + (calcRate/12/100));
+                         const rInvested = monthlyAmt * (dashboardYears * 12);
+                         const rTotal = monthlyAmt * ((Math.pow(1 + (dashboardRate/12/100), dashboardYears * 12) - 1) / (dashboardRate/12/100)) * (1 + (dashboardRate/12/100));
                          const rReturns = rTotal - rInvested;
 
                          return (
@@ -309,15 +337,21 @@ export default function SIPPlannerPage() {
                      <div className="flex items-center gap-2">
                         <Calculator className="h-5 w-5" />
                         <span>
-                          {calcMode === 'SIP' ? 'SIP Calc' : calcMode === 'SWP' ? 'SWP Calc' : 'Inflation'}
+                          {calcMode === 'SIP' ? 'SIP Calc' : calcMode === 'SWP' ? 'SWP Calc' : calcMode === 'Lumpsum' ? 'Lumpsum' : 'Inflation'}
                         </span>
                      </div>
-                     <div className="flex gap-1 border rounded-lg p-0.5 bg-background text-foreground shrink-0 scale-90 sm:scale-100">
+                     <div className="flex gap-1 border rounded-lg p-0.5 bg-background text-foreground shrink-0 scale-90 sm:scale-100 overflow-x-auto max-w-full">
                         <button 
                           onClick={() => setCalcMode('SIP')} 
                           className={`px-1.5 py-0.5 text-[10px] rounded transition-all ${calcMode === 'SIP' ? 'bg-primary text-primary-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                           SIP
+                        </button>
+                        <button 
+                          onClick={() => setCalcMode('Lumpsum')} 
+                          className={`px-1.5 py-0.5 text-[10px] rounded transition-all ${calcMode === 'Lumpsum' ? 'bg-primary text-primary-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'}`}
+                        >
+                          LMP
                         </button>
                         <button 
                           onClick={() => setCalcMode('SWP')} 
@@ -334,7 +368,7 @@ export default function SIPPlannerPage() {
                      </div>
                   </CardTitle>
                   <CardDescription>
-                     {calcMode === 'SIP' ? 'Future wealth estimator' : calcMode === 'SWP' ? 'Withdrawal plan calculator' : 'Future cost calculator'}
+                     {calcMode === 'SIP' ? 'Future wealth estimator' : calcMode === 'Lumpsum' ? 'One-time wealth growth' : calcMode === 'SWP' ? 'Withdrawal plan calculator' : 'Future cost calculator'}
                   </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -396,6 +430,65 @@ export default function SIPPlannerPage() {
                      </div>
                    </>
                  )}
+
+                  {calcMode === 'Lumpsum' && (
+                    <>
+                      <div>
+                         <label className="flex justify-between text-xs font-medium mb-1">
+                            <span>One-time Investment</span>
+                            <span className="text-primary font-bold">₹{lumpInvested.toLocaleString()}</span>
+                         </label>
+                         <input 
+                            type="range" 
+                            min="1000" max="5000000" step="1000" 
+                            value={lumpInvested} 
+                            onChange={(e) => setLumpInvested(Number(e.target.value))}
+                            className="w-full accent-primary" 
+                         />
+                      </div>
+                      <div>
+                         <label className="flex justify-between text-xs font-medium mb-1">
+                            <span>Expected Return Rate</span>
+                            <span className="text-primary font-bold">{lumpRate}%</span>
+                         </label>
+                         <input 
+                            type="range" 
+                            min="1" max="30" step="1" 
+                            value={lumpRate} 
+                            onChange={(e) => setLumpRate(Number(e.target.value))}
+                            className="w-full accent-primary" 
+                         />
+                      </div>
+                      <div>
+                         <label className="flex justify-between text-xs font-medium mb-1">
+                            <span>Time Period (Years)</span>
+                            <span className="text-primary font-bold">{lumpYears} Yr</span>
+                         </label>
+                         <input 
+                            type="range" 
+                            min="1" max="40" step="1" 
+                            value={lumpYears} 
+                            onChange={(e) => setLumpYears(Number(e.target.value))}
+                            className="w-full accent-primary" 
+                         />
+                      </div>
+
+                      <div className="pt-4 border-t mt-4 space-y-1.5">
+                         <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Invested Amount</span>
+                            <span className="font-medium">₹{lumpInvested.toLocaleString()}</span>
+                         </div>
+                         <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Est. Returns</span>
+                            <span className="font-medium text-emerald-500">₹{Math.round(lumpReturns).toLocaleString()}</span>
+                         </div>
+                         <div className="flex justify-between font-bold text-base pt-2">
+                            <span>Total Value</span>
+                            <span className="text-primary">₹{Math.round(lumpTotalValue).toLocaleString()}</span>
+                         </div>
+                      </div>
+                    </>
+                  )}
 
                  {calcMode === 'SWP' && (
                    <>

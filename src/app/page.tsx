@@ -6,8 +6,10 @@ export default function Home() {
     <div className="flex min-h-screen flex-col">
       <header className="px-4 lg:px-6 h-16 flex items-center border-b border-border/40 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <Link className="flex items-center justify-center" href="#">
-          <Shield className="h-6 w-6 text-primary" />
-          <span className="ml-2 text-lg font-bold tracking-tight">BUN VAULT</span>
+          <div className="bg-white p-1 rounded-md border border-border/40 shadow-sm flex items-center justify-center h-8 w-8 mr-2">
+            <img src="/logo.png" alt="Bun Vault Logo" className="h-full w-full object-contain" />
+          </div>
+          <span className="text-lg font-bold tracking-tight">BUN VAULT</span>
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
           <Link className="text-sm font-medium hover:text-primary transition-colors flex items-center" href="/login">
@@ -22,6 +24,14 @@ export default function Home() {
         <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center space-y-4 text-center">
+              <div className="flex justify-center mb-6">
+                <div className="relative group">
+                  <div className="absolute -inset-1.5 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 opacity-20 blur-xl group-hover:opacity-35 transition duration-1000 group-hover:duration-200"></div>
+                  <div className="relative bg-white p-4 rounded-2xl border border-gray-150 shadow-md transition-transform duration-500 hover:scale-[1.05]">
+                    <img src="/logo.png" alt="Bun Vault Logo" className="h-36 w-36 object-contain" />
+                  </div>
+                </div>
+              </div>
               <div className="space-y-2">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
                   Your Wealth, <span className="text-primary">Perfectly Tracked</span>

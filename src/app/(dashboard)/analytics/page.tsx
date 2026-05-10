@@ -16,43 +16,60 @@ export default function AnalyticsPage() {
   const [showMutualFunds, setShowMutualFunds] = useState(true)
   const [showPortfolio, setShowPortfolio] = useState(true)
 
+  const [chartData, setChartData] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user?.user_metadata?.name) {
-        setUserName(user.user_metadata.name)
-      } else if (user?.email) {
-        setUserName(user.email.split("@")[0])
-      }
-    })
+    loadData()
   }, [])
 
-  // Data matching the stepped growth of Image 1
-  const accountValueData = [
-    { name: "Sep", "Account value": 200, Equity: 50, "Mutual funds": 180 },
-    { name: "Oct", "Account value": 800, Equity: 70, "Mutual funds": 750 },
-    { name: "Nov", "Account value": 1400, Equity: 80, "Mutual funds": 1350 },
-    { name: "Dec", "Account value": 2000, Equity: 100, "Mutual funds": 1950 },
-    { name: "2026", "Account value": 3500, Equity: 150, "Mutual funds": 3400 },
-    { name: "Feb", "Account value": 5100, Equity: 120, "Mutual funds": 4900 },
-    { name: "Mar", "Account value": 5600, Equity: 130, "Mutual funds": 5400 },
-    { name: "Apr", "Account value": 7200, Equity: 140, "Mutual funds": 7100 },
-    { name: "May", "Account value": 8000, Equity: 150, "Mutual funds": 7900 },
-  ]
+  const loadData = async () => {
+    setLoading(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setLoading(false)
+      return
+    }
 
-  // Data matching the dips of Image 2
-  const performanceData = [
-    { name: "Sep", Portfolio: 520, Equity: 10, "Mutual funds": 510 },
-    { name: "Oct", Portfolio: 550, Equity: 12, "Mutual funds": 540 },
-    { name: "Nov", Portfolio: 560, Equity: 11, "Mutual funds": 555 },
-    { name: "Dec", Portfolio: 570, Equity: 15, "Mutual funds": 562 },
-    { name: "2026", Portfolio: 450, Equity: 10, "Mutual funds": 440 },
-    { name: "Feb", Portfolio: 540, Equity: 12, "Mutual funds": 530 },
-    { name: "Mar", Portfolio: 510, Equity: 14, "Mutual funds": 505 },
-    { name: "Apr", Portfolio: 525, Equity: 11, "Mutual funds": 520 },
-    { name: "May", Portfolio: 535, Equity: 15, "Mutual funds": 530 },
-  ]
+    if (user?.user_metadata?.name) {
+       setUserName(user.user_metadata.name)
+    } else if (user?.email) {
+       setUserName(user.email.split("@")[0])
+    }
 
-  const currentData = activeView === "Account value" ? accountValueData : performanceData
+    // Fetch historical snapshots ordered by date
+    const { data: snapshots } = await supabase
+       .from('portfolio_snapshots')
+       .select('*')
+       .eq('user_id', user.id)
+       .order('date', { ascending: true })
+
+    if (snapshots && snapshots.length > 0) {
+       const formatted = snapshots.map(s => {
+          // Reformat "2026-05-10" to "May 10" or "YYYY" for labels
+          const dateObj = new Date(s.date)
+          const label = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          
+          const b = s.asset_breakdown || {}
+          
+          return {
+             name: label,
+             // View 1: Absolute Balances
+             "Account value": Number(s.current_value),
+             "Total Invested": Number(s.total_investment),
+             // Sub categories
+             "Equity": Number(b['Equity'] || 0),
+             "Mutual funds": Number(b['Mutual Fund'] || 0),
+             // View 2: Portfolio performance index (relative to base, or just raw)
+             "Portfolio": Number(s.current_value)
+          }
+       })
+       setChartData(formatted)
+    }
+    setLoading(false)
+  }
+
+  const currentData = chartData
 
   return (
     <div className="flex-1 space-y-6 pb-8">
@@ -212,7 +229,15 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Recharts High-Fidelity Chart */}
-          <div className="h-[400px] w-full">
+          <div className="h-[400px] w-full flex items-center justify-center">
+            {loading ? (
+               <div className="text-muted-foreground animate-pulse font-medium">Crunching historical performance...</div>
+            ) : currentData.length === 0 ? (
+               <div className="text-center p-8 border border-dashed border-border/20 rounded-xl bg-white/5">
+                  <p className="text-muted-foreground font-medium mb-2">Not enough history recorded yet.</p>
+                  <p className="text-xs text-muted-foreground/60">Snapshots are auto-recorded once a day when you visit the dashboard.</p>
+               </div>
+            ) : (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={currentData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255, 255, 255, 0.05)" />
@@ -276,6 +301,7 @@ export default function AnalyticsPage() {
                 )}
               </LineChart>
             </ResponsiveContainer>
+            )}
           </div>
         </CardContent>
       </Card>

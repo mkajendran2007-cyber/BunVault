@@ -110,6 +110,7 @@ CREATE TABLE public.portfolio_snapshots (
   date DATE NOT NULL,
   total_investment NUMERIC NOT NULL,
   current_value NUMERIC NOT NULL,
+  asset_breakdown JSONB DEFAULT '{}'::jsonb, -- Stores {'Equity': 500, 'Mutual Fund': 1200, ...}
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   UNIQUE(user_id, date)
 );

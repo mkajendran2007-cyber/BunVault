@@ -102,7 +102,7 @@ export default function LoginPage() {
             <>
               Not a member?{" "}
               <Link href="/signup" className="font-semibold text-primary hover:text-primary/80">
-                Start a 14-day free trial
+                Register new
               </Link>
             </>
           )}

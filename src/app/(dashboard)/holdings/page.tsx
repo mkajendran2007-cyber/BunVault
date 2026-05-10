@@ -126,20 +126,40 @@ export default function HoldingsPage() {
       return
     }
 
-    // 3. For each holding, fetch the live price from our API
-    const holdingsWithLivePrices = await Promise.all((data || []).map(async (holding) => {
+    // 3. Extract symbols for bulk fetch
+    const uniqueSymbols = Array.from(new Set(
+      (data || [])
+        .filter(h => !(h.type === 'Debt' && h.symbol?.startsWith('FDRD_')))
+        .map(h => h.symbol)
+        .filter(Boolean)
+    ));
+
+    let priceMap: Record<string, any> = {};
+    
+    if (uniqueSymbols.length > 0) {
+       try {
+          const res = await fetch(`/api/sync?symbols=${uniqueSymbols.map(encodeURIComponent).join(',')}`)
+          if (res.ok) {
+             priceMap = await res.json()
+          }
+       } catch (e) {
+          console.error("Bulk price fetch failed:", e)
+       }
+    }
+
+    // 4. Merge prices back into holdings
+    const holdingsWithLivePrices = (data || []).map(holding => {
       if (holding.type === 'Debt' && holding.symbol.startsWith('FDRD_')) {
         const parsedCurrentPrice = parseFloat(holding.symbol.replace('FDRD_', '')) || holding.buy_price;
         return { ...holding, currentPrice: parsedCurrentPrice }
       }
-      try {
-        const res = await fetch(`/api/sync?symbol=${holding.symbol}`)
-        const priceData = await res.json()
-        return { ...holding, currentPrice: priceData.price || holding.buy_price }
-      } catch (e) {
-        return { ...holding, currentPrice: holding.buy_price } // fallback
-      }
-    }))
+      
+      const priceData = priceMap[holding.symbol];
+      return { 
+         ...holding, 
+         currentPrice: priceData?.price || holding.buy_price 
+      };
+    });
 
     setHoldings(holdingsWithLivePrices)
     setLoading(false)

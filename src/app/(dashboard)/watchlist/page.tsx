@@ -116,20 +116,32 @@ export default function WatchlistPage() {
       return
     }
 
-    const itemsWithLivePrices = await Promise.all((data || []).map(async (item) => {
-      try {
-        const res = await fetch(`/api/sync?symbol=${item.symbol}`)
-        const priceData = await res.json()
-        return { 
-           ...item, 
-           currentPrice: priceData.price,
-           change: priceData.change,
-           changePercent: priceData.changePercent
-        }
-      } catch (e) {
-        return { ...item } 
+    const uniqueSymbols = Array.from(new Set(
+       (data || []).map(item => item.symbol).filter(Boolean)
+    ));
+
+    let priceMap: Record<string, any> = {};
+    
+    if (uniqueSymbols.length > 0) {
+       try {
+          const res = await fetch(`/api/sync?symbols=${uniqueSymbols.map(encodeURIComponent).join(',')}`)
+          if (res.ok) {
+             priceMap = await res.json();
+          }
+       } catch (e) {
+          console.error("Watchlist bulk sync error:", e);
+       }
+    }
+
+    const itemsWithLivePrices = (data || []).map((item) => {
+      const priceData = priceMap[item.symbol];
+      return { 
+         ...item, 
+         currentPrice: priceData?.price,
+         change: priceData?.change,
+         changePercent: priceData?.changePercent
       }
-    }))
+    })
 
     setWatchlist(itemsWithLivePrices)
     setLoading(false)
