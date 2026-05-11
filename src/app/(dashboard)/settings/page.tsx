@@ -35,7 +35,7 @@ export default function SettingsPage() {
         const localName = localStorage.getItem("bun_vault_name") || ""
         setDisplayName(metaName || localName || "")
 
-        const localAvatar = localStorage.getItem("bun_vault_avatar") || ""
+        const localAvatar = localStorage.getItem(`bun_vault_avatar_${user.id}`) || ""
         setAvatar(localAvatar)
       }
       setLoading(false)
@@ -55,7 +55,6 @@ export default function SettingsPage() {
       if (error) throw error
 
       localStorage.setItem("bun_vault_name", displayName)
-      alert("Profile updated successfully!")
       window.location.reload() // Trigger refresh to update navbar avatar/name
     } catch (err: any) {
       alert("Failed to update profile: " + err.message)
@@ -64,7 +63,7 @@ export default function SettingsPage() {
     }
   }
 
-  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
@@ -74,12 +73,14 @@ export default function SettingsPage() {
       return
     }
 
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
     const reader = new FileReader()
     reader.onloadend = () => {
       const base64String = reader.result as string
       setAvatar(base64String)
-      localStorage.setItem("bun_vault_avatar", base64String)
-      alert("Profile photo updated! This change will take effect immediately.")
+      localStorage.setItem(`bun_vault_avatar_${user.id}`, base64String)
     };
     reader.readAsDataURL(file)
   }
@@ -127,6 +128,10 @@ export default function SettingsPage() {
       localStorage.removeItem("bun_vault_age")
       localStorage.removeItem("bun_vault_name")
       localStorage.removeItem("bun_vault_avatar")
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+         const key = localStorage.key(i);
+         if (key?.startsWith("bun_vault_avatar_")) localStorage.removeItem(key);
+      }
       alert("Preferences cleared successfully!")
       window.location.reload()
     }

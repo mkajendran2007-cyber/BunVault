@@ -140,8 +140,8 @@ export default function WatchlistPage() {
     <div className="flex-1 space-y-4 relative w-full max-w-full min-w-0 overflow-x-hidden">
       <div className="flex items-center justify-between">
         <div>
-           <h2 className="text-2xl font-bold tracking-tight">Market Watchlist</h2>
-           <p className="text-muted-foreground">Track live prices and trends for assets you don't own yet.</p>
+           <h2 className="text-3xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground/90 to-foreground/60">Market Watchlist</h2>
+           <p className="text-muted-foreground font-medium mt-1">Track live price dynamics for prospective investments</p>
         </div>
         <Button onClick={() => setIsModalOpen(true)} className="gap-2">
            <Plus className="h-4 w-4" /> Add Asset

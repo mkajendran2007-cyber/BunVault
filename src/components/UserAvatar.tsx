@@ -25,7 +25,7 @@ export default function UserAvatar() {
       if (session) {
         setIsLoggedIn(true)
         const localName = localStorage.getItem("bun_vault_name") || ""
-        const localAvatar = localStorage.getItem("bun_vault_avatar") || ""
+        const localAvatar = localStorage.getItem(`bun_vault_avatar_${session.user.id}`) || ""
         if (localName) setName(localName)
         if (localAvatar) setAvatar(localAvatar)
       }
@@ -43,7 +43,7 @@ export default function UserAvatar() {
         const metaAvatar = user.user_metadata?.avatar_url || ""
         if (metaAvatar) {
           setAvatar(metaAvatar)
-          localStorage.setItem("bun_vault_avatar", metaAvatar)
+          localStorage.setItem(`bun_vault_avatar_${user.id}`, metaAvatar)
         }
       } else {
         setIsLoggedIn(false)
@@ -91,9 +91,7 @@ export default function UserAvatar() {
             <User className="h-4 w-4 text-primary" />
           )}
         </div>
-        <span className="hidden sm:inline font-medium text-sm text-card-foreground">
-          {isLoggedIn && name ? name : "User"}
-        </span>
+        {/* Name label removed from header per user request */}
         <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 

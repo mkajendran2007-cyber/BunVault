@@ -5,6 +5,8 @@ import MobileNavBar from "@/components/MobileNavBar";
 import MobileDrawer from "@/components/MobileDrawer";
 import DesktopSidebarNav from "@/components/DesktopSidebarNav";
 
+import HeaderUserName from "@/components/HeaderUserName";
+
 export default function DashboardLayout({
   children,
 }: {
@@ -22,7 +24,7 @@ export default function DashboardLayout({
         <header className="flex h-14 items-center gap-4 border-b bg-card/40 backdrop-blur-md px-4 lg:h-[60px] lg:px-6 z-10 sticky top-0">
           <MobileDrawer />
           <div className="w-full flex-1">
-            <h1 className="font-semibold text-lg">Dashboard Overview</h1>
+             <HeaderUserName />
           </div>
           <div className="flex items-center gap-4">
              <PrivacyToggle />

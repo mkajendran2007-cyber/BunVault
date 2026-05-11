@@ -1,5 +1,8 @@
+"use client"
+
 import Link from "next/link";
 import { Shield } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function AuthLayout({
   children,
@@ -10,7 +13,12 @@ export default function AuthLayout({
     <div className="flex flex-col lg:flex-row min-h-screen bg-background overflow-x-hidden">
        
        {/* Side Branding / Mobile Top Branding */}
-       <div className="bg-secondary/30 lg:flex-1 relative lg:min-h-screen order-1 lg:order-2 flex flex-col justify-center px-6 py-6 lg:px-16 lg:py-24">
+       <motion.div 
+         initial={{ opacity: 0, x: 50 }}
+         animate={{ opacity: 1, x: 0 }}
+         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+         className="bg-secondary/30 lg:flex-1 relative lg:min-h-screen order-1 lg:order-2 flex flex-col justify-center px-6 py-6 lg:px-16 lg:py-24"
+       >
           <div className="max-w-lg mx-auto lg:mx-0 flex flex-col items-center lg:items-start text-center lg:text-left w-full">
              {/* BIG PREMIUM LOGO */}
              <div className="mb-4 lg:mb-8 relative group">
@@ -27,10 +35,15 @@ export default function AuthLayout({
                 Track all your investments, analyze risk, and plan your financial goals in one unified premium dashboard.
              </p>
           </div>
-       </div>
+       </motion.div>
 
        {/* Auth Form Side */}
-       <div className="flex flex-col justify-center px-4 py-4 lg:py-12 sm:px-6 lg:flex-none lg:w-[480px] xl:w-[540px] order-2 lg:order-1 bg-background relative">
+       <motion.div 
+         initial={{ opacity: 0, x: -30 }}
+         animate={{ opacity: 1, x: 0 }}
+         transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+         className="flex flex-col justify-center px-4 py-4 lg:py-12 sm:px-6 lg:flex-none lg:w-[480px] xl:w-[540px] order-2 lg:order-1 bg-background relative"
+       >
           <div className="mx-auto w-full max-w-sm lg:max-w-md">
              {/* Small Branding Header for desktop form clarity, hidden on mobile because big logo is stacked above it */}
              <div className="hidden lg:flex items-center gap-2 mb-12 font-black tracking-wider text-xl opacity-80">
@@ -40,11 +53,16 @@ export default function AuthLayout({
                 <span>BUN VAULT</span>
              </div>
              
-             <div className="glass-panel p-6 sm:p-8 rounded-2xl shadow-xl lg:shadow-none lg:bg-transparent lg:border-0 lg:p-0">
+             <motion.div 
+               initial={{ opacity: 0, scale: 0.97 }}
+               animate={{ opacity: 1, scale: 1 }}
+               transition={{ duration: 0.5, delay: 0.25 }}
+               className="glass-panel p-6 sm:p-8 rounded-2xl shadow-xl lg:shadow-none lg:bg-transparent lg:border-0 lg:p-0"
+             >
                 {children}
-             </div>
+             </motion.div>
           </div>
-       </div>
+       </motion.div>
        
     </div>
   );

@@ -161,32 +161,32 @@ export default function AIAssistantPage() {
   return (
     <div className="flex-1 space-y-4">
       <div>
-         <h2 className="text-2xl font-bold tracking-tight">AI Portfolio Assistant</h2>
-         <p className="text-muted-foreground">Smart insights generated directly from your live portfolio data.</p>
+         <h2 className="text-3xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground/90 to-foreground/60">Vault Intelligence</h2>
+         <p className="text-muted-foreground font-medium mt-1">Autonomous strategic analysis powered by live portfolio analytics.</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-3 gap-2 md:gap-4">
         <Card className="bg-primary/5 border-primary/20">
-           <CardContent className="p-6">
-              <div className="text-sm font-medium text-primary mb-2">Overall Health Score</div>
-              <div className="text-5xl font-bold text-primary">{finalScore}/100</div>
-              <p className="text-xs text-muted-foreground mt-2">
+           <CardContent className="p-3 md:p-6 text-center md:text-left">
+              <div className="text-[10px] md:text-sm font-medium text-primary mb-1 md:mb-2 truncate">Health Score</div>
+              <div className="text-xl md:text-5xl font-bold text-primary">{finalScore}<span className="text-xs md:text-2xl opacity-80">/100</span></div>
+              <p className="hidden md:block text-xs text-muted-foreground mt-2">
                  {finalScore > 80 ? "Your portfolio is exceptionally well structured." : "There is room for diversification."}
               </p>
            </CardContent>
         </Card>
         <Card className={`bg-opacity-5 ${riskLevel === 'High' ? 'bg-destructive/10 border-destructive/20 text-destructive' : 'bg-emerald-500/5 border-emerald-500/20 text-emerald-500'}`}>
-           <CardContent className="p-6">
-              <div className="text-sm font-medium mb-2">Risk Level</div>
-              <div className="text-5xl font-bold">{riskLevel}</div>
-              <p className="text-xs mt-2 opacity-80">Based on your Equity and Crypto exposure.</p>
+           <CardContent className="p-3 md:p-6 text-center md:text-left">
+              <div className="text-[10px] md:text-sm font-medium mb-1 md:mb-2 truncate">Risk Level</div>
+              <div className="text-xl md:text-5xl font-bold">{riskLevel}</div>
+              <p className="hidden md:block text-xs mt-2 opacity-80">Based on your Equity and Crypto exposure.</p>
            </CardContent>
         </Card>
         <Card className="bg-amber-500/5 border-amber-500/20">
-           <CardContent className="p-6">
-              <div className="text-sm font-medium text-amber-500 mb-2">Predicted CAGR</div>
-              <div className="text-5xl font-bold text-amber-500">{predictedCAGR.toFixed(1)}%</div>
-              <p className="text-xs text-muted-foreground mt-2">Estimated annualized return based on current asset mix.</p>
+           <CardContent className="p-3 md:p-6 text-center md:text-left">
+              <div className="text-[10px] md:text-sm font-medium text-amber-500 mb-1 md:mb-2 truncate">Est. CAGR</div>
+              <div className="text-xl md:text-5xl font-bold text-amber-500">{predictedCAGR.toFixed(1)}%</div>
+              <p className="hidden md:block text-xs text-muted-foreground mt-2">Estimated annualized return based on current asset mix.</p>
            </CardContent>
         </Card>
       </div>

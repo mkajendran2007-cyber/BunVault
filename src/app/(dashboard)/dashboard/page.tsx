@@ -55,7 +55,7 @@ export default function Dashboard() {
 
     // Background sync ticker every 60 seconds
     const ticker = setInterval(() => {
-       fetchDashboardData()
+       fetchDashboardData(true)
        fetchMarketData()
        checkMarketStatus()
     }, 60000);
@@ -123,8 +123,8 @@ export default function Dashboard() {
      }
   }
 
-  const fetchDashboardData = async () => {
-    setLoading(true)
+  const fetchDashboardData = async (isSilent: boolean = false) => {
+    if (!isSilent) setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       setLoading(false)
@@ -376,14 +376,14 @@ export default function Dashboard() {
          console.warn("Could not fetch logo for PDF", e);
       }
 
-      // --- Aesthetic Dark Background ---
-      doc.setFillColor(15, 23, 42) // Slate 900 background
+      // --- Light Background (Implicitly white, no fill needed) ---
+      doc.setFillColor(255, 255, 255) 
       doc.rect(0, 0, pageWidth, pageHeight, 'F')
 
       // --- Generative Candlestick Pattern Background ---
       // We use GState to make it faint and blend into the background
       // @ts-ignore
-      doc.setGState(new doc.GState({opacity: 0.04}))
+      doc.setGState(new doc.GState({opacity: 0.05}))
       let startCandleX = 15;
       let startCandleY = pageHeight - 80;
       
@@ -415,39 +415,37 @@ export default function Dashboard() {
       doc.setGState(new doc.GState({opacity: 1.0}))
 
       // Logo and Title Section
-      let titleY = 26;
       if (logoBase64) {
-         // Draw a small logo circle or square next to title
-         doc.setFillColor(255, 255, 255);
-         doc.roundedRect(14, 12, 12, 12, 2, 2, 'F');
-         doc.addImage(logoBase64, 'PNG', 15, 13, 10, 10);
+         doc.setFillColor(241, 245, 249);
+         doc.roundedRect(14, 8, 22, 22, 3, 3, 'F');
+         doc.addImage(logoBase64, 'PNG', 16, 10, 18, 18);
       }
 
       doc.setFont("helvetica", "bold")
-      doc.setFontSize(24)
+      doc.setFontSize(26) // Slightly bigger title
       doc.setTextColor(59, 130, 246) // Royal Blue
-      doc.text("BUN VAULT", logoBase64 ? 30 : 14, 21)
+      doc.text("BUN VAULT", logoBase64 ? 42 : 14, 20)
 
       doc.setFont("helvetica", "normal")
       doc.setFontSize(10)
-      doc.setTextColor(148, 163, 184) // Muted text
-      doc.text("INTELLIGENT WEALTH REPORT", logoBase64 ? 30 : 14, 26)
+      doc.setTextColor(71, 85, 105) // Slate 600
+      doc.text("INTELLIGENT WEALTH REPORT", logoBase64 ? 42 : 14, 26)
       
       doc.setFontSize(9)
-      doc.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, pageWidth - 14, 21, { align: "right" })
+      doc.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, pageWidth - 14, 20, { align: "right" })
 
       // Decorative separating line
-      doc.setDrawColor(51, 65, 85)
+      doc.setDrawColor(226, 232, 240)
       doc.setLineWidth(0.5)
-      doc.line(14, 32, pageWidth - 14, 32)
+      doc.line(14, 36, pageWidth - 14, 36)
 
       // --- RENDER START ---
-      let startY = 42;
+      let startY = 46;
 
       // Section 1: Executive Summary
       doc.setFont("helvetica", "bold")
       doc.setFontSize(14)
-      doc.setTextColor(255, 255, 255)
+      doc.setTextColor(15, 23, 42) // Dark Slate
       doc.text("1. EXECUTIVE PORTFOLIO SUMMARY", 14, startY)
       startY += 10
 
@@ -461,25 +459,27 @@ export default function Dashboard() {
       let cardX = 14;
       
       // Card 1: Invested
-      doc.setFillColor(30, 41, 59);
-      doc.roundedRect(cardX, startY, boxW, 28, 2, 2, 'F');
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(226, 232, 240);
+      doc.roundedRect(cardX, startY, boxW, 28, 2, 2, 'FD');
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
-      doc.setTextColor(148, 163, 184);
+      doc.setTextColor(100, 116, 139);
       doc.text("TOTAL INVESTED", cardX + (boxW / 2), startY + 8, { align: 'center' });
       doc.setFont("helvetica", "bold");
       doc.setFontSize(12);
-      doc.setTextColor(255, 255, 255);
+      doc.setTextColor(15, 23, 42);
       doc.text(`Rs ${totalInvestment.toLocaleString()}`, cardX + (boxW / 2), startY + 20, { align: 'center' });
       
       cardX += boxW + 4;
 
       // Card 2: Current
-      doc.setFillColor(30, 41, 59);
-      doc.roundedRect(cardX, startY, boxW, 28, 2, 2, 'F');
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(226, 232, 240);
+      doc.roundedRect(cardX, startY, boxW, 28, 2, 2, 'FD');
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
-      doc.setTextColor(148, 163, 184);
+      doc.setTextColor(100, 116, 139);
       doc.text("CURRENT VALUE", cardX + (boxW / 2), startY + 8, { align: 'center' });
       doc.setFont("helvetica", "bold");
       doc.setFontSize(12);
@@ -489,11 +489,12 @@ export default function Dashboard() {
       cardX += boxW + 4;
 
       // Card 3: Returns
-      doc.setFillColor(30, 41, 59);
-      doc.roundedRect(cardX, startY, boxW, 28, 2, 2, 'F');
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(226, 232, 240);
+      doc.roundedRect(cardX, startY, boxW, 28, 2, 2, 'FD');
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
-      doc.setTextColor(148, 163, 184);
+      doc.setTextColor(100, 116, 139);
       doc.text("OVERALL P&L", cardX + (boxW / 2), startY + 8, { align: 'center' });
       doc.setFont("helvetica", "bold");
       doc.setFontSize(12);
@@ -502,12 +503,89 @@ export default function Dashboard() {
       doc.setFontSize(8);
       doc.text(`(${plPercent}%)`, cardX + (boxW / 2), startY + 24, { align: 'center' });
 
-      startY += 40
+      startY += 36
+
+      // --- Market Benchmarks Row ---
+      const bW = (pageWidth - 34) / 2;
+      let bX = 14;
+
+      // GOLD
+      doc.setFillColor(255, 251, 235); // Amber 50
+      doc.setDrawColor(253, 230, 138); // Amber 200
+      doc.roundedRect(bX, startY, bW, 15, 2, 2, 'FD');
+      
+      // --- High-Aesthetic Dynamic Coin Logo Implementation ---
+      const ix = bX + 6;
+      const iy = startY + 7.5;
+      
+      // 1. Gold Coin Architecture
+      doc.setFillColor(254, 240, 138); // Base Light Yellow
+      doc.setDrawColor(234, 179, 8); // Amber border
+      doc.setLineWidth(0.4);
+      doc.circle(ix, iy, 3.8, 'FD'); // Outer boundary
+      
+      doc.setDrawColor(251, 191, 36); // Softer rim
+      doc.setLineWidth(0.15);
+      doc.circle(ix, iy, 2.8, 'D'); // Inner dimensional rim
+      
+      // Vector Traced Currency Core (Ensured glyph rendering)
+      doc.setDrawColor(146, 64, 14); 
+      doc.setLineWidth(0.4);
+      doc.line(ix - 1.3, iy - 1.2, ix + 1.3, iy - 1.2); // Top Bar
+      doc.line(ix - 1.3, iy - 0.4, ix + 1.1, iy - 0.4); // Mid Bar
+      doc.line(ix - 0.6, iy - 1.2, ix - 0.6, iy - 0.4); // Left Core
+      doc.line(ix - 0.6, iy - 0.4, ix + 0.9, iy + 1.3); // Tail Kick
+
+      // Gold Text
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(146, 64, 14);
+      doc.text("SPOT GOLD (1G)", bX + 12, startY + 6.5);
+      doc.setFontSize(10);
+      doc.setTextColor(69, 26, 3);
+      doc.text(`Rs ${(gold.price || 0).toLocaleString(undefined, {maximumFractionDigits:2})}`, bX + 12, startY + 12);
+
+      bX += bW + 6;
+      const ix2 = bX + 6;
+
+      // SILVER
+      doc.setFillColor(248, 250, 252); // Slate 50
+      doc.setDrawColor(226, 232, 240); // Slate 200
+      doc.roundedRect(bX, startY, bW, 15, 2, 2, 'FD');
+
+      // 2. Silver Coin Architecture
+      doc.setFillColor(241, 245, 249); // Base Light Slate
+      doc.setDrawColor(148, 163, 184); // Slate border
+      doc.setLineWidth(0.4);
+      doc.circle(ix2, iy, 3.8, 'FD');
+      
+      doc.setDrawColor(203, 213, 225); 
+      doc.setLineWidth(0.15);
+      doc.circle(ix2, iy, 2.8, 'D'); // Inner dimensional rim
+      
+      // Vector Traced Currency Core
+      doc.setDrawColor(71, 85, 105); 
+      doc.setLineWidth(0.4);
+      doc.line(ix2 - 1.3, iy - 1.2, ix2 + 1.3, iy - 1.2); 
+      doc.line(ix2 - 1.3, iy - 0.4, ix2 + 1.1, iy - 0.4); 
+      doc.line(ix2 - 0.6, iy - 1.2, ix2 - 0.6, iy - 0.4); 
+      doc.line(ix2 - 0.6, iy - 0.4, ix2 + 0.9, iy + 1.3); 
+
+      // Silver Text
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(51, 65, 85);
+      doc.text("SPOT SILVER (1G)", bX + 12, startY + 6.5);
+      doc.setFontSize(10);
+      doc.setTextColor(15, 23, 42);
+      doc.text(`Rs ${(silver.price || 0).toLocaleString(undefined, {maximumFractionDigits:2})}`, bX + 12, startY + 12);
+
+      startY += 24
 
       // --- Asset Class Breakdown Subtable ---
       doc.setFont("helvetica", "bold")
       doc.setFontSize(11)
-      doc.setTextColor(200, 200, 200)
+      doc.setTextColor(71, 85, 105)
       doc.text("Asset Allocation Mix", 14, startY)
       startY += 4
 
@@ -521,8 +599,8 @@ export default function Dashboard() {
          head: [['Asset Category', 'Current Valuation', 'Portfolio Weight %']],
          body: allocationBody,
          theme: 'plain',
-         headStyles: { fillColor: [15, 23, 42], textColor: [148, 163, 184], fontStyle: 'bold', cellPadding: 2 },
-         bodyStyles: { fillColor: [15, 23, 42], textColor: [226, 232, 240], fontSize: 9, cellPadding: 2 },
+         headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105], fontStyle: 'bold', cellPadding: 2 },
+         bodyStyles: { fillColor: [255, 255, 255], textColor: [15, 23, 42], fontSize: 9, cellPadding: 2 },
          columnStyles: {
             1: { halign: 'right' },
             2: { halign: 'right', fontStyle: 'bold' }
@@ -536,7 +614,7 @@ export default function Dashboard() {
       // Section 2: Holdings Table
       doc.setFont("helvetica", "bold")
       doc.setFontSize(14)
-      doc.setTextColor(255, 255, 255)
+      doc.setTextColor(15, 23, 42)
       doc.text("2. ITEMISED CURRENT HOLDINGS", 14, startY)
     
       const holdingsBody = enrichedHoldings.map(h => {
@@ -558,7 +636,7 @@ export default function Dashboard() {
          body: holdingsBody,
          theme: 'grid',
          headStyles: { fillColor: [59, 130, 246], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
-         bodyStyles: { fillColor: [30, 41, 59], textColor: [226, 232, 240], font: 'helvetica' },
+         bodyStyles: { fillColor: [255, 255, 255], textColor: [15, 23, 42], font: 'helvetica' },
          columnStyles: {
             2: { halign: 'center' },
             3: { halign: 'right' },
@@ -566,7 +644,7 @@ export default function Dashboard() {
             5: { halign: 'right' },
             6: { halign: 'right', fontStyle: 'bold' }
          },
-         alternateRowStyles: { fillColor: [15, 23, 42] },
+         alternateRowStyles: { fillColor: [248, 250, 252] },
          margin: { left: 14, right: 14 },
          styles: { fontSize: 8.5, cellPadding: 3 }
       })
@@ -576,10 +654,26 @@ export default function Dashboard() {
       let finalY = doc.lastAutoTable?.finalY || startY + 20
       
       if (sips && sips.length > 0) {
-         finalY += 15
+         // --- START SECTION 3 ON PAGE 2 ---
+         doc.addPage()
+         
+         // Repaint background and header on Page 2
+         doc.setFillColor(255, 255, 255) 
+         doc.rect(0, 0, pageWidth, pageHeight, 'F')
+
+         // Tiny Header on new page
+         doc.setFont("helvetica", "bold")
+         doc.setFontSize(10)
+         doc.setTextColor(59, 130, 246)
+         doc.text("BUN VAULT", 14, 15)
+         doc.setDrawColor(226, 232, 240)
+         doc.setLineWidth(0.3)
+         doc.line(14, 18, pageWidth - 14, 18)
+
+         finalY = 30
          doc.setFont("helvetica", "bold")
          doc.setFontSize(14)
-         doc.setTextColor(255, 255, 255)
+         doc.setTextColor(15, 23, 42)
          doc.text("3. ACTIVE SYSTEMATIC INVESTMENT PLANS (SIPs)", 14, finalY)
          
          const sipsBody = sips.filter((s: any) => s.status === 'Active').map((s: any) => [
@@ -596,19 +690,19 @@ export default function Dashboard() {
             body: sipsBody,
             theme: 'grid',
             headStyles: { fillColor: [16, 185, 129], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
-            bodyStyles: { fillColor: [30, 41, 59], textColor: [226, 232, 240], font: 'helvetica' },
+            bodyStyles: { fillColor: [255, 255, 255], textColor: [15, 23, 42], font: 'helvetica' },
             columnStyles: {
                2: { halign: 'right', fontStyle: 'bold' },
                3: { halign: 'center' },
                4: { halign: 'center' }
             },
-            alternateRowStyles: { fillColor: [15, 23, 42] },
+            alternateRowStyles: { fillColor: [248, 250, 252] },
             margin: { left: 14, right: 14 },
             styles: { fontSize: 8.5, cellPadding: 3 }
          })
       }
 
-      doc.save("bun_vault_ai_report_dark.pdf")
+      doc.save("bun_vault_wealth_report.pdf")
     } catch (e: any) {
        alert("Error generating PDF: " + e.message)
     }
@@ -636,274 +730,209 @@ export default function Dashboard() {
          <div className="p-12 text-center text-muted-foreground animate-pulse">Syncing live market data...</div>
       ) : (
       <>
-      {/* Top Stats Row - Portfolio */}
-      <div className="grid gap-4 md:grid-cols-3 mb-4">
-        <Card className="glass-panel border-primary/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Current Portfolio Value</CardTitle>
-            <Zap className="h-5 w-5 text-primary" />
+      <div className="grid gap-6 md:grid-cols-3 mb-6">
+        <Card className="glass-panel group overflow-hidden border-primary/20 ring-1 ring-primary/5 transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(59,130,246,0.15)]">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-indigo-500 to-transparent opacity-40" />
+            <CardTitle className="text-sm font-semibold tracking-wide uppercase text-muted-foreground/80">Current Portfolio Value</CardTitle>
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-300">
+               <Zap className="h-4 w-4" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold tracking-tight private-value">₹{currentValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-            <p className="text-sm text-primary flex items-center mt-2 font-medium">
+            <div className="text-4xl font-black tracking-tight private-value bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70">₹{currentValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <p className="text-xs text-primary flex items-center mt-3 font-semibold tracking-wide uppercase gap-1.5">
+              <span className="relative flex h-2 w-2">
+                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              </span>
               Live market sync active
             </p>
           </CardContent>
         </Card>
-        <Card className="glass-panel">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Investment</CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-5 w-5 text-muted-foreground"
-            >
-              <rect width="20" height="14" x="2" y="5" rx="2" />
-              <path d="M2 10h20" />
-            </svg>
+        
+        <Card className="glass-panel group hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-semibold tracking-wide uppercase text-muted-foreground/80">Total Investment</CardTitle>
+            <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center group-hover:scale-110 transition-transform">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                className="h-4 w-4 text-muted-foreground"
+              >
+                <rect width="20" height="14" x="2" y="5" rx="2" />
+                <path d="M2 10h20" />
+              </svg>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold tracking-tight private-value">₹{totalInvestment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-            <p className="text-sm text-muted-foreground mt-2 font-medium">
-              Capital deployed
+            <div className="text-4xl font-extrabold tracking-tight private-value">₹{totalInvestment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <p className="text-xs text-muted-foreground mt-3 font-medium">
+              Capital deployed from bank
             </p>
           </CardContent>
         </Card>
-        <Card className="glass-panel">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Overall Profit/Loss</CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className={`h-5 w-5 ${totalPL >= 0 ? 'text-emerald-500' : 'text-destructive'}`}
-            >
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
+
+        <Card className="glass-panel group relative overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-semibold tracking-wide uppercase text-muted-foreground/80">Overall Profit/Loss</CardTitle>
+            <div className={`h-8 w-8 rounded-full flex items-center justify-center group-hover:scale-110 transition-all ${totalPL >= 0 ? 'bg-emerald-500/10 text-emerald-600' : 'bg-destructive/10 text-destructive'}`}>
+               <TrendingUp className="h-4 w-4" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className={`text-4xl font-bold tracking-tight private-value ${totalPL >= 0 ? 'text-emerald-500' : 'text-destructive'}`}>
+            <div className={`text-4xl font-black tracking-tight private-value ${totalPL >= 0 ? 'text-emerald-500' : 'text-destructive'}`}>
                {totalPL >= 0 ? '+' : ''}₹{totalPL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-            <p className={`text-sm mt-2 font-medium private-value ${totalPL >= 0 ? 'text-emerald-500/80' : 'text-destructive/80'}`}>
-               {totalPL >= 0 ? '+' : ''}{plPercentage.toFixed(2)}% all time
-            </p>
+            <div className="flex items-center gap-2 mt-3">
+               <p className={`text-xs px-2 py-0.5 rounded-full font-bold private-value ${totalPL >= 0 ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-destructive/10 text-destructive border border-destructive/20'}`}>
+                  {totalPL >= 0 ? '+' : ''}{plPercentage.toFixed(2)}%
+               </p>
+               <span className="text-xs text-muted-foreground font-medium">growth potential</span>
+            </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Top Stats Row - Markets */}
-      <div className="grid gap-4 md:grid-cols-3 mb-6">
-        <Card className="relative overflow-hidden border-indigo-500/20 bg-gradient-to-br from-card to-indigo-500/5 shadow-[0_0_15px_rgba(99,102,241,0.05)] transition-all duration-300 hover:shadow-[0_0_20px_rgba(99,102,241,0.12)]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <div className="grid gap-5 md:grid-cols-3 mb-6">
+        <Card className="relative group overflow-hidden border-indigo-500/20 bg-gradient-to-br from-white to-indigo-50/30 dark:from-slate-900 dark:to-indigo-900/10 shadow-[0_4px_15px_rgba(99,102,241,0.05)] hover:shadow-[0_8px_20px_rgba(99,102,241,0.1)] transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-5">
              <div>
-                <div className="flex items-center gap-2">
-                   <CardTitle className="text-sm font-semibold text-indigo-400 tracking-wide uppercase">NIFTY 50 Trend</CardTitle>
+                <div className="flex items-center gap-1.5">
+                   <CardTitle className="text-xs font-bold text-indigo-600 dark:text-indigo-400 tracking-widest uppercase">Nifty 50</CardTitle>
                    {isMarketOpen && (
-                      <div className="flex items-center gap-1 animate-pulse bg-rose-500/10 px-1.5 rounded py-0.5 border border-rose-500/20">
-                         <span className="relative flex h-1.5 w-1.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></span>
+                      <div className="flex items-center gap-1 animate-pulse bg-rose-500/10 px-1.5 rounded-full py-0.5">
+                         <span className="relative flex h-1 w-1">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-1 w-1 bg-rose-500"></span>
                          </span>
-                         <span className="text-[8px] text-rose-400 font-black tracking-tighter">LIVE</span>
+                         <span className="text-[8px] text-rose-500 font-black">LIVE</span>
                       </div>
                    )}
                 </div>
-                <p className="text-[10px] text-muted-foreground">NSE Index • Live Feed</p>
+                <p className="text-[9px] font-medium text-muted-foreground/60">Real-Time Index</p>
              </div>
-            {/* Beautiful Nifty50 Custom SVG Logo */}
-            <div className="flex items-center bg-white/5 py-1 px-2 rounded-md border border-white/5 shadow-inner">
-               <svg viewBox="0 0 160 50" className="h-7 w-auto flex-shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
-                 <g transform="translate(5, 2)">
-                    <path d="M12 40 V6" stroke="#818cf8" strokeWidth="3.5" strokeLinecap="round" />
-                    <path d="M12 6 L28 34" stroke="#818cf8" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M28 34 V6" stroke="#818cf8" strokeWidth="3.5" strokeLinecap="round" />
-                    <path d="M4 34 L12 24 L36 2" stroke="#818cf8" strokeWidth="3.5" strokeLinecap="round" />
-                    <rect x="12" y="44" width="4.5" height="4" fill="#312e81" />
-                    <rect x="16.5" y="44" width="9" height="4" fill="#ef4444" />
-                    <rect x="25.5" y="44" width="12" height="4" fill="#f97316" />
-                    <rect x="37.5" y="44" width="13.5" height="4" fill="#eab308" />
-                 </g>
-                 <text x="60" y="32" fill="#e0e7ff" font-family="'Inter', system-ui, sans-serif" font-weight="800" font-size="21" letter-spacing="-0.5">Nifty</text>
-                 <text x="114" y="32" fill="#f87171" font-family="'Inter', system-ui, sans-serif" font-weight="800" font-size="21" letter-spacing="-0.5">50</text>
-               </svg>
+            <div className="flex flex-col items-end gap-1">
+               <div className="flex items-center bg-slate-50 dark:bg-slate-800/50 py-0.5 px-1.5 rounded border shadow-sm">
+                  <svg viewBox="0 0 160 50" className="h-5 w-auto flex-shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g transform="translate(5, 2)">
+                       <path d="M12 40 V6" stroke="#818cf8" strokeWidth="3.5" />
+                       <path d="M12 6 L28 34" stroke="#818cf8" strokeWidth="3.5" />
+                       <path d="M28 34 V6" stroke="#818cf8" strokeWidth="3.5" />
+                       <rect x="12" y="44" width="4.5" height="4" fill="#312e81" />
+                       <rect x="16.5" y="44" width="9" height="4" fill="#ef4444" />
+                       <rect x="25.5" y="44" width="12" height="4" fill="#f97316" />
+                    </g>
+                    <text x="60" y="32" fill="currentColor" className="text-slate-900 dark:text-slate-100" font-family="'Inter', sans-serif" font-weight="800" font-size="20">Nifty</text>
+                    <text x="112" y="32" fill="#ef4444" font-family="'Inter', sans-serif" font-weight="800" font-size="20">50</text>
+                  </svg>
+               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="pb-4 px-5">
             {nifty.loading ? (
-               <div className="space-y-2">
-                 <div className="text-2xl font-bold text-muted-foreground animate-pulse">Syncing...</div>
-                 <div className="h-4 w-24 bg-muted rounded animate-pulse" />
-               </div>
+               <div className="h-6 w-24 bg-muted rounded animate-pulse" />
             ) : (
-               <>
-                 <div>
-                    <div className="text-3xl font-extrabold text-foreground">₹{(nifty.price || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-                    <p className={`text-xs mt-1 flex items-center gap-1 font-semibold ${(nifty.change || 0) >= 0 ? 'text-emerald-500' : 'text-destructive'}`}>
-                       {(nifty.change || 0) >= 0 ? '▲' : '▼'} {(nifty.change || 0).toFixed(2)} ({(nifty.changePercent || 0) >= 0 ? '+' : ''}{(nifty.changePercent || 0).toFixed(2)}%)
-                    </p>
-                 </div>
-                 
-                 {/* Indian Market Indicator */}
-                 <div className="pt-3 border-t border-indigo-500/10 flex items-center justify-between">
-                    <div>
-                       <p className="text-xs font-semibold text-indigo-400 flex items-center gap-1">
-                          NSE India
-                       </p>
-                       <p className="text-[10px] text-muted-foreground">National Stock Exchange</p>
-                    </div>
-                    <div className="text-right">
-                       <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium border ${nifty.change >= 0 ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
-                          {nifty.change >= 0 ? 'Bullish' : 'Bearish'}
-                       </span>
-                    </div>
-                 </div>
-               </>
+               <div className="flex items-baseline gap-2">
+                  <div className="text-2xl font-black tracking-tight text-foreground">₹{(nifty.price || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                  <span className={`text-[11px] font-bold ${(nifty.change || 0) >= 0 ? 'text-emerald-600' : 'text-destructive'}`}>
+                     {(nifty.change || 0) >= 0 ? '+' : ''}{(nifty.change || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ({(nifty.changePercent || 0).toFixed(2)}%)
+                  </span>
+               </div>
             )}
           </CardContent>
         </Card>
-        <Card className="relative overflow-hidden border-yellow-500/20 bg-gradient-to-br from-card to-yellow-500/5 shadow-[0_0_15px_rgba(234,179,8,0.05)] transition-all duration-300 hover:shadow-[0_0_20px_rgba(234,179,8,0.12)]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+
+        <Card className="relative group overflow-hidden border-yellow-500/20 bg-gradient-to-br from-white to-yellow-50/30 dark:from-slate-900 dark:to-yellow-900/10 shadow-[0_4px_15px_rgba(234,179,8,0.05)] transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-5">
              <div>
-                <div className="flex items-center gap-2">
-                   <CardTitle className="text-sm font-semibold text-yellow-500 tracking-wide uppercase">Live Gold (1g)</CardTitle>
+                <div className="flex items-center gap-1.5">
+                   <CardTitle className="text-xs font-bold text-amber-600 dark:text-amber-400 tracking-widest uppercase">Gold (1g)</CardTitle>
                    {isMarketOpen && (
-                      <div className="flex items-center gap-1 animate-pulse bg-rose-500/10 px-1.5 rounded py-0.5 border border-rose-500/20">
-                         <span className="relative flex h-1.5 w-1.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></span>
+                      <div className="flex items-center gap-1 animate-pulse bg-rose-500/10 px-1.5 rounded-full py-0.5">
+                         <span className="relative flex h-1 w-1">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-1 w-1 bg-rose-500"></span>
                          </span>
-                         <span className="text-[8px] text-rose-400 font-black tracking-tighter">LIVE</span>
+                         <span className="text-[8px] text-rose-500 font-black">LIVE</span>
                       </div>
                    )}
                 </div>
-                <p className="text-[10px] text-muted-foreground">24 Karat • Live Rate</p>
+                <p className="text-[9px] font-medium text-muted-foreground/60">24K Premium</p>
              </div>
-            <div className="h-10 w-10 flex items-center justify-center rounded-full bg-yellow-500/10 border border-yellow-500/20">
-               <svg viewBox="0 0 24 24" className="h-6 w-6 text-yellow-500 filter drop-shadow-[0_0_4px_rgba(234,179,8,0.4)]" fill="none" stroke="currentColor" strokeWidth="1.5">
-                 <circle cx="12" cy="12" r="10" fill="url(#goldGradient)" stroke="#eab308" strokeWidth="1" />
-                 <circle cx="12" cy="12" r="7" fill="none" stroke="#ca8a04" strokeDasharray="3 2" />
+            <div className="h-9 w-9 flex items-center justify-center rounded-full bg-amber-500/10 border border-amber-500/20">
+               <svg viewBox="0 0 24 24" className="h-5 w-5 text-yellow-500" fill="none" stroke="currentColor" strokeWidth="1.5">
+                 <circle cx="12" cy="12" r="10" fill="url(#goldGradientMini)" stroke="#eab308" strokeWidth="1" />
                  <path d="M9 8h6M9 11h5.5M12 8c0 3-3 3-3 3h4.5M9.5 11l4.5 5" stroke="#ca8a04" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                  <defs>
-                   <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                   <linearGradient id="goldGradientMini" x1="0%" y1="0%" x2="100%" y2="100%">
                      <stop offset="0%" stopColor="#fef08a" />
-                     <stop offset="50%" stopColor="#eab308" />
                      <stop offset="100%" stopColor="#ca8a04" />
                    </linearGradient>
                  </defs>
                </svg>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="pb-4 px-5">
             {gold.loading ? (
-               <div className="space-y-2">
-                 <div className="text-2xl font-bold text-muted-foreground animate-pulse">Syncing...</div>
-                 <div className="h-4 w-24 bg-muted rounded animate-pulse" />
-               </div>
+               <div className="h-6 w-24 bg-muted rounded animate-pulse" />
             ) : (
-               <>
-                 <div>
-                    <div className="text-3xl font-extrabold text-foreground">₹{(gold.price || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-                    <p className={`text-xs mt-1 flex items-center gap-1 font-semibold ${(gold.change || 0) >= 0 ? 'text-emerald-500' : 'text-destructive'}`}>
-                       {(gold.change || 0) >= 0 ? '▲' : '▼'} {(gold.change || 0).toFixed(2)} ({(gold.changePercent || 0) >= 0 ? '+' : ''}{(gold.changePercent || 0).toFixed(2)}%)
-                    </p>
-                 </div>
-                 
-                 {/* 10g Gold Coin details */}
-                 <div className="pt-3 border-t border-yellow-500/10 flex items-center justify-between">
-                    <div>
-                       <p className="text-xs font-semibold text-yellow-500/90 flex items-center gap-1">
-                          <svg viewBox="0 0 24 24" className="h-3 w-3 inline" fill="none" stroke="currentColor" strokeWidth="2">
-                             <circle cx="12" cy="12" r="10" stroke="currentColor" />
-                             <circle cx="12" cy="12" r="5" stroke="currentColor" />
-                          </svg> 
-                          Gold Coin (10g)
-                       </p>
-                       <p className="text-[10px] text-muted-foreground">Standard Investment Bar</p>
-                    </div>
-                    <div className="text-right">
-                       <p className="text-sm font-bold text-foreground">₹{(gold.price * 10).toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
-                       <p className="text-[9px] text-emerald-500 font-medium">Prestige Grade</p>
-                    </div>
-                 </div>
-               </>
+               <div className="flex items-baseline gap-2">
+                  <div className="text-2xl font-black tracking-tight text-foreground">₹{(gold.price || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                  <span className={`text-[11px] font-bold ${(gold.change || 0) >= 0 ? 'text-emerald-600' : 'text-destructive'}`}>
+                     {(gold.change || 0) >= 0 ? '+' : ''}{(gold.change || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ({(gold.changePercent || 0).toFixed(2)}%)
+                  </span>
+               </div>
             )}
           </CardContent>
         </Card>
-        <Card className="relative overflow-hidden border-slate-400/20 bg-gradient-to-br from-card to-slate-400/5 shadow-[0_0_15px_rgba(148,163,184,0.05)] transition-all duration-300 hover:shadow-[0_0_20px_rgba(148,163,184,0.12)]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+
+        <Card className="relative group overflow-hidden border-slate-400/20 bg-gradient-to-br from-white to-slate-50/30 dark:from-slate-900 dark:to-slate-800/10 shadow-[0_4px_15px_rgba(148,163,184,0.05)] transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-5">
              <div>
-                <div className="flex items-center gap-2">
-                   <CardTitle className="text-sm font-semibold text-slate-400 tracking-wide uppercase">Live Silver (1g)</CardTitle>
+                <div className="flex items-center gap-1.5">
+                   <CardTitle className="text-xs font-bold text-slate-600 dark:text-slate-300 tracking-widest uppercase">Silver (1g)</CardTitle>
                    {isMarketOpen && (
-                      <div className="flex items-center gap-1 animate-pulse bg-rose-500/10 px-1.5 rounded py-0.5 border border-rose-500/20">
-                         <span className="relative flex h-1.5 w-1.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></span>
+                      <div className="flex items-center gap-1 animate-pulse bg-rose-500/10 px-1.5 rounded-full py-0.5">
+                         <span className="relative flex h-1 w-1">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-1 w-1 bg-rose-500"></span>
                          </span>
-                         <span className="text-[8px] text-rose-400 font-black tracking-tighter">LIVE</span>
+                         <span className="text-[8px] text-rose-500 font-black">LIVE</span>
                       </div>
                    )}
                 </div>
-                <p className="text-[10px] text-muted-foreground">999 Fine • Live Rate</p>
+                <p className="text-[9px] font-medium text-muted-foreground/60">999 Pure Spec</p>
              </div>
-            <div className="h-10 w-10 flex items-center justify-center rounded-full bg-slate-400/10 border border-slate-400/20">
-               <svg viewBox="0 0 24 24" className="h-6 w-6 text-slate-300 filter drop-shadow-[0_0_4px_rgba(203,213,225,0.4)]" fill="none" stroke="currentColor" strokeWidth="1.5">
-                 <circle cx="12" cy="12" r="10" fill="url(#silverGradient)" stroke="#94a3b8" strokeWidth="1" />
-                 <circle cx="12" cy="12" r="7" fill="none" stroke="#64748b" strokeDasharray="3 2" />
+            <div className="h-9 w-9 flex items-center justify-center rounded-full bg-slate-400/10 border border-slate-400/20">
+               <svg viewBox="0 0 24 24" className="h-5 w-5 text-slate-300" fill="none" stroke="currentColor" strokeWidth="1.5">
+                 <circle cx="12" cy="12" r="10" fill="url(#silverGradientMini)" stroke="#94a3b8" strokeWidth="1" />
                  <path d="M9 8h6M9 11h5.5M12 8c0 3-3 3-3 3h4.5M9.5 11l4.5 5" stroke="#64748b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                  <defs>
-                   <linearGradient id="silverGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                   <linearGradient id="silverGradientMini" x1="0%" y1="0%" x2="100%" y2="100%">
                      <stop offset="0%" stopColor="#f8fafc" />
-                     <stop offset="50%" stopColor="#cbd5e1" />
                      <stop offset="100%" stopColor="#64748b" />
                    </linearGradient>
                  </defs>
                </svg>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="pb-4 px-5">
             {silver.loading ? (
-               <div className="space-y-2">
-                 <div className="text-2xl font-bold text-muted-foreground animate-pulse">Syncing...</div>
-                 <div className="h-4 w-24 bg-muted rounded animate-pulse" />
-               </div>
+               <div className="h-6 w-24 bg-muted rounded animate-pulse" />
             ) : (
-               <>
-                 <div>
-                    <div className="text-3xl font-extrabold text-foreground">₹{(silver.price || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-                    <p className={`text-xs mt-1 flex items-center gap-1 font-semibold ${(silver.change || 0) >= 0 ? 'text-emerald-500' : 'text-destructive'}`}>
-                       {(silver.change || 0) >= 0 ? '▲' : '▼'} {(silver.change || 0).toFixed(2)} ({(silver.changePercent || 0) >= 0 ? '+' : ''}{(silver.changePercent || 0).toFixed(2)}%)
-                    </p>
-                 </div>
-                 
-                 {/* 100g Silver Coin/Bar details */}
-                 <div className="pt-3 border-t border-slate-400/10 flex items-center justify-between">
-                    <div>
-                       <p className="text-xs font-semibold text-slate-400 flex items-center gap-1">
-                          <svg viewBox="0 0 24 24" className="h-3 w-3 inline" fill="none" stroke="currentColor" strokeWidth="2">
-                             <circle cx="12" cy="12" r="10" stroke="currentColor" />
-                             <circle cx="12" cy="12" r="5" stroke="currentColor" />
-                          </svg> 
-                          Silver Coin (100g)
-                       </p>
-                       <p className="text-[10px] text-muted-foreground">Standard Minted Coin</p>
-                    </div>
-                    <div className="text-right">
-                       <p className="text-sm font-bold text-foreground">₹{(silver.price * 100).toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
-                       <p className="text-[9px] text-emerald-500 font-medium">99.9% Pure</p>
-                    </div>
-                 </div>
-               </>
+               <div className="flex items-baseline gap-2">
+                  <div className="text-2xl font-black tracking-tight text-foreground">₹{(silver.price || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                  <span className={`text-[11px] font-bold ${(silver.change || 0) >= 0 ? 'text-emerald-600' : 'text-destructive'}`}>
+                     {(silver.change || 0) >= 0 ? '+' : ''}{(silver.change || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ({(silver.changePercent || 0).toFixed(2)}%)
+                  </span>
+               </div>
             )}
           </CardContent>
         </Card>

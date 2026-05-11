@@ -17,6 +17,51 @@ type SIP = {
   status: string
 }
 
+function CalcInput({ 
+  value, 
+  onChange, 
+  prefix = "", 
+  suffix = "", 
+  className = "w-16" 
+}: { 
+  value: number; 
+  onChange: (v: number) => void; 
+  prefix?: string; 
+  suffix?: string;
+  className?: string;
+}) {
+  const [localValue, setLocalValue] = useState(value.toString());
+
+  useEffect(() => {
+    if (Number(localValue) !== value) {
+      setLocalValue(value.toString());
+    }
+  }, [value]);
+
+  return (
+    <div className="flex items-center text-primary font-bold">
+      {prefix && <span className="pointer-events-none text-xs">{prefix}</span>}
+      <input 
+        type="number" 
+        value={localValue} 
+        onChange={(e) => {
+          const val = e.target.value;
+          setLocalValue(val);
+          const num = parseFloat(val);
+          if (!isNaN(num)) {
+            onChange(num);
+          }
+        }}
+        onBlur={() => {
+          setLocalValue(value.toString());
+        }}
+        className={`bg-transparent text-right font-bold focus:outline-none border-b border-transparent hover:border-primary/30 focus:border-primary/60 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${className}`}
+      />
+      {suffix && <span className="ml-0.5 pointer-events-none text-xs">{suffix}</span>}
+    </div>
+  );
+}
+
 export default function SIPPlannerPage() {
   const [sips, setSips] = useState<SIP[]>([])
   const [holdings, setHoldings] = useState<{name: string, symbol: string, type: string}[]>([])
@@ -176,6 +221,8 @@ export default function SIPPlannerPage() {
       return acc + rReturns;
     }, 0)
 
+  const totalProjectedInvested = totalMonthlySIP * 12 * dashboardYears;
+
   // Calculate SIP Returns
   const i = calcRate / 12 / 100;
   const n = calcYears * 12;
@@ -207,8 +254,8 @@ export default function SIPPlannerPage() {
     <div className="flex-1 space-y-4 relative w-full max-w-full min-w-0 overflow-x-hidden">
       <div className="flex items-center justify-between">
         <div>
-           <h2 className="text-2xl font-bold tracking-tight">SIP Planner</h2>
-           <p className="text-muted-foreground">Automate your investments with Systematic Investment Plans.</p>
+           <h2 className="text-3xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground/90 to-foreground/60">SIP Intelligence</h2>
+           <p className="text-muted-foreground font-medium mt-1">Automate and simulate your wealth compounding velocity.</p>
         </div>
         <Button onClick={() => setIsModalOpen(true)} className="gap-2">
            <Plus className="h-4 w-4" /> New SIP
@@ -270,9 +317,11 @@ export default function SIPPlannerPage() {
                  </div>
               </div>
               <div className="text-3xl font-extrabold text-emerald-500 tracking-tight private-value">₹{Math.round(totalProjectedReturn).toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                 Combined estimated gain at {dashboardRate}% p.a.
-              </p>
+              <div className="flex items-center gap-x-3 gap-y-1 mt-1 text-xs text-muted-foreground flex-wrap">
+                 <span className="font-medium">Invested: <strong className="text-foreground private-value">₹{Math.round(totalProjectedInvested).toLocaleString()}</strong></span>
+                 <span className="hidden sm:inline opacity-40">•</span>
+                 <span>Est. gain at {dashboardRate}% p.a.</span>
+              </div>
            </CardContent>
         </Card>
       </div>
@@ -297,6 +346,7 @@ export default function SIPPlannerPage() {
                          <th className="h-10 px-1.5 lg:px-2 text-left align-middle font-semibold text-muted-foreground text-[10px] uppercase tracking-wider">Freq.</th>
                          <th className="h-10 px-1.5 lg:px-2 text-right align-middle font-semibold text-muted-foreground text-[10px] uppercase tracking-wider">Amount</th>
                          <th className="h-10 px-1.5 lg:px-2 text-center align-middle font-semibold text-muted-foreground text-[10px] uppercase tracking-wider">Due</th>
+                         <th className="h-10 px-1.5 lg:px-2 text-right align-middle font-semibold text-muted-foreground text-[10px] uppercase tracking-wider">Invested</th>
                          <th className="h-10 px-1.5 lg:px-2 text-right align-middle font-semibold text-muted-foreground text-[10px] uppercase tracking-wider">Projected</th>
                          <th className="h-10 px-1.5 lg:px-2 text-right align-middle font-semibold text-muted-foreground text-[10px] uppercase tracking-wider">Returns</th>
                          <th className="h-10 px-1.5 lg:px-2 text-right align-middle font-semibold text-muted-foreground text-[10px] uppercase tracking-wider">Act.</th>
@@ -304,9 +354,9 @@ export default function SIPPlannerPage() {
                      </thead>
                      <tbody className="[&_tr:last-child]:border-0">
                        {loading ? (
-                          <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">Loading SIPs...</td></tr>
+                          <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">Loading SIPs...</td></tr>
                        ) : sips.length === 0 ? (
-                          <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No SIPs found. Create one!</td></tr>
+                          <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">No SIPs found. Create one!</td></tr>
                        ) : sips.map((sip) => {
                          let monthlyAmt = sip.amount;
                          if (sip.frequency === 'Weekly') monthlyAmt *= 4;
@@ -330,6 +380,7 @@ export default function SIPPlannerPage() {
                                 sip.frequency === 'Weekly' ? `${new Date(sip.next_date).toLocaleDateString('en-US', {weekday: 'short'})}` : 
                                 `${new Date(sip.next_date).getDate()}`}
                             </td>
+                            <td className="py-2.5 px-1.5 lg:px-2 align-middle text-right font-medium text-foreground/70 private-value">₹{Math.round(rInvested).toLocaleString()}</td>
                             <td className="py-2.5 px-1.5 lg:px-2 align-middle text-right text-primary font-bold private-value">₹{Math.round(rTotal).toLocaleString()}</td>
                             <td className="py-2.5 px-1.5 lg:px-2 align-middle text-right text-emerald-500 font-bold private-value">+₹{Math.round(rReturns).toLocaleString()}</td>
                             <td className="py-2.5 px-1.5 lg:px-2 align-middle text-right">
@@ -354,29 +405,45 @@ export default function SIPPlannerPage() {
                        if (sip.frequency === 'Weekly') monthlyAmt *= 4;
                        if (sip.frequency === 'Daily') monthlyAmt *= 30;
                        
+                       const rInvested = monthlyAmt * (dashboardYears * 12);
                        const rTotal = monthlyAmt * ((Math.pow(1 + (dashboardRate/12/100), dashboardYears * 12) - 1) / (dashboardRate/12/100)) * (1 + (dashboardRate/12/100));
+                       const rReturns = rTotal - rInvested;
 
                        return (
-                          <div key={sip.id} className="p-4 flex items-center justify-between active:bg-muted/50 transition-colors">
-                             <div className="flex-1 min-w-0 pr-2">
-                                <h4 className="font-bold text-[14px] text-foreground truncate">{sip.name}</h4>
-                                <div className="flex items-center gap-2 mt-0.5">
-                                   <span className="text-[10px] px-1.5 bg-secondary/80 text-muted-foreground rounded font-medium uppercase">{sip.frequency}</span>
-                                   <span className="text-[11px] text-muted-foreground/80">
-                                      Due: {sip.frequency === 'Daily' ? 'Daily' : 
-                                            sip.frequency === 'Weekly' ? `${new Date(sip.next_date).toLocaleDateString('en-US', {weekday: 'short'})}` : 
-                                            `Day ${new Date(sip.next_date).getDate()}`}
-                                   </span>
+                          <div key={sip.id} className="p-4 flex flex-col gap-3 active:bg-muted/50 transition-colors">
+                             <div className="flex justify-between items-start">
+                                <div className="flex-1 min-w-0 pr-2">
+                                   <h4 className="font-bold text-[14px] text-foreground truncate">{sip.name}</h4>
+                                   <div className="flex items-center gap-2 mt-0.5">
+                                      <span className="text-[10px] px-1.5 bg-secondary/80 text-muted-foreground rounded font-medium uppercase">{sip.frequency}</span>
+                                      <span className="text-[11px] text-muted-foreground/80">
+                                         Due: {sip.frequency === 'Daily' ? 'Daily' : 
+                                               sip.frequency === 'Weekly' ? `${new Date(sip.next_date).toLocaleDateString('en-US', {weekday: 'short'})}` : 
+                                               `Day ${new Date(sip.next_date).getDate()}`}
+                                      </span>
+                                   </div>
+                                </div>
+                                <div className="text-right flex items-center gap-2 shrink-0">
+                                   <div className="font-extrabold text-sm private-value">₹{sip.amount.toLocaleString()}</div>
+                                   <Button variant="ghost" size="icon" onClick={() => handleDelete(sip.id)} className="h-7 w-7 text-destructive active:bg-destructive/10 -mr-1">
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                   </Button>
                                 </div>
                              </div>
-                             <div className="text-right flex items-center gap-3 shrink-0">
-                                <div>
-                                   <p className="font-extrabold text-sm private-value">₹{sip.amount.toLocaleString()}</p>
-                                   <p className="text-[11px] text-emerald-500 font-bold private-value">Est: ₹{Math.round(rTotal/100000 * 10) / 10}L</p>
+                             
+                             <div className="grid grid-cols-3 gap-2 bg-muted/30 rounded-lg p-2 border border-border/40">
+                                <div className="flex flex-col">
+                                   <span className="text-[9px] text-muted-foreground uppercase tracking-wider font-medium">Invested</span>
+                                   <span className="text-[12px] font-bold text-foreground/80 private-value">₹{Math.round(rInvested).toLocaleString()}</span>
                                 </div>
-                                <Button variant="ghost" size="icon" onClick={() => handleDelete(sip.id)} className="h-8 w-8 text-destructive active:bg-destructive/10 -mr-1">
-                                   <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
+                                <div className="flex flex-col">
+                                   <span className="text-[9px] text-muted-foreground uppercase tracking-wider font-medium">Projected</span>
+                                   <span className="text-[12px] font-bold text-primary private-value">₹{Math.round(rTotal).toLocaleString()}</span>
+                                </div>
+                                <div className="flex flex-col text-right">
+                                   <span className="text-[9px] text-muted-foreground uppercase tracking-wider font-medium">Returns</span>
+                                   <span className="text-[12px] font-bold text-emerald-500 private-value">+₹{Math.round(rReturns).toLocaleString()}</span>
+                                </div>
                              </div>
                           </div>
                        )
@@ -434,7 +501,7 @@ export default function SIPPlannerPage() {
                      <div>
                         <label className="flex justify-between text-xs font-medium mb-1">
                            <span>Monthly Investment</span>
-                           <span className="text-primary font-bold">₹{calcAmount.toLocaleString()}</span>
+                           <CalcInput value={calcAmount} onChange={setCalcAmount} prefix="₹" className="w-20 text-xs" />
                         </label>
                         <input 
                            type="range" 
@@ -447,7 +514,7 @@ export default function SIPPlannerPage() {
                      <div>
                         <label className="flex justify-between text-xs font-medium mb-1">
                            <span>Expected Return Rate</span>
-                           <span className="text-primary font-bold">{calcRate}%</span>
+                           <CalcInput value={calcRate} onChange={setCalcRate} suffix="%" className="w-8 text-xs" />
                         </label>
                         <input 
                            type="range" 
@@ -460,7 +527,7 @@ export default function SIPPlannerPage() {
                      <div>
                         <label className="flex justify-between text-xs font-medium mb-1">
                            <span>Time Period (Years)</span>
-                           <span className="text-primary font-bold">{calcYears} Yr</span>
+                           <CalcInput value={calcYears} onChange={setCalcYears} suffix=" Yr" className="w-10 text-xs" />
                         </label>
                         <input 
                            type="range" 
@@ -493,7 +560,7 @@ export default function SIPPlannerPage() {
                       <div>
                          <label className="flex justify-between text-xs font-medium mb-1">
                             <span>One-time Investment</span>
-                            <span className="text-primary font-bold">₹{lumpInvested.toLocaleString()}</span>
+                            <CalcInput value={lumpInvested} onChange={setLumpInvested} prefix="₹" className="w-24 text-xs" />
                          </label>
                          <input 
                             type="range" 
@@ -506,7 +573,7 @@ export default function SIPPlannerPage() {
                       <div>
                          <label className="flex justify-between text-xs font-medium mb-1">
                             <span>Expected Return Rate</span>
-                            <span className="text-primary font-bold">{lumpRate}%</span>
+                            <CalcInput value={lumpRate} onChange={setLumpRate} suffix="%" className="w-8 text-xs" />
                          </label>
                          <input 
                             type="range" 
@@ -519,7 +586,7 @@ export default function SIPPlannerPage() {
                       <div>
                          <label className="flex justify-between text-xs font-medium mb-1">
                             <span>Time Period (Years)</span>
-                            <span className="text-primary font-bold">{lumpYears} Yr</span>
+                            <CalcInput value={lumpYears} onChange={setLumpYears} suffix=" Yr" className="w-10 text-xs" />
                          </label>
                          <input 
                             type="range" 
@@ -552,7 +619,7 @@ export default function SIPPlannerPage() {
                      <div>
                         <label className="flex justify-between text-xs font-medium mb-1">
                            <span>Total Investment</span>
-                           <span className="text-primary font-bold">₹{swpInvested.toLocaleString()}</span>
+                           <CalcInput value={swpInvested} onChange={setSwpInvested} prefix="₹" className="w-24 text-xs" />
                         </label>
                         <input 
                            type="range" 
@@ -565,7 +632,7 @@ export default function SIPPlannerPage() {
                      <div>
                         <label className="flex justify-between text-xs font-medium mb-1">
                            <span>Monthly Withdrawal</span>
-                           <span className="text-primary font-bold">₹{swpWithdrawal.toLocaleString()}</span>
+                           <CalcInput value={swpWithdrawal} onChange={setSwpWithdrawal} prefix="₹" className="w-20 text-xs" />
                         </label>
                         <input 
                            type="range" 
@@ -578,7 +645,7 @@ export default function SIPPlannerPage() {
                      <div>
                         <label className="flex justify-between text-xs font-medium mb-1">
                            <span>Expected Return Rate</span>
-                           <span className="text-primary font-bold">{swpRate}%</span>
+                           <CalcInput value={swpRate} onChange={setSwpRate} suffix="%" className="w-8 text-xs" />
                         </label>
                         <input 
                            type="range" 
@@ -591,7 +658,7 @@ export default function SIPPlannerPage() {
                      <div>
                         <label className="flex justify-between text-xs font-medium mb-1">
                            <span>Time Period (Years)</span>
-                           <span className="text-primary font-bold">{swpYears} Yr</span>
+                           <CalcInput value={swpYears} onChange={setSwpYears} suffix=" Yr" className="w-10 text-xs" />
                         </label>
                         <input 
                            type="range" 
@@ -624,7 +691,7 @@ export default function SIPPlannerPage() {
                      <div>
                         <label className="flex justify-between text-xs font-medium mb-1">
                            <span>Current Cost</span>
-                           <span className="text-primary font-bold">₹{infCost.toLocaleString()}</span>
+                           <CalcInput value={infCost} onChange={setInfCost} prefix="₹" className="w-24 text-xs" />
                         </label>
                         <input 
                            type="range" 
@@ -637,7 +704,7 @@ export default function SIPPlannerPage() {
                      <div>
                         <label className="flex justify-between text-xs font-medium mb-1">
                            <span>Inflation Rate</span>
-                           <span className="text-primary font-bold">{infRate}%</span>
+                           <CalcInput value={infRate} onChange={setInfRate} suffix="%" className="w-8 text-xs" />
                         </label>
                         <input 
                            type="range" 
@@ -650,7 +717,7 @@ export default function SIPPlannerPage() {
                      <div>
                         <label className="flex justify-between text-xs font-medium mb-1">
                            <span>Time Period (Years)</span>
-                           <span className="text-primary font-bold">{infYears} Yr</span>
+                           <CalcInput value={infYears} onChange={setInfYears} suffix=" Yr" className="w-10 text-xs" />
                         </label>
                         <input 
                            type="range" 

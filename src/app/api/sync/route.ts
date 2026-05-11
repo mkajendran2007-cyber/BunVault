@@ -81,16 +81,16 @@ export async function GET(request: Request) {
               const inrRate = inrResult.meta.regularMarketPrice;
               const inrPrev = inrResult.meta.chartPreviousClose || inrRate;
               const GRAMS_PER_OUNCE = 31.1034768;
-              const calculatePrice = (usdOunce: number, inrConversion: number) => (usdOunce / GRAMS_PER_OUNCE) * inrConversion * 1.09;
+              const calculatePrice = (usdOunce: number, inrConversion: number, multiplier: number) => (usdOunce / GRAMS_PER_OUNCE) * inrConversion * multiplier;
 
               // Helper function for processing
-              const processMetal = (sym: string, data: any) => {
+              const processMetal = (sym: string, data: any, multiplier: number) => {
                  if (data?.chart?.result?.[0]) {
                     const meta = data.chart.result[0].meta;
                     const usdPrice = meta.regularMarketPrice;
                     const usdPrev = meta.chartPreviousClose || usdPrice;
-                    const currentINR = calculatePrice(usdPrice, inrRate);
-                    const prevINR = calculatePrice(usdPrev, inrPrev);
+                    const currentINR = calculatePrice(usdPrice, inrRate, multiplier);
+                    const prevINR = calculatePrice(usdPrev, inrPrev, multiplier);
                     const change = currentINR - prevINR;
                     
                     const entry = {
@@ -106,8 +106,8 @@ export async function GET(request: Request) {
                  }
               };
 
-              if (customMetals.includes("GOLD_INR_1G")) processMetal("GOLD_INR_1G", gcData);
-              if (customMetals.includes("SILVER_INR_1G")) processMetal("SILVER_INR_1G", siData);
+              if (customMetals.includes("GOLD_INR_1G")) processMetal("GOLD_INR_1G", gcData, 1.06);
+              if (customMetals.includes("SILVER_INR_1G")) processMetal("SILVER_INR_1G", siData, 1.09);
            }
         } catch (e) {
            console.error("Metals fetch error:", e);

@@ -201,8 +201,8 @@ export default function GoalsPage() {
       {/* Title Header */}
       <div className="flex items-center justify-between">
         <div>
-           <h2 className="text-2xl font-bold tracking-tight">Goals</h2>
-           <p className="text-muted-foreground">{goals.length} active goal{goals.length !== 1 && 's'}</p>
+           <h2 className="text-3xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground/90 to-foreground/60">Your Financial Goals</h2>
+           <p className="text-muted-foreground font-medium mt-1">{goals.length} active milestone{goals.length !== 1 && 's'} in track</p>
         </div>
       </div>
 

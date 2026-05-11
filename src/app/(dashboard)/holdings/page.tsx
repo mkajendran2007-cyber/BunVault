@@ -238,8 +238,8 @@ export default function HoldingsPage() {
     <div className="flex-1 space-y-4 relative w-full min-w-0 overflow-x-hidden">
       <div className="flex items-center justify-between">
         <div>
-           <h2 className="text-2xl font-bold tracking-tight">Your Holdings</h2>
-           <p className="text-muted-foreground">Manage your detailed asset portfolio here.</p>
+           <h2 className="text-3xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground/90 to-foreground/60">Your Holdings</h2>
+           <p className="text-muted-foreground font-medium mt-1">Manage and grow your unified asset portfolio</p>
         </div>
         <Button onClick={() => setIsModalOpen(true)} className="gap-2">
            <Plus className="h-4 w-4" /> Add Asset
@@ -247,28 +247,31 @@ export default function HoldingsPage() {
       </div>
 
       {/* Desktop Summary View (Restored for PC View) */}
-      <div className="hidden md:grid md:grid-cols-3 gap-4 mb-6">
-        <Card className="glass-panel">
+      <div className="hidden md:grid md:grid-cols-3 gap-6 mb-6">
+        <Card className="hover:shadow-lg border-white/10 bg-white/40 dark:bg-slate-950/30 backdrop-blur-md transition-all">
            <CardContent className="p-6">
-              <div className="text-sm font-medium text-muted-foreground mb-2">Total Invested</div>
-              <div className="text-3xl font-bold private-value">₹{totalInvested.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+              <div className="text-sm font-bold tracking-wider uppercase text-muted-foreground/70 mb-3">Total Invested</div>
+              <div className="text-3xl font-black private-value">₹{totalInvested.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
            </CardContent>
         </Card>
-        <Card className="glass-panel">
-           <CardContent className="p-6">
-              <div className="text-sm font-medium text-muted-foreground mb-2">Current Value</div>
-              <div className="text-3xl font-bold text-primary private-value">₹{totalCurrent.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+        <Card className="hover:shadow-lg border-primary/20 transition-all">
+           <CardContent className="p-6 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-primary opacity-20" />
+              <div className="text-sm font-bold tracking-wider uppercase text-primary mb-3">Current Value</div>
+              <div className="text-3xl font-black text-foreground private-value">₹{totalCurrent.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
            </CardContent>
         </Card>
-        <Card className="glass-panel">
+        <Card className="hover:shadow-lg transition-all">
            <CardContent className="p-6">
-              <div className="text-sm font-medium text-muted-foreground mb-2">Unrealized P&L</div>
-              <div className={`text-3xl font-bold private-value ${totalPL >= 0 ? 'text-emerald-500' : 'text-destructive'}`}>
+              <div className="text-sm font-bold tracking-wider uppercase text-muted-foreground/70 mb-3">Unrealized P&L</div>
+              <div className={`text-3xl font-black private-value ${totalPL >= 0 ? 'text-emerald-500' : 'text-destructive'}`}>
                  {totalPL >= 0 ? '+' : ''}₹{totalPL.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
               </div>
-              <p className={`text-xs mt-1 private-value ${totalPL >= 0 ? 'text-emerald-500' : 'text-destructive'}`}>
-                 {totalPL >= 0 ? '+' : ''}{plPercent.toFixed(2)}% overall return
-              </p>
+              <div className="mt-2">
+                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold private-value border ${totalPL >= 0 ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-destructive/10 text-destructive border-destructive/20'}`}>
+                    {totalPL >= 0 ? '+' : ''}{plPercent.toFixed(2)}% overall return
+                 </span>
+              </div>
            </CardContent>
         </Card>
       </div>
