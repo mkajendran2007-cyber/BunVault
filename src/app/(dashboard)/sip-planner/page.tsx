@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
-import { Plus, X, Trash2, Calculator } from "lucide-react"
+import { Plus, X, Trash2, Calculator, Pencil } from "lucide-react"
 
 type SIP = {
   id: string
@@ -69,6 +69,7 @@ export default function SIPPlannerPage() {
   const [loading, setLoading] = useState(true)
 
   // Form State
+  const [editingSipId, setEditingSipId] = useState<string | null>(null)
   const [name, setName] = useState("")
   const [symbol, setSymbol] = useState("")
   const [type, setType] = useState("Equity")
@@ -138,6 +139,40 @@ export default function SIPPlannerPage() {
     setLoading(false)
   }
 
+  const handleOpenAdd = () => {
+     setEditingSipId(null)
+     setName("")
+     setSymbol("")
+     setType("Equity")
+     setAmount("")
+     setFrequency("Monthly")
+     setNextDate("")
+     setIsModalOpen(true)
+  }
+
+  const handleOpenEdit = (sip: SIP) => {
+     setEditingSipId(sip.id)
+     setName(sip.name)
+     setSymbol(sip.symbol)
+     setType(sip.type)
+     setAmount(sip.amount.toString())
+     setFrequency(sip.frequency)
+     
+     // Parse the stored next_date back into raw value for the input
+     if (sip.frequency === 'Daily') {
+        setNextDate("Everyday")
+     } else if (sip.frequency === 'Weekly') {
+        const d = new Date(sip.next_date)
+        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        setNextDate(days[d.getDay()])
+     } else {
+        const d = new Date(sip.next_date)
+        setNextDate(d.getDate().toString())
+     }
+     
+     setIsModalOpen(true)
+  }
+
   const handleAddSIP = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -166,7 +201,7 @@ export default function SIPPlannerPage() {
       finalDate = now.toISOString().split('T')[0];
     }
 
-    const { error } = await supabase.from('sips').insert([{
+    const payload = {
       user_id: user.id,
       name,
       symbol,
@@ -175,22 +210,31 @@ export default function SIPPlannerPage() {
       frequency,
       next_date: finalDate,
       status: 'Active'
-    }])
+    }
+
+    let error;
+    if (editingSipId) {
+       const res = await supabase.from('sips').update(payload).eq('id', editingSipId)
+       error = res.error
+    } else {
+       const res = await supabase.from('sips').insert([payload])
+       error = res.error
+    }
 
     if (!error) {
       setIsModalOpen(false)
+      setEditingSipId(null)
       setName("")
       setSymbol("")
       setAmount("")
       setNextDate("")
       fetchSIPs()
     } else {
-      alert("Failed to add SIP: " + error.message)
+      alert("Failed to save SIP: " + error.message)
     }
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this SIP?")) return;
     const { error } = await supabase.from('sips').delete().eq('id', id)
     if (!error) fetchSIPs()
   }
@@ -257,7 +301,7 @@ export default function SIPPlannerPage() {
            <h2 className="text-3xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground/90 to-foreground/60">SIP Intelligence</h2>
            <p className="text-muted-foreground font-medium mt-1">Automate and simulate your wealth compounding velocity.</p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)} className="gap-2">
+        <Button onClick={handleOpenAdd} className="gap-2">
            <Plus className="h-4 w-4" /> New SIP
         </Button>
       </div>
@@ -383,8 +427,11 @@ export default function SIPPlannerPage() {
                             <td className="py-2.5 px-1.5 lg:px-2 align-middle text-right font-medium text-foreground/70 private-value">₹{Math.round(rInvested).toLocaleString()}</td>
                             <td className="py-2.5 px-1.5 lg:px-2 align-middle text-right text-primary font-bold private-value">₹{Math.round(rTotal).toLocaleString()}</td>
                             <td className="py-2.5 px-1.5 lg:px-2 align-middle text-right text-emerald-500 font-bold private-value">+₹{Math.round(rReturns).toLocaleString()}</td>
-                            <td className="py-2.5 px-1.5 lg:px-2 align-middle text-right">
-                               <Button variant="ghost" size="icon" onClick={() => handleDelete(sip.id)} className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors">
+                            <td className="py-2.5 px-1.5 lg:px-2 align-middle text-right flex items-center justify-end gap-1">
+                               <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(sip)} className="h-6 w-6 text-primary hover:bg-primary/10 transition-colors">
+                                  <Pencil className="h-3.5 w-3.5" />
+                               </Button>
+                               <Button variant="ghost" size="icon" onClick={() => handleDelete(sip.id)} className="h-6 w-6 text-destructive hover:bg-destructive/10 transition-colors">
                                   <Trash2 className="h-3.5 w-3.5" />
                                </Button>
                             </td>
@@ -425,9 +472,14 @@ export default function SIPPlannerPage() {
                                 </div>
                                 <div className="text-right flex items-center gap-2 shrink-0">
                                    <div className="font-extrabold text-sm private-value">₹{sip.amount.toLocaleString()}</div>
-                                   <Button variant="ghost" size="icon" onClick={() => handleDelete(sip.id)} className="h-7 w-7 text-destructive active:bg-destructive/10 -mr-1">
-                                      <Trash2 className="h-3.5 w-3.5" />
-                                   </Button>
+                                   <div className="flex gap-1">
+                                      <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(sip)} className="h-7 w-7 text-primary active:bg-primary/10 -mr-1">
+                                         <Pencil className="h-3.5 w-3.5" />
+                                      </Button>
+                                      <Button variant="ghost" size="icon" onClick={() => handleDelete(sip.id)} className="h-7 w-7 text-destructive active:bg-destructive/10">
+                                         <Trash2 className="h-3.5 w-3.5" />
+                                      </Button>
+                                   </div>
                                 </div>
                              </div>
                              
@@ -754,7 +806,7 @@ export default function SIPPlannerPage() {
          <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
             <Card className="w-full max-w-md shadow-lg border-primary/20">
                <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
-                  <CardTitle>Create New SIP</CardTitle>
+                  <CardTitle>{editingSipId ? 'Update SIP Plan' : 'Create New SIP'}</CardTitle>
                   <Button variant="ghost" size="icon" onClick={() => setIsModalOpen(false)} className="h-8 w-8">
                      <X className="h-4 w-4" />
                   </Button>
@@ -832,7 +884,9 @@ export default function SIPPlannerPage() {
                         </div>
                      </div>
                      <div className="pt-4">
-                        <Button type="submit" className="w-full">Save SIP Plan</Button>
+                        <Button type="submit" className="w-full">
+                           {editingSipId ? 'Update SIP Plan' : 'Save SIP Plan'}
+                        </Button>
                      </div>
                   </form>
                </CardContent>
@@ -841,7 +895,7 @@ export default function SIPPlannerPage() {
       )}
       {/* Mobile Floating Action Button for New SIP */}
       <button 
-         onClick={() => setIsModalOpen(true)}
+         onClick={handleOpenAdd}
          className="md:hidden fixed bottom-[72px] right-4 h-14 w-14 bg-emerald-600 text-white rounded-full shadow-lg shadow-emerald-900/30 flex items-center justify-center z-40 active:scale-95 transition-transform border border-emerald-400/20 hover:bg-emerald-500"
          aria-label="Add SIP"
       >

@@ -27,29 +27,38 @@ export default function Home() {
       <AnimatePresence>
         {isTransitioning && (
           <motion.div 
-            initial={{ clipPath: "circle(0% at 50% 50%)" }}
-            animate={{ clipPath: "circle(150% at 50% 50%)" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.6, ease: [0.65, 0, 0.35, 1] }}
-            className="fixed inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 z-[9999] flex items-center justify-center flex-col gap-6"
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="fixed inset-0 bg-[#020617] z-[9999] flex items-center justify-center flex-col gap-8"
           >
-             <motion.div
-               initial={{ opacity: 0, scale: 0.6, y: 20 }}
-               animate={{ opacity: 1, scale: 1, y: 0 }}
-               transition={{ delay: 0.2, duration: 0.4 }}
-               className="bg-white/15 backdrop-blur-lg border border-white/20 p-6 rounded-3xl shadow-2xl"
-             >
-               <img src="/logo.png" className="h-20 w-20 object-contain brightness-0 invert drop-shadow-2xl" alt="Vault Logo" />
-             </motion.div>
+             <div className="relative">
+               <motion.div 
+                 initial={{ opacity: 0, scale: 0.5 }}
+                 animate={{ opacity: [0.2, 0.4, 0.2], scale: [1, 1.2, 1] }}
+                 transition={{ duration: 2, repeat: Infinity }}
+                 className="absolute inset-0 bg-blue-500 rounded-full blur-3xl"
+               />
+               <motion.div
+                 initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                 animate={{ opacity: 1, scale: 1, y: 0 }}
+                 transition={{ delay: 0.1, duration: 0.5, ease: "backOut" }}
+                 className="relative h-24 w-24 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl shadow-blue-900/30"
+               >
+                 <img src="/icon-maskable.png" className="h-full w-full object-cover" alt="Vault Logo" />
+               </motion.div>
+             </div>
              
              <motion.div
-               initial={{ opacity: 0, y: 10 }}
+               initial={{ opacity: 0, y: 15 }}
                animate={{ opacity: 1, y: 0 }}
-               transition={{ delay: 0.3 }}
-               className="text-center"
+               transition={{ delay: 0.25, duration: 0.4 }}
+               className="text-center flex flex-col items-center gap-2"
              >
-               <h2 className="text-white font-extrabold text-3xl tracking-widest uppercase drop-shadow-md">BUN VAULT</h2>
-               <p className="text-blue-100 text-xs tracking-widest uppercase font-mono opacity-80 mt-1 animate-pulse">Opening Secure Portal</p>
+               <h2 className="text-white font-black text-2xl tracking-[0.2em] uppercase">BUN VAULT</h2>
+               <div className="h-0.5 w-12 bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-500 rounded-full opacity-80"></div>
+               <p className="text-blue-200/50 text-[10px] tracking-widest uppercase font-bold mt-1">Securing connection...</p>
              </motion.div>
           </motion.div>
         )}
@@ -57,8 +66,8 @@ export default function Home() {
 
       <header className="px-4 lg:px-6 h-16 flex items-center border-b border-border/40 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <Link className="flex items-center justify-center" href="#">
-          <div className="bg-white p-1 rounded-md border border-border/40 shadow-sm flex items-center justify-center h-8 w-8 mr-2">
-            <img src="/logo.png" alt="Bun Vault Logo" className="h-full w-full object-contain" />
+          <div className="overflow-hidden rounded-lg border border-border/40 shadow-sm flex items-center justify-center h-9 w-9 mr-2">
+            <img src="/logo.png" alt="Bun Vault Logo" className="h-full w-full object-cover" />
           </div>
           <span className="text-lg font-bold tracking-tight">BUN VAULT</span>
         </Link>
@@ -91,8 +100,8 @@ export default function Home() {
               >
                 <div className="relative group">
                   <div className="absolute -inset-1.5 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 opacity-20 blur-xl group-hover:opacity-35 transition duration-1000 group-hover:duration-200"></div>
-                  <div className="relative bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-150 dark:border-slate-800 shadow-xl transition-transform duration-500 hover:scale-[1.05]">
-                    <img src="/logo.png" alt="Bun Vault Logo" className="h-24 w-24 object-contain" />
+                  <div className="relative overflow-hidden rounded-2xl border border-gray-150 dark:border-slate-800 shadow-xl transition-transform duration-500 hover:scale-[1.05] h-24 w-24">
+                    <img src="/logo.png" alt="Bun Vault Logo" className="h-full w-full object-cover" />
                   </div>
                 </div>
               </motion.div>

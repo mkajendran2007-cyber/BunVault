@@ -29,8 +29,8 @@ export default function DesktopSidebarNav() {
     <div className="flex h-full max-h-screen flex-col gap-2 relative z-10">
       <div className="flex h-16 items-center border-b px-6">
         <Link href="/dashboard" className="flex items-center gap-3 font-extrabold tracking-tight text-xl text-foreground hover:opacity-90 transition-opacity">
-          <div className="bg-white dark:bg-slate-900 p-1.5 rounded-xl border border-border/80 shadow-sm flex items-center justify-center h-9 w-9 ring-1 ring-black/5">
-            <img src="/logo.png" alt="Bun Vault Logo" className="h-full w-full object-contain" />
+          <div className="flex items-center justify-center h-10 w-10 overflow-hidden rounded-lg shadow-sm border border-border/30">
+            <img src="/logo.png" alt="Bun Vault Logo" className="h-full w-full object-cover" />
           </div>
           <span className="bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70 tracking-wide">
              BUN VAULT

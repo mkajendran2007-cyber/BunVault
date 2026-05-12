@@ -4,10 +4,20 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowDownRight, ArrowUpRight, ShieldAlert, Zap, Download, TrendingUp } from "lucide-react"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import dynamic from 'next/dynamic'
 import { supabase } from "@/lib/supabase"
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
+
+// Performance Boost: Lazy-load massive charting libraries
+const ResponsiveContainer = dynamic(() => import('recharts').then(mod => mod.ResponsiveContainer), { ssr: false });
+const LineChart = dynamic(() => import('recharts').then(mod => mod.LineChart), { ssr: false });
+const Line = dynamic(() => import('recharts').then(mod => mod.Line), { ssr: false });
+const XAxis = dynamic(() => import('recharts').then(mod => mod.XAxis), { ssr: false });
+const YAxis = dynamic(() => import('recharts').then(mod => mod.YAxis), { ssr: false });
+const CartesianGrid = dynamic(() => import('recharts').then(mod => mod.CartesianGrid), { ssr: false });
+const RechartsTooltip = dynamic(() => import('recharts').then(mod => mod.Tooltip), { ssr: false });
+const PieChart = dynamic(() => import('recharts').then(mod => mod.PieChart), { ssr: false });
+const Pie = dynamic(() => import('recharts').then(mod => mod.Pie), { ssr: false });
+const Cell = dynamic(() => import('recharts').then(mod => mod.Cell), { ssr: false });
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
 
@@ -347,6 +357,10 @@ export default function Dashboard() {
          alert("No holdings data available to export.");
          return;
       }
+
+      // LAZY LOAD PDF LIBS ONLY ON CLICK - Massive payload saving!
+      const { default: jsPDF } = await import('jspdf');
+      const { default: autoTable } = await import('jspdf-autotable');
 
       // Fetch SIPs
       const { data: sips, error: sErr } = await supabase.from('sips').select('*').eq('user_id', user.id)
@@ -731,27 +745,7 @@ export default function Dashboard() {
       ) : (
       <>
       <div className="grid gap-6 md:grid-cols-3 mb-6">
-        <Card className="glass-panel group overflow-hidden border-primary/20 ring-1 ring-primary/5 transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(59,130,246,0.15)]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-indigo-500 to-transparent opacity-40" />
-            <CardTitle className="text-sm font-semibold tracking-wide uppercase text-muted-foreground/80">Current Portfolio Value</CardTitle>
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-300">
-               <Zap className="h-4 w-4" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-black tracking-tight private-value bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70">₹{currentValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-            <p className="text-xs text-primary flex items-center mt-3 font-semibold tracking-wide uppercase gap-1.5">
-              <span className="relative flex h-2 w-2">
-                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-              </span>
-              Live market sync active
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card className="glass-panel group hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+        <Card className="glass-panel group hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] md:order-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-semibold tracking-wide uppercase text-muted-foreground/80">Total Investment</CardTitle>
             <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -778,7 +772,27 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="glass-panel group relative overflow-hidden">
+        <Card className="glass-panel group overflow-hidden border-primary/20 ring-1 ring-primary/5 transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(59,130,246,0.15)] md:order-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-indigo-500 to-transparent opacity-40" />
+            <CardTitle className="text-sm font-semibold tracking-wide uppercase text-muted-foreground/80">Current Portfolio Value</CardTitle>
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-300">
+               <Zap className="h-4 w-4" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-black tracking-tight private-value bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70">₹{currentValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <p className="text-xs text-primary flex items-center mt-3 font-semibold tracking-wide uppercase gap-1.5">
+              <span className="relative flex h-2 w-2">
+                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              </span>
+              Live market sync active
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-panel group relative overflow-hidden md:order-3">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-semibold tracking-wide uppercase text-muted-foreground/80">Overall Profit/Loss</CardTitle>
             <div className={`h-8 w-8 rounded-full flex items-center justify-center group-hover:scale-110 transition-all ${totalPL >= 0 ? 'bg-emerald-500/10 text-emerald-600' : 'bg-destructive/10 text-destructive'}`}>

@@ -23,8 +23,8 @@ export default function AuthLayout({
              {/* BIG PREMIUM LOGO */}
              <div className="mb-4 lg:mb-8 relative group">
                 <div className="absolute inset-0 bg-primary/20 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-500 opacity-70" />
-                <div className="relative bg-white dark:bg-slate-900 p-3 lg:p-4 rounded-2xl lg:rounded-3xl border border-border/50 shadow-[0_10px_30px_rgba(0,0,0,0.1)] lg:shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center h-16 w-16 lg:h-32 lg:w-32 transform transition hover:scale-105 duration-300">
-                   <img src="/logo.png" alt="Bun Vault Logo" className="h-full w-full object-contain drop-shadow-xl" />
+                <div className="relative overflow-hidden rounded-2xl lg:rounded-3xl border border-border/50 shadow-[0_10px_30px_rgba(0,0,0,0.1)] lg:shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center h-16 w-16 lg:h-32 lg:w-32 transform transition hover:scale-105 duration-300">
+                   <img src="/logo.png" alt="Bun Vault Logo" className="h-full w-full object-cover drop-shadow-xl" />
                 </div>
              </div>
              
@@ -47,8 +47,8 @@ export default function AuthLayout({
           <div className="mx-auto w-full max-w-sm lg:max-w-md">
              {/* Small Branding Header for desktop form clarity, hidden on mobile because big logo is stacked above it */}
              <div className="hidden lg:flex items-center gap-2 mb-12 font-black tracking-wider text-xl opacity-80">
-                <div className="bg-white dark:bg-slate-800 p-1.5 rounded-lg border border-border/40 shadow-sm flex items-center justify-center h-8 w-8">
-                  <img src="/logo.png" alt="Bun Vault Logo" className="h-full w-full object-contain" />
+                <div className="overflow-hidden rounded-lg shadow-sm flex items-center justify-center h-9 w-9 border border-border/40">
+                   <img src="/logo.png" alt="Bun Vault Logo" className="h-full w-full object-cover" />
                 </div>
                 <span>BUN VAULT</span>
              </div>

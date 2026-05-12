@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
-import { Plus, X, Trash2 } from "lucide-react"
+import { Plus, X, Trash2, Pencil } from "lucide-react"
 
 type Holding = {
   id: string
@@ -79,6 +79,7 @@ export default function HoldingsPage() {
   const [currentVal, setCurrentVal] = useState("")
   const [suggestions, setSuggestions] = useState<{name: string, symbol: string, type: string}[]>([])
   const [searching, setSearching] = useState(false)
+  const [editingHoldingId, setEditingHoldingId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchHoldings()
@@ -165,7 +166,53 @@ export default function HoldingsPage() {
     setLoading(false)
   }
 
-  const handleAddAsset = async (e: React.FormEvent) => {
+  const resetForm = () => {
+    setEditingHoldingId(null)
+    setIsModalOpen(false)
+    setName("")
+    setSymbol("")
+    setType("Equity")
+    setQty("")
+    setBuyPrice("")
+    setCommoditySubtype("Physical")
+    setMetalType("Gold")
+    setDebtSubtype("FD/RD")
+    setTotalInvestment("")
+    setCurrentVal("")
+  }
+
+  const handleOpenAdd = () => {
+    resetForm()
+    setIsModalOpen(true)
+  }
+
+  const handleOpenEdit = (holding: Holding) => {
+    setEditingHoldingId(holding.id)
+    setType(holding.type)
+    
+    if (holding.type === 'Commodity' && (holding.symbol === 'GOLD_INR_1G' || holding.symbol === 'SILVER_INR_1G')) {
+       setCommoditySubtype('Physical')
+       setMetalType(holding.symbol.startsWith('GOLD') ? 'Gold' : 'Silver')
+       setQty(holding.qty.toString())
+       setBuyPrice((holding.qty * holding.buy_price).toString()) // Total investment shown in form
+    } else if (holding.type === 'Debt' && holding.symbol?.startsWith('FDRD_')) {
+       setDebtSubtype('FD/RD')
+       setName(holding.name)
+       setTotalInvestment(holding.buy_price.toString())
+       setCurrentVal(holding.symbol.replace('FDRD_', ''))
+    } else {
+       setName(holding.name)
+       setSymbol(holding.symbol)
+       setQty(holding.qty.toString())
+       setBuyPrice(holding.buy_price.toString())
+       if (holding.type === 'Commodity') setCommoditySubtype('Digital')
+       if (holding.type === 'Debt') setDebtSubtype('ETF')
+    }
+    
+    setIsModalOpen(true)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     let finalSymbol = symbol;
@@ -176,7 +223,6 @@ export default function HoldingsPage() {
     if (type === 'Commodity' && commoditySubtype === 'Physical') {
        finalSymbol = metalType === 'Gold' ? 'GOLD_INR_1G' : 'SILVER_INR_1G';
        finalName = `Physical ${metalType}`;
-       // If Physical Commodity, buyPrice input acts as 'Total Investment', so we calculate per-gram buy price
        finalBuyPrice = parseFloat(buyPrice) / parseFloat(qty);
     } else if (type === 'Debt' && debtSubtype === 'FD/RD') {
        finalSymbol = `FDRD_${parseFloat(currentVal)}`;
@@ -191,26 +237,29 @@ export default function HoldingsPage() {
       return
     }
 
-    const { error } = await supabase.from('holdings').insert([{
+    const payload = {
       user_id: user.id,
       name: finalName,
       symbol: finalSymbol,
       type,
       qty: finalQty,
       buy_price: finalBuyPrice,
-    }])
+    }
+
+    let error;
+    if (editingHoldingId) {
+       const res = await supabase.from('holdings').update(payload).eq('id', editingHoldingId)
+       error = res.error;
+    } else {
+       const res = await supabase.from('holdings').insert([payload])
+       error = res.error;
+    }
 
     if (!error) {
-      setIsModalOpen(false)
-      setName("")
-      setSymbol("")
-      setQty("")
-      setBuyPrice("")
-      setTotalInvestment("")
-      setCurrentVal("")
+      resetForm()
       fetchHoldings() // Refresh table
     } else {
-      alert("Failed to add asset: " + error.message)
+      alert("Failed to save asset: " + error.message)
     }
   }
 
@@ -241,7 +290,7 @@ export default function HoldingsPage() {
            <h2 className="text-3xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground/90 to-foreground/60">Your Holdings</h2>
            <p className="text-muted-foreground font-medium mt-1">Manage and grow your unified asset portfolio</p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)} className="gap-2">
+        <Button onClick={handleOpenAdd} className="gap-2">
            <Plus className="h-4 w-4" /> Add Asset
         </Button>
       </div>
@@ -389,9 +438,14 @@ export default function HoldingsPage() {
                           </div>
                         </td>
                         <td className="py-3 px-2 lg:px-3 align-middle text-right">
-                           <Button variant="ghost" size="icon" onClick={() => handleDelete(holding.id)} className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors">
-                              <Trash2 className="h-3.5 w-3.5" />
-                           </Button>
+                           <div className="flex items-center justify-end gap-1">
+                              <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(holding)} className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors">
+                                 <Pencil className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleDelete(holding.id)} className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors">
+                                 <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                           </div>
                         </td>
                       </tr>
                     )
@@ -444,9 +498,14 @@ export default function HoldingsPage() {
                                   <span className="ml-1 text-[10px] font-medium opacity-90">({pl >= 0 ? '+' : ''}{plPercent.toFixed(1)}%)</span>
                                </div>
                             </div>
-                            <Button variant="ghost" size="icon" onClick={() => handleDelete(holding.id)} className="h-7 w-7 text-destructive/80 hover:text-destructive active:bg-destructive/10 -mr-2">
-                               <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
+                            <div className="flex items-center gap-1 -mr-2">
+                               <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(holding)} className="h-7 w-7 text-muted-foreground hover:text-primary active:bg-primary/10">
+                                  <Pencil className="h-3.5 w-3.5" />
+                               </Button>
+                               <Button variant="ghost" size="icon" onClick={() => handleDelete(holding.id)} className="h-7 w-7 text-destructive/80 hover:text-destructive active:bg-destructive/10">
+                                  <Trash2 className="h-3.5 w-3.5" />
+                               </Button>
+                            </div>
                          </div>
                       </div>
                    )
@@ -461,13 +520,13 @@ export default function HoldingsPage() {
          <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
             <Card className="w-full max-w-md shadow-lg border-primary/20">
                <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
-                  <CardTitle>Add New Asset</CardTitle>
-                  <Button variant="ghost" size="icon" onClick={() => setIsModalOpen(false)} className="h-8 w-8">
+                  <CardTitle>{editingHoldingId ? 'Edit Asset' : 'Add New Asset'}</CardTitle>
+                  <Button variant="ghost" size="icon" onClick={resetForm} className="h-8 w-8">
                      <X className="h-4 w-4" />
                   </Button>
                </CardHeader>
                <CardContent className="pt-6">
-                  <form onSubmit={handleAddAsset} className="space-y-4">
+                  <form onSubmit={handleSubmit} className="space-y-4">
                      <div className="grid grid-cols-2 gap-4">
                         <div className={(type === 'Commodity' || type === 'Debt') ? "col-span-1" : "col-span-2"}>
                            <label className="block text-sm font-medium mb-1">Asset Type</label>
@@ -603,7 +662,7 @@ export default function HoldingsPage() {
       )}
       {/* Mobile Floating Action Button (Inspired by Image 1 & 2) */}
       <button 
-         onClick={() => setIsModalOpen(true)}
+         onClick={handleOpenAdd}
          className="md:hidden fixed bottom-[72px] right-4 h-14 w-14 bg-emerald-600 text-white rounded-full shadow-lg shadow-emerald-900/30 flex items-center justify-center z-40 active:scale-95 transition-transform border border-emerald-400/20 hover:bg-emerald-500"
          aria-label="Add Asset"
       >

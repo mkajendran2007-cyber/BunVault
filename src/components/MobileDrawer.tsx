@@ -79,8 +79,8 @@ export default function MobileDrawer() {
                 className="flex items-center gap-2 font-black tracking-wider text-lg"
                 onClick={() => setIsOpen(false)}
               >
-                <div className="bg-white p-1 rounded-md border border-border/40 shadow-sm flex items-center justify-center h-8 w-8">
-                  <img src="/logo.png" alt="Bun Vault Logo" className="h-full w-full object-contain" />
+                <div className="flex items-center justify-center h-10 w-10 overflow-hidden rounded-lg shadow-sm border border-border/30">
+                  <img src="/logo.png" alt="Bun Vault Logo" className="h-full w-full object-cover" />
                 </div>
                 <span className="text-foreground">BUN VAULT</span>
               </Link>
