@@ -7,6 +7,10 @@ import { ArrowDownRight, ArrowUpRight, ShieldAlert, Zap, Download, TrendingUp } 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { supabase } from "@/lib/supabase"
 import dynamic from 'next/dynamic'
+import { useWealthReport } from "@/components/wealth-report/useWealthReport"
+import { WealthReportTemplate } from "@/components/wealth-report/WealthReportTemplate"
+import { GeneratingLoader } from "@/components/wealth-report/GeneratingLoader"
+
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
 
@@ -25,6 +29,13 @@ export default function Dashboard() {
   const [silver, setSilver] = useState({ price: 0, change: 0, changePercent: 0, timestamp: "", loading: true })
   const [currentDate, setCurrentDate] = useState("")
   const [isMarketOpen, setIsMarketOpen] = useState(false)
+  
+  // Wealth Report Generation States
+  const { triggerWealthReportPdf, isGenerating, generationStep, totalSteps, statusText } = useWealthReport()
+  const [pdfUser, setPdfUser] = useState<any>(null)
+  const [pdfSips, setPdfSips] = useState<any[]>([])
+  const [isTemplateMounted, setIsTemplateMounted] = useState(false)
+
 
   useEffect(() => {
     fetchDashboardData()
@@ -350,367 +361,36 @@ export default function Dashboard() {
          return;
       }
 
-      // LAZY LOAD PDF LIBS ONLY ON CLICK - Massive payload saving!
-      const { default: jsPDF } = await import('jspdf');
-      const { default: autoTable } = await import('jspdf-autotable');
-
-      // Fetch SIPs
+      // 1. Hydrate the off-screen template dataset
+      setPdfUser(user)
+      
+      // Load the active SIP configuration dynamically
       const { data: sips, error: sErr } = await supabase.from('sips').select('*').eq('user_id', user.id)
       if (sErr) throw sErr;
+      setPdfSips(sips || [])
 
-      // Initialize jsPDF
-      const doc = new jsPDF()
-      const pageWidth = doc.internal.pageSize.width
-      const pageHeight = doc.internal.pageSize.height
+      // 2. Mount the rich visual template into DOM tree
+      setIsTemplateMounted(true)
 
-      // Fetch and embed app logo
-      const getBase64ImageFromUrl = async (imageUrl: string): Promise<string> => {
-        const res = await fetch(imageUrl);
-        const blob = await res.blob();
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
-      };
-
-      let logoBase64 = "";
-      try {
-         logoBase64 = await getBase64ImageFromUrl('/logo.png');
-      } catch (e) {
-         console.warn("Could not fetch logo for PDF", e);
-      }
-
-      // --- Light Background (Implicitly white, no fill needed) ---
-      doc.setFillColor(255, 255, 255) 
-      doc.rect(0, 0, pageWidth, pageHeight, 'F')
-
-      // --- Generative Candlestick Pattern Background ---
-      // We use GState to make it faint and blend into the background
-      // @ts-ignore
-      doc.setGState(new doc.GState({opacity: 0.05}))
-      let startCandleX = 15;
-      let startCandleY = pageHeight - 80;
-      
-      for (let i = 0; i < 15; i++) {
-         const isGreen = Math.random() > 0.3; // Upward bias
-         const bodyHeight = 10 + Math.random() * 30;
-         const wickTop = 5 + Math.random() * 20;
-         const wickBottom = 5 + Math.random() * 20;
-         
-         if (isGreen) {
-            doc.setFillColor(16, 185, 129); // Emerald
-            doc.setDrawColor(16, 185, 129);
-            startCandleY -= (Math.random() * 15);
-         } else {
-            doc.setFillColor(239, 68, 68); // Red
-            doc.setDrawColor(239, 68, 68);
-            startCandleY += (Math.random() * 10);
-         }
-
-         doc.setLineWidth(0.8);
-         doc.line(startCandleX + 4, startCandleY - wickTop, startCandleX + 4, startCandleY + bodyHeight + wickBottom);
-         doc.rect(startCandleX, startCandleY, 8, bodyHeight, 'F');
-
-         startCandleX += 14;
-      }
-      
-      // Reset opacity for text
-      // @ts-ignore
-      doc.setGState(new doc.GState({opacity: 1.0}))
-
-      // Logo and Title Section
-      if (logoBase64) {
-         doc.setFillColor(241, 245, 249);
-         doc.roundedRect(14, 8, 22, 22, 3, 3, 'F');
-         doc.addImage(logoBase64, 'PNG', 16, 10, 18, 18);
-      }
-
-      doc.setFont("helvetica", "bold")
-      doc.setFontSize(26) // Slightly bigger title
-      doc.setTextColor(59, 130, 246) // Royal Blue
-      doc.text("BUN VAULT", logoBase64 ? 42 : 14, 20)
-
-      doc.setFont("helvetica", "normal")
-      doc.setFontSize(10)
-      doc.setTextColor(71, 85, 105) // Slate 600
-      doc.text("INTELLIGENT WEALTH REPORT", logoBase64 ? 42 : 14, 26)
-      
-      doc.setFontSize(9)
-      doc.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, pageWidth - 14, 20, { align: "right" })
-
-      // Decorative separating line
-      doc.setDrawColor(226, 232, 240)
-      doc.setLineWidth(0.5)
-      doc.line(14, 36, pageWidth - 14, 36)
-
-      // --- RENDER START ---
-      let startY = 46;
-
-      // Section 1: Executive Summary
-      doc.setFont("helvetica", "bold")
-      doc.setFontSize(14)
-      doc.setTextColor(15, 23, 42) // Dark Slate
-      doc.text("1. EXECUTIVE PORTFOLIO SUMMARY", 14, startY)
-      startY += 10
-
-      // Calculation logic
-      const pl = currentValue - totalInvestment
-      const plColor = pl >= 0 ? [16, 185, 129] : [239, 68, 68]
-      const plPercent = totalInvestment > 0 ? ((pl / totalInvestment) * 100).toFixed(2) : "0.00"
-
-      // --- Visual Scorecards Section ---
-      const boxW = (pageWidth - 36) / 3;
-      let cardX = 14;
-      
-      // Card 1: Invested
-      doc.setFillColor(248, 250, 252);
-      doc.setDrawColor(226, 232, 240);
-      doc.roundedRect(cardX, startY, boxW, 28, 2, 2, 'FD');
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor(100, 116, 139);
-      doc.text("TOTAL INVESTED", cardX + (boxW / 2), startY + 8, { align: 'center' });
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(12);
-      doc.setTextColor(15, 23, 42);
-      doc.text(`Rs ${totalInvestment.toLocaleString()}`, cardX + (boxW / 2), startY + 20, { align: 'center' });
-      
-      cardX += boxW + 4;
-
-      // Card 2: Current
-      doc.setFillColor(248, 250, 252);
-      doc.setDrawColor(226, 232, 240);
-      doc.roundedRect(cardX, startY, boxW, 28, 2, 2, 'FD');
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor(100, 116, 139);
-      doc.text("CURRENT VALUE", cardX + (boxW / 2), startY + 8, { align: 'center' });
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(12);
-      doc.setTextColor(59, 130, 246); // Blue
-      doc.text(`Rs ${currentValue.toLocaleString()}`, cardX + (boxW / 2), startY + 20, { align: 'center' });
-
-      cardX += boxW + 4;
-
-      // Card 3: Returns
-      doc.setFillColor(248, 250, 252);
-      doc.setDrawColor(226, 232, 240);
-      doc.roundedRect(cardX, startY, boxW, 28, 2, 2, 'FD');
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor(100, 116, 139);
-      doc.text("OVERALL P&L", cardX + (boxW / 2), startY + 8, { align: 'center' });
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(12);
-      doc.setTextColor(plColor[0], plColor[1], plColor[2]);
-      doc.text(`${pl >= 0 ? '+' : ''}Rs ${pl.toLocaleString()}`, cardX + (boxW / 2), startY + 18, { align: 'center' });
-      doc.setFontSize(8);
-      doc.text(`(${plPercent}%)`, cardX + (boxW / 2), startY + 24, { align: 'center' });
-
-      startY += 36
-
-      // --- Market Benchmarks Row ---
-      const bW = (pageWidth - 34) / 2;
-      let bX = 14;
-
-      // GOLD
-      doc.setFillColor(255, 251, 235); // Amber 50
-      doc.setDrawColor(253, 230, 138); // Amber 200
-      doc.roundedRect(bX, startY, bW, 15, 2, 2, 'FD');
-      
-      // --- High-Aesthetic Dynamic Coin Logo Implementation ---
-      const ix = bX + 6;
-      const iy = startY + 7.5;
-      
-      // 1. Gold Coin Architecture
-      doc.setFillColor(254, 240, 138); // Base Light Yellow
-      doc.setDrawColor(234, 179, 8); // Amber border
-      doc.setLineWidth(0.4);
-      doc.circle(ix, iy, 3.8, 'FD'); // Outer boundary
-      
-      doc.setDrawColor(251, 191, 36); // Softer rim
-      doc.setLineWidth(0.15);
-      doc.circle(ix, iy, 2.8, 'D'); // Inner dimensional rim
-      
-      // Vector Traced Currency Core (Ensured glyph rendering)
-      doc.setDrawColor(146, 64, 14); 
-      doc.setLineWidth(0.4);
-      doc.line(ix - 1.3, iy - 1.2, ix + 1.3, iy - 1.2); // Top Bar
-      doc.line(ix - 1.3, iy - 0.4, ix + 1.1, iy - 0.4); // Mid Bar
-      doc.line(ix - 0.6, iy - 1.2, ix - 0.6, iy - 0.4); // Left Core
-      doc.line(ix - 0.6, iy - 0.4, ix + 0.9, iy + 1.3); // Tail Kick
-
-      // Gold Text
-      doc.setFontSize(7);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(146, 64, 14);
-      doc.text("SPOT GOLD (1G)", bX + 12, startY + 6.5);
-      doc.setFontSize(10);
-      doc.setTextColor(69, 26, 3);
-      doc.text(`Rs ${(gold.price || 0).toLocaleString(undefined, {maximumFractionDigits:2})}`, bX + 12, startY + 12);
-
-      bX += bW + 6;
-      const ix2 = bX + 6;
-
-      // SILVER
-      doc.setFillColor(248, 250, 252); // Slate 50
-      doc.setDrawColor(226, 232, 240); // Slate 200
-      doc.roundedRect(bX, startY, bW, 15, 2, 2, 'FD');
-
-      // 2. Silver Coin Architecture
-      doc.setFillColor(241, 245, 249); // Base Light Slate
-      doc.setDrawColor(148, 163, 184); // Slate border
-      doc.setLineWidth(0.4);
-      doc.circle(ix2, iy, 3.8, 'FD');
-      
-      doc.setDrawColor(203, 213, 225); 
-      doc.setLineWidth(0.15);
-      doc.circle(ix2, iy, 2.8, 'D'); // Inner dimensional rim
-      
-      // Vector Traced Currency Core
-      doc.setDrawColor(71, 85, 105); 
-      doc.setLineWidth(0.4);
-      doc.line(ix2 - 1.3, iy - 1.2, ix2 + 1.3, iy - 1.2); 
-      doc.line(ix2 - 1.3, iy - 0.4, ix2 + 1.1, iy - 0.4); 
-      doc.line(ix2 - 0.6, iy - 1.2, ix2 - 0.6, iy - 0.4); 
-      doc.line(ix2 - 0.6, iy - 0.4, ix2 + 0.9, iy + 1.3); 
-
-      // Silver Text
-      doc.setFontSize(7);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(51, 65, 85);
-      doc.text("SPOT SILVER (1G)", bX + 12, startY + 6.5);
-      doc.setFontSize(10);
-      doc.setTextColor(15, 23, 42);
-      doc.text(`Rs ${(silver.price || 0).toLocaleString(undefined, {maximumFractionDigits:2})}`, bX + 12, startY + 12);
-
-      startY += 24
-
-      // --- Asset Class Breakdown Subtable ---
-      doc.setFont("helvetica", "bold")
-      doc.setFontSize(11)
-      doc.setTextColor(71, 85, 105)
-      doc.text("Asset Allocation Mix", 14, startY)
-      startY += 4
-
-      const allocationBody = pieData.map(item => {
-         const pct = currentValue > 0 ? ((item.value / currentValue) * 100).toFixed(1) : "0"
-         return [item.name, `Rs ${item.value.toLocaleString()}`, `${pct}%`]
+      // 3. Fire the asynchronous rasterization sequence
+      await triggerWealthReportPdf({
+        user,
+        holdings: enrichedHoldings,
+        sips: sips || [],
+        chartData: chartData || [],
+        totalInvestment,
+        currentValue,
+        goldPrice: gold.price || 0,
+        silverPrice: silver.price || 0,
+        niftyPrice: nifty.price || 0,
+        currentDate
       })
 
-      autoTable(doc, {
-         startY: startY,
-         head: [['Asset Category', 'Current Valuation', 'Portfolio Weight %']],
-         body: allocationBody,
-         theme: 'plain',
-         headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105], fontStyle: 'bold', cellPadding: 2 },
-         bodyStyles: { fillColor: [255, 255, 255], textColor: [15, 23, 42], fontSize: 9, cellPadding: 2 },
-         columnStyles: {
-            1: { halign: 'right' },
-            2: { halign: 'right', fontStyle: 'bold' }
-         },
-         margin: { left: 14, right: 14 }
-      })
-
-      // @ts-ignore
-      startY = doc.lastAutoTable?.finalY + 14 || startY + 40
-
-      // Section 2: Holdings Table
-      doc.setFont("helvetica", "bold")
-      doc.setFontSize(14)
-      doc.setTextColor(15, 23, 42)
-      doc.text("2. ITEMISED CURRENT HOLDINGS", 14, startY)
-    
-      const holdingsBody = enrichedHoldings.map(h => {
-         const pl = h.currentValue - h.totalInvestment
-         return [
-           h.name,
-           h.symbol,
-           h.qty.toString(),
-           `Rs ${h.buy_price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
-           `Rs ${h.totalInvestment.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
-           `Rs ${h.livePrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
-           `${pl >= 0 ? '+' : ''}Rs ${pl.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
-         ]
-      })
-
-      autoTable(doc, {
-         startY: startY + 6,
-         head: [['Asset', 'Symbol', 'Qty', 'Buy Price', 'Total Inv', 'Live Price', 'P&L']],
-         body: holdingsBody,
-         theme: 'grid',
-         headStyles: { fillColor: [59, 130, 246], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
-         bodyStyles: { fillColor: [255, 255, 255], textColor: [15, 23, 42], font: 'helvetica' },
-         columnStyles: {
-            2: { halign: 'center' },
-            3: { halign: 'right' },
-            4: { halign: 'right' },
-            5: { halign: 'right' },
-            6: { halign: 'right', fontStyle: 'bold' }
-         },
-         alternateRowStyles: { fillColor: [248, 250, 252] },
-         margin: { left: 14, right: 14 },
-         styles: { fontSize: 8.5, cellPadding: 3 }
-      })
-
-      // Section 3: SIP Table
-      // @ts-ignore
-      let finalY = doc.lastAutoTable?.finalY || startY + 20
-      
-      if (sips && sips.length > 0) {
-         // --- START SECTION 3 ON PAGE 2 ---
-         doc.addPage()
-         
-         // Repaint background and header on Page 2
-         doc.setFillColor(255, 255, 255) 
-         doc.rect(0, 0, pageWidth, pageHeight, 'F')
-
-         // Tiny Header on new page
-         doc.setFont("helvetica", "bold")
-         doc.setFontSize(10)
-         doc.setTextColor(59, 130, 246)
-         doc.text("BUN VAULT", 14, 15)
-         doc.setDrawColor(226, 232, 240)
-         doc.setLineWidth(0.3)
-         doc.line(14, 18, pageWidth - 14, 18)
-
-         finalY = 30
-         doc.setFont("helvetica", "bold")
-         doc.setFontSize(14)
-         doc.setTextColor(15, 23, 42)
-         doc.text("3. ACTIVE SYSTEMATIC INVESTMENT PLANS (SIPs)", 14, finalY)
-         
-         const sipsBody = sips.filter((s: any) => s.status === 'Active').map((s: any) => [
-            s.name,
-            s.type,
-            `Rs ${s.amount.toLocaleString()}`,
-            s.frequency,
-            new Date(s.next_date).toLocaleDateString()
-         ])
-
-         autoTable(doc, {
-            startY: finalY + 6,
-            head: [['SIP Name', 'Type', 'Amount', 'Frequency', 'Next Date']],
-            body: sipsBody,
-            theme: 'grid',
-            headStyles: { fillColor: [16, 185, 129], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
-            bodyStyles: { fillColor: [255, 255, 255], textColor: [15, 23, 42], font: 'helvetica' },
-            columnStyles: {
-               2: { halign: 'right', fontStyle: 'bold' },
-               3: { halign: 'center' },
-               4: { halign: 'center' }
-            },
-            alternateRowStyles: { fillColor: [248, 250, 252] },
-            margin: { left: 14, right: 14 },
-            styles: { fontSize: 8.5, cellPadding: 3 }
-         })
-      }
-
-      doc.save("bun_vault_wealth_report.pdf")
+      // 4. Clear DOM layout footprint on success
+      setIsTemplateMounted(false)
     } catch (e: any) {
-       alert("Error generating PDF: " + e.message)
+       alert("Engine Error! Failed to compile Wealth Report pack: " + e.message)
+       setIsTemplateMounted(false)
     }
   }
 
@@ -1156,6 +836,33 @@ export default function Dashboard() {
         </Card>
       </div>
       </>
+      )}
+
+      {/* Wealth Report Canvas Target - Rendered offscreen to capture crisp layout dimensions */}
+      {isTemplateMounted && (
+         <div className="pointer-events-none opacity-0 select-none absolute z-[-99] left-[-9999px] top-[-9999px] w-[1000px] overflow-hidden">
+            <WealthReportTemplate 
+               user={pdfUser}
+               holdings={enrichedHoldings}
+               sips={pdfSips}
+               chartData={chartData}
+               totalInvestment={totalInvestment}
+               currentValue={currentValue}
+               goldPrice={gold.price || 0}
+               silverPrice={silver.price || 0}
+               niftyPrice={nifty.price || 0}
+               currentDate={currentDate}
+            />
+         </div>
+      )}
+
+      {/* PDF Generator Screen Shield & Compilation Loader */}
+      {isGenerating && (
+         <GeneratingLoader 
+            step={generationStep} 
+            total={totalSteps} 
+            statusText={statusText} 
+         />
       )}
     </div>
   )
