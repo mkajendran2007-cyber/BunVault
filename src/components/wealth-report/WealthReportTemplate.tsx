@@ -94,6 +94,17 @@ export function WealthReportTemplate({
   // Normalized user representation
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Investor"
 
+  // Dynamic scientific FIRE Stage Milestone engine
+  const fireTarget = currentValue >= 10000000 ? 100000000 : 
+                     currentValue >= 1000000 ? 10000000 : 
+                     currentValue >= 100000 ? 1000000 : 100000;
+
+  const firePhaseLabel = currentValue >= 10000000 ? "PROJECTION PHASE IV" : 
+                         currentValue >= 1000000 ? "PROJECTION PHASE III" : 
+                         currentValue >= 100000 ? "PROJECTION PHASE II" : "PROJECTION PHASE I";
+
+  const fireProgress = Math.max(Math.min(Math.round((currentValue / fireTarget) * 100), 100), 1);
+
   // 20-Year Future SIP Projection Math
   const sipProjection = React.useMemo(() => {
      const rate = 0.12 // 12% average annual return
@@ -274,24 +285,24 @@ export function WealthReportTemplate({
             </div>
 
             {/* Primary Summary Cards */}
-            <div className="grid grid-cols-4 gap-5">
-               <div className="bg-slate-900/50 border border-slate-800/60 rounded-2xl p-5 space-y-2">
+            <div className="grid grid-cols-4 gap-4">
+               <div className="bg-slate-900/50 border border-slate-800/60 rounded-2xl p-4 space-y-2 relative overflow-hidden">
                   <p className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">Deployed Capital</p>
-                  <p className="text-2xl font-black text-white">₹{totalInvestment.toLocaleString('en-IN')}</p>
+                  <p className="text-xl font-black text-white truncate">₹{Math.round(totalInvestment).toLocaleString('en-IN')}</p>
                </div>
-               <div className="bg-slate-900/50 border border-slate-800/60 rounded-2xl p-5 space-y-2">
+               <div className="bg-slate-900/50 border border-slate-800/60 rounded-2xl p-4 space-y-2 relative overflow-hidden">
                   <p className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">Current Valuation</p>
-                  <p className="text-2xl font-black text-blue-400">₹{currentValue.toLocaleString('en-IN')}</p>
+                  <p className="text-xl font-black text-blue-400 truncate">₹{Math.round(currentValue).toLocaleString('en-IN')}</p>
                </div>
-               <div className="bg-slate-900/50 border border-slate-800/60 rounded-2xl p-5 space-y-2">
+               <div className="bg-slate-900/50 border border-slate-800/60 rounded-2xl p-4 space-y-2 relative overflow-hidden">
                   <p className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">Absolute Yield</p>
-                  <p className={`text-2xl font-black ${totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                     {totalPL >= 0 ? '+' : ''}₹{Math.abs(totalPL).toLocaleString('en-IN')}
+                  <p className={`text-xl font-black truncate ${totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                     {totalPL >= 0 ? '+' : ''}₹{Math.round(Math.abs(totalPL)).toLocaleString('en-IN')}
                   </p>
                </div>
-               <div className="bg-slate-900/50 border border-slate-800/60 rounded-2xl p-5 space-y-2">
+               <div className="bg-slate-900/50 border border-slate-800/60 rounded-2xl p-4 space-y-2 relative overflow-hidden">
                   <p className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">Yield Rate</p>
-                  <p className={`text-2xl font-black ${totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  <p className={`text-xl font-black truncate ${totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                      {totalPL >= 0 ? '+' : ''}{plPercent.toFixed(2)}%
                   </p>
                </div>
@@ -1125,12 +1136,12 @@ export function WealthReportTemplate({
                      <span>TARGET ESCAPE</span>
                   </div>
                   <div className="h-4 w-full bg-slate-950 rounded-full border border-slate-800 overflow-hidden relative p-0.5">
-                     <div className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-cyan-400 rounded-full" style={{ width: '28%' }} />
+                     <div className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-cyan-400 rounded-full transition-all duration-500" style={{ width: `${fireProgress}%` }} />
                   </div>
                   <div className="flex justify-between items-baseline mt-2 font-mono">
-                     <span className="text-xs text-slate-400">₹{totalInvestment.toLocaleString('en-IN')}</span>
-                     <span className="bg-blue-500/10 text-blue-400 border border-blue-500/30 text-[10px] px-2 py-0.5 rounded font-bold">28% REACHED</span>
-                     <span className="text-xs text-slate-500">PROJECTION PHASE I</span>
+                     <span className="text-xs text-slate-400">₹{Math.round(totalInvestment).toLocaleString('en-IN')}</span>
+                     <span className="bg-blue-500/10 text-blue-400 border border-blue-500/30 text-[10px] px-2 py-0.5 rounded font-bold">{fireProgress}% REACHED</span>
+                     <span className="text-xs text-slate-500 uppercase">{firePhaseLabel}</span>
                   </div>
                </div>
 
