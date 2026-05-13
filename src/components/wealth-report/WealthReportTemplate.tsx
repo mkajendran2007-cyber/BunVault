@@ -122,6 +122,49 @@ export function WealthReportTemplate({
       className="bg-slate-950 text-slate-100 overflow-hidden select-none antialiased"
       style={{ width: `${PAGE_WIDTH}px` }}
     >
+      {/* High-Fidelity Legibility Engine - Globally Boosts Font Sizing for Pristine PDF Readability */}
+      <style dangerouslySetInnerHTML={{ __html: `
+         #wealth-report-container {
+            font-size: 16px !important;
+         }
+         
+         /* Core Font Size Scaling (Boost by ~35% for absolute clarity) */
+         #wealth-report-container [class*="text-[9px]"] { font-size: 12px !important; }
+         #wealth-report-container [class*="text-[10px]"] { font-size: 14px !important; letter-spacing: 0.04em !important; }
+         #wealth-report-container [class*="text-[11px]"] { font-size: 15px !important; }
+         #wealth-report-container [class*="text-[12px]"] { font-size: 16px !important; }
+         
+         #wealth-report-container .text-xs { font-size: 15px !important; line-height: 1.4 !important; }
+         #wealth-report-container .text-sm { font-size: 18px !important; line-height: 1.5 !important; }
+         #wealth-report-container .text-base { font-size: 21px !important; line-height: 1.5 !important; }
+         #wealth-report-container .text-lg { font-size: 24px !important; line-height: 1.4 !important; }
+         #wealth-report-container .text-xl { font-size: 28px !important; line-height: 1.4 !important; }
+         #wealth-report-container .text-2xl { font-size: 36px !important; line-height: 1.3 !important; }
+         #wealth-report-container .text-3xl { font-size: 44px !important; line-height: 1.2 !important; }
+         #wealth-report-container .text-4xl { font-size: 52px !important; line-height: 1.2 !important; }
+         
+         /* Special Title Exception for Page 1 Cover (already scaled to 4.5rem) */
+         #wealth-report-container .text-\\[4\\.5rem\\] { font-size: 4rem !important; }
+
+         /* Space calibration to maintain layout balance with large text */
+         #wealth-report-container .px-14 { padding-left: 3rem !important; padding-right: 3rem !important; }
+         #wealth-report-container .py-14 { padding-top: 3rem !important; padding-bottom: 3rem !important; }
+         #wealth-report-container .py-20 { padding-top: 4rem !important; padding-bottom: 4rem !important; }
+         #wealth-report-container .pt-10 { padding-top: 2rem !important; }
+         #wealth-report-container .pb-6 { padding-bottom: 1rem !important; }
+         
+         /* Tweak visual containers so elements don't compress chart vertical volume */
+         #wealth-report-container .gap-8 { gap: 1.5rem !important; }
+         #wealth-report-container .space-y-10 > :not([hidden]) ~ :not([hidden]) { margin-top: 2rem !important; }
+         #wealth-report-container .space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.5rem !important; }
+         
+         /* Standardize quick logo vectors */
+         #wealth-report-container .h-16 { height: 3.5rem !important; }
+         #wealth-report-container .w-16 { width: 3.5rem !important; }
+         #wealth-report-container .h-14 { height: 3.2rem !important; }
+         #wealth-report-container .w-14 { width: 3.2rem !important; }
+      ` }} />
+
       {/* ================= PAGE 1: COVER PAGE ================= */}
       <div id="report-page-1" style={pageStyle} className="relative overflow-hidden flex flex-col justify-between bg-slate-950 px-16 py-20">
          {/* Ambient Glow Orbs */}
