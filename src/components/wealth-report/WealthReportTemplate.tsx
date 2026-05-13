@@ -217,26 +217,26 @@ export function WealthReportTemplate({
 
          {/* Cover Footer Metrics */}
          <div className="relative bg-slate-900/40 backdrop-blur-xl border border-slate-800/60 rounded-3xl p-10 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)]">
-            <div className="grid grid-cols-3 gap-8 divide-x divide-slate-800">
-               <div className="space-y-2 pl-4">
+            <div className="grid grid-cols-12 gap-6">
+               <div className="col-span-5 space-y-2 pl-4">
                   <p className="text-xs font-bold tracking-widest text-slate-500 uppercase">Portfolio Value</p>
-                  <h3 className="text-4xl font-black text-white">₹{currentValue.toLocaleString('en-IN')}</h3>
+                  <h3 className="text-3xl font-black text-white">₹{Math.round(currentValue).toLocaleString('en-IN')}</h3>
                   <p className={`text-sm font-bold flex items-center gap-1.5 ${totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                      {totalPL >= 0 ? <TrendingUp className="w-4 h-4"/> : <TrendingDown className="w-4 h-4"/>}
                      {totalPL >= 0 ? '+' : ''}{plPercent.toFixed(2)}% Growth
                   </p>
                </div>
-               <div className="space-y-2 pl-8">
+               <div className="col-span-3 space-y-2 pl-6 border-l border-slate-800">
                   <p className="text-xs font-bold tracking-widest text-slate-500 uppercase">Asset Count</p>
-                  <h3 className="text-4xl font-black text-white">{holdings.length}</h3>
+                  <h3 className="text-3xl font-black text-white">{holdings.length}</h3>
                   <p className="text-sm font-semibold text-slate-400 flex items-center gap-1.5">
-                     Across {assetAllocation.length} Key Classes
+                     Across {assetAllocation.length} Classes
                   </p>
                </div>
-               <div className="space-y-2 pl-8 flex flex-col justify-between">
+               <div className="col-span-4 space-y-2 pl-6 border-l border-slate-800 flex flex-col justify-between">
                   <div>
                      <p className="text-xs font-bold tracking-widest text-slate-500 uppercase">Report For</p>
-                     <p className="text-base font-bold text-slate-200 truncate max-w-[220px]">{user?.email || "Private Investor"}</p>
+                     <p className="text-base font-bold text-slate-200 truncate max-w-[200px]">{user?.email || "Private Investor"}</p>
                   </div>
                   <div>
                      <p className="text-[10px] font-bold tracking-widest text-slate-600 uppercase">Generated Date</p>
