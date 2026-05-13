@@ -48,6 +48,25 @@ export async function GET(request: Request) {
           }));
         return NextResponse.json(matches);
       }
+    } else if (type === "Crypto") {
+      const res = await fetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${q}&quotesCount=20&newsCount=0`);
+      const data = await res.json();
+      
+      if (data.quotes) {
+        const matches = data.quotes
+          .filter((q: any) => q.quoteType === "CRYPTOCURRENCY")
+          .slice(0, 15)
+          .map((q: any) => {
+             // Re-map global -USD ticker to local -INR ticker if needed
+             const baseSymbol = q.symbol.endsWith("-USD") ? q.symbol.replace("-USD", "-INR") : q.symbol;
+             return {
+                name: q.shortname || q.longname || q.symbol,
+                symbol: baseSymbol,
+                type: "Crypto"
+             };
+          });
+        return NextResponse.json(matches);
+      }
     }
     
     return NextResponse.json([]);

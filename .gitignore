@@ -42,3 +42,10 @@ build
 *.sln
 *.sw?
 .DS_Store
+
+# User Personal & Temp Files
+office recent saved/
+fix_dashboard.*
+perf_test.*
+scratch_*.*
+

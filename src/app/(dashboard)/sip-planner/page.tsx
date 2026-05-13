@@ -296,19 +296,19 @@ export default function SIPPlannerPage() {
 
   return (
     <div className="flex-1 space-y-4 relative w-full max-w-full min-w-0 overflow-x-hidden">
-      <div className="flex items-center justify-between">
-        <div>
-           <h2 className="text-3xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground/90 to-foreground/60">SIP Intelligence</h2>
-           <p className="text-muted-foreground font-medium mt-1">Automate and simulate your wealth compounding velocity.</p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0 flex-1">
+           <h2 className="text-2xl sm:text-3xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground/90 to-foreground/60 truncate">SIP Intelligence</h2>
+           <p className="text-xs sm:text-sm text-muted-foreground font-medium mt-1 line-clamp-1 sm:line-clamp-none">Automate and simulate your wealth compounding velocity.</p>
         </div>
-        <Button onClick={handleOpenAdd} className="gap-2">
+        <Button onClick={handleOpenAdd} className="gap-2 hidden sm:flex shrink-0">
            <Plus className="h-4 w-4" /> New SIP
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="glass-panel">
-           <CardContent className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="grid gap-4 md:grid-cols-2 w-full min-w-0">
+        <Card className="glass-panel overflow-hidden">
+           <CardContent className="p-4 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                  <div className="text-sm font-medium text-muted-foreground mb-1">Total Monthly SIP</div>
                  <div className="text-4xl font-bold tracking-tight private-value">₹{totalMonthlySIP.toFixed(2)}</div>
@@ -319,8 +319,8 @@ export default function SIPPlannerPage() {
               </div>
            </CardContent>
         </Card>
-        <Card className="glass-panel">
-           <CardContent className="p-6">
+        <Card className="glass-panel overflow-hidden">
+           <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 gap-2">
                  <div className="text-sm font-medium text-muted-foreground">Total Projected Returns ({dashboardYears}Y)</div>
                  <div className="flex flex-wrap gap-1.5">
@@ -370,17 +370,17 @@ export default function SIPPlannerPage() {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-3 w-full min-w-0">
          {/* SIP Table (Takes up 2 columns) */}
-         <div className="md:col-span-2">
-            <Card className="h-full">
-              <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 gap-4">
-                 <div>
-                    <CardTitle>Your Scheduled SIPs</CardTitle>
-                    <CardDescription>Manage and track your recurring investments.</CardDescription>
-                 </div>
-              </CardHeader>
-              <CardContent>
+         <div className="md:col-span-2 min-w-0">
+            <Card className="h-full overflow-hidden">
+               <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3 sm:pb-4 gap-2 sm:gap-4 p-4 sm:p-6">
+                  <div>
+                     <CardTitle className="text-lg sm:text-xl">Your Scheduled SIPs</CardTitle>
+                     <CardDescription className="text-xs sm:text-sm">Manage and track your recurring investments.</CardDescription>
+                  </div>
+               </CardHeader>
+               <CardContent className="p-2 sm:p-6 pt-0">
                  {/* Desktop Table View */}
                  <div className="relative w-full overflow-x-auto hidden md:block no-scrollbar">
                    <table className="w-full caption-bottom text-sm">
@@ -442,7 +442,7 @@ export default function SIPPlannerPage() {
                  </div>
 
                  {/* Mobile List View for SIPs */}
-                 <div className="md:hidden divide-y divide-border/40 -mx-4 sm:mx-0">
+                 <div className="md:hidden divide-y divide-border/40 -mx-2 sm:mx-0">
                     {loading ? (
                        <div className="p-6 text-center text-sm text-muted-foreground">Loading...</div>
                     ) : sips.length === 0 ? (
@@ -457,47 +457,47 @@ export default function SIPPlannerPage() {
                        const rReturns = rTotal - rInvested;
 
                        return (
-                          <div key={sip.id} className="p-4 flex flex-col gap-3 active:bg-muted/50 transition-colors">
-                             <div className="flex justify-between items-start">
-                                <div className="flex-1 min-w-0 pr-2">
-                                   <h4 className="font-bold text-[14px] text-foreground truncate">{sip.name}</h4>
-                                   <div className="flex items-center gap-2 mt-0.5">
-                                      <span className="text-[10px] px-1.5 bg-secondary/80 text-muted-foreground rounded font-medium uppercase">{sip.frequency}</span>
-                                      <span className="text-[11px] text-muted-foreground/80">
-                                         Due: {sip.frequency === 'Daily' ? 'Daily' : 
-                                               sip.frequency === 'Weekly' ? `${new Date(sip.next_date).toLocaleDateString('en-US', {weekday: 'short'})}` : 
-                                               `Day ${new Date(sip.next_date).getDate()}`}
-                                      </span>
-                                   </div>
-                                </div>
-                                <div className="text-right flex items-center gap-2 shrink-0">
-                                   <div className="font-extrabold text-sm private-value">₹{sip.amount.toLocaleString()}</div>
-                                   <div className="flex gap-1">
-                                      <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(sip)} className="h-7 w-7 text-primary active:bg-primary/10 -mr-1">
-                                         <Pencil className="h-3.5 w-3.5" />
-                                      </Button>
-                                      <Button variant="ghost" size="icon" onClick={() => handleDelete(sip.id)} className="h-7 w-7 text-destructive active:bg-destructive/10">
-                                         <Trash2 className="h-3.5 w-3.5" />
-                                      </Button>
-                                   </div>
-                                </div>
-                             </div>
-                             
-                             <div className="grid grid-cols-3 gap-2 bg-muted/30 rounded-lg p-2 border border-border/40">
-                                <div className="flex flex-col">
-                                   <span className="text-[9px] text-muted-foreground uppercase tracking-wider font-medium">Invested</span>
-                                   <span className="text-[12px] font-bold text-foreground/80 private-value">₹{Math.round(rInvested).toLocaleString()}</span>
-                                </div>
-                                <div className="flex flex-col">
-                                   <span className="text-[9px] text-muted-foreground uppercase tracking-wider font-medium">Projected</span>
-                                   <span className="text-[12px] font-bold text-primary private-value">₹{Math.round(rTotal).toLocaleString()}</span>
-                                </div>
-                                <div className="flex flex-col text-right">
-                                   <span className="text-[9px] text-muted-foreground uppercase tracking-wider font-medium">Returns</span>
-                                   <span className="text-[12px] font-bold text-emerald-500 private-value">+₹{Math.round(rReturns).toLocaleString()}</span>
-                                </div>
-                             </div>
-                          </div>
+                          <div key={sip.id} className="p-3 flex flex-col gap-2.5 active:bg-muted/50 transition-colors">
+                              <div className="flex justify-between items-start min-w-0">
+                                 <div className="flex-1 min-w-0 pr-2">
+                                    <h4 className="font-bold text-[13px] sm:text-[14px] text-foreground truncate">{sip.name}</h4>
+                                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                       <span className="text-[9px] px-1 bg-secondary/80 text-muted-foreground rounded font-medium uppercase">{sip.frequency}</span>
+                                       <span className="text-[10px] sm:text-[11px] text-muted-foreground/80 truncate">
+                                          Due: {sip.frequency === 'Daily' ? 'Daily' : 
+                                                sip.frequency === 'Weekly' ? `${new Date(sip.next_date).toLocaleDateString('en-US', {weekday: 'short'})}` : 
+                                                `Day ${new Date(sip.next_date).getDate()}`}
+                                       </span>
+                                    </div>
+                                 </div>
+                                 <div className="text-right flex items-center gap-1.5 shrink-0">
+                                    <div className="font-extrabold text-[13px] sm:text-sm private-value">₹{sip.amount.toLocaleString()}</div>
+                                    <div className="flex gap-0.5">
+                                       <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(sip)} className="h-7 w-7 text-primary active:bg-primary/10">
+                                          <Pencil className="h-3.5 w-3.5" />
+                                       </Button>
+                                       <Button variant="ghost" size="icon" onClick={() => handleDelete(sip.id)} className="h-7 w-7 text-destructive active:bg-destructive/10">
+                                          <Trash2 className="h-3.5 w-3.5" />
+                                       </Button>
+                                    </div>
+                                 </div>
+                              </div>
+                              
+                              <div className="grid grid-cols-3 gap-1.5 bg-muted/30 rounded-lg p-2 border border-border/40">
+                                 <div className="flex flex-col min-w-0">
+                                    <span className="text-[8px] sm:text-[9px] text-muted-foreground uppercase tracking-wider font-medium truncate">Invested</span>
+                                    <span className="text-[11px] sm:text-[12px] font-bold text-foreground/80 private-value truncate" title={Math.round(rInvested).toLocaleString()}>₹{Math.round(rInvested).toLocaleString()}</span>
+                                 </div>
+                                 <div className="flex flex-col min-w-0">
+                                    <span className="text-[8px] sm:text-[9px] text-muted-foreground uppercase tracking-wider font-medium truncate">Projected</span>
+                                    <span className="text-[11px] sm:text-[12px] font-bold text-primary private-value truncate" title={Math.round(rTotal).toLocaleString()}>₹{Math.round(rTotal).toLocaleString()}</span>
+                                 </div>
+                                 <div className="flex flex-col min-w-0 text-right">
+                                    <span className="text-[8px] sm:text-[9px] text-muted-foreground uppercase tracking-wider font-medium truncate">Returns</span>
+                                    <span className="text-[11px] sm:text-[12px] font-bold text-emerald-500 private-value truncate" title={Math.round(rReturns).toLocaleString()}>+₹{Math.round(rReturns).toLocaleString()}</span>
+                                 </div>
+                              </div>
+                           </div>
                        )
                     })}
                  </div>
@@ -506,48 +506,48 @@ export default function SIPPlannerPage() {
          </div>
 
          {/* Quick Calculator Column */}
-          <div>
-            <Card className="h-full border-primary/20 bg-primary/5">
-              <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center justify-between text-primary">
-                     <div className="flex items-center gap-2">
-                        <Calculator className="h-5 w-5" />
-                        <span>
+         <div className="min-w-0">
+            <Card className="h-full border-primary/20 bg-primary/5 overflow-hidden">
+              <CardHeader className="pb-3 sm:pb-4 p-4 sm:p-6">
+                  <CardTitle className="flex flex-wrap items-center justify-between text-primary gap-2">
+                     <div className="flex items-center gap-1.5">
+                        <Calculator className="h-5 w-5 shrink-0" />
+                        <span className="text-base font-bold">
                           {calcMode === 'SIP' ? 'SIP Calc' : calcMode === 'SWP' ? 'SWP Calc' : calcMode === 'Lumpsum' ? 'Lumpsum' : 'Inflation'}
                         </span>
                      </div>
-                     <div className="flex gap-1 border rounded-lg p-0.5 bg-background text-foreground shrink-0 scale-90 sm:scale-100 overflow-x-auto max-w-full">
+                     <div className="flex gap-0.5 border rounded-lg p-0.5 bg-background text-foreground shrink-0">
                         <button 
                           onClick={() => setCalcMode('SIP')} 
-                          className={`px-1.5 py-0.5 text-[10px] rounded transition-all ${calcMode === 'SIP' ? 'bg-primary text-primary-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'}`}
+                          className={`px-1.5 py-0.5 text-[9px] sm:text-[10px] rounded transition-all ${calcMode === 'SIP' ? 'bg-primary text-primary-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                           SIP
                         </button>
                         <button 
                           onClick={() => setCalcMode('Lumpsum')} 
-                          className={`px-1.5 py-0.5 text-[10px] rounded transition-all ${calcMode === 'Lumpsum' ? 'bg-primary text-primary-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'}`}
+                          className={`px-1.5 py-0.5 text-[9px] sm:text-[10px] rounded transition-all ${calcMode === 'Lumpsum' ? 'bg-primary text-primary-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                           LMP
                         </button>
                         <button 
                           onClick={() => setCalcMode('SWP')} 
-                          className={`px-1.5 py-0.5 text-[10px] rounded transition-all ${calcMode === 'SWP' ? 'bg-primary text-primary-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'}`}
+                          className={`px-1.5 py-0.5 text-[9px] sm:text-[10px] rounded transition-all ${calcMode === 'SWP' ? 'bg-primary text-primary-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                           SWP
                         </button>
                         <button 
                           onClick={() => setCalcMode('Inflation')} 
-                          className={`px-1.5 py-0.5 text-[10px] rounded transition-all ${calcMode === 'Inflation' ? 'bg-primary text-primary-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'}`}
+                          className={`px-1.5 py-0.5 text-[9px] sm:text-[10px] rounded transition-all ${calcMode === 'Inflation' ? 'bg-primary text-primary-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                           INF
                         </button>
                      </div>
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-xs">
                      {calcMode === 'SIP' ? 'Future wealth estimator' : calcMode === 'Lumpsum' ? 'One-time wealth growth' : calcMode === 'SWP' ? 'Withdrawal plan calculator' : 'Future cost calculator'}
                   </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
                  {calcMode === 'SIP' && (
                    <>
                      <div>

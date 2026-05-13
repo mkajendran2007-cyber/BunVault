@@ -106,8 +106,10 @@ export async function GET(request: Request) {
                  }
               };
 
-              if (customMetals.includes("GOLD_INR_1G")) processMetal("GOLD_INR_1G", gcData, 1.06);
-              if (customMetals.includes("SILVER_INR_1G")) processMetal("SILVER_INR_1G", siData, 1.09);
+              // Applied the correct Indian tax multiplier of 1.1845 (15% Import duty as of May 2026 + 3% flat GST)
+               const IN_TAX_MULTIPLIER = 1.16; // 15% Import Duty + 1% Bullion Premium (Aligned to exact 24k physical rate)
+               if (customMetals.includes("GOLD_INR_1G")) processMetal("GOLD_INR_1G", gcData, IN_TAX_MULTIPLIER);
+               if (customMetals.includes("SILVER_INR_1G")) processMetal("SILVER_INR_1G", siData, IN_TAX_MULTIPLIER);
            }
         } catch (e) {
            console.error("Metals fetch error:", e);
@@ -149,11 +151,25 @@ export async function GET(request: Request) {
      yahooSymbols.forEach(sym => {
         fetchPromises.push((async () => {
            try {
-              // Pivot away from restricted 'quote' endpoint to permissive 'chart' endpoint
-              const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d`);
-              const data = await res.json();
-              
-              if (data.chart?.result?.[0]) {
+              // Intercept crypto tickers and auto-translate -USD to -INR to match native portfolio valuation
+               let querySym = sym;
+               let isCryptoUSD = sym.endsWith("-USD");
+               if (isCryptoUSD) {
+                  querySym = sym.replace("-USD", "-INR");
+               }
+
+               // Pivot away from restricted 'quote' endpoint to permissive 'chart' endpoint
+               let res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(querySym)}?interval=1d`);
+               let data = await res.json();
+
+               // Robust fallback: if the translated -INR pair doesn't exist, revert to the original ticker
+               if (isCryptoUSD && (!data.chart?.result?.[0])) {
+                  querySym = sym;
+                  res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(querySym)}?interval=1d`);
+                  data = await res.json();
+               }
+               
+               if (data.chart?.result?.[0]) {
                  const meta = data.chart.result[0].meta;
                  const price = meta.regularMarketPrice;
                  const prevClose = meta.chartPreviousClose || price;

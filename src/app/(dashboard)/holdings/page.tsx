@@ -41,11 +41,11 @@ const POPULAR_ASSETS = [
   { name: "ICICI Prudential Bluechip Fund", symbol: "108466", type: "Mutual Fund" },
 
   // Crypto
-  { name: "Bitcoin", symbol: "BTC-USD", type: "Crypto" },
-  { name: "Ethereum", symbol: "ETH-USD", type: "Crypto" },
-  { name: "Solana", symbol: "SOL-USD", type: "Crypto" },
-  { name: "Binance Coin", symbol: "BNB-USD", type: "Crypto" },
-  { name: "Ripple", symbol: "XRP-USD", type: "Crypto" },
+  { name: "Bitcoin", symbol: "BTC-INR", type: "Crypto" },
+  { name: "Ethereum", symbol: "ETH-INR", type: "Crypto" },
+  { name: "Solana", symbol: "SOL-INR", type: "Crypto" },
+  { name: "Binance Coin", symbol: "BNB-INR", type: "Crypto" },
+  { name: "Ripple", symbol: "XRP-INR", type: "Crypto" },
 
   // Commodity
   { name: "Gold (MCX)", symbol: "GC=F", type: "Commodity" },
@@ -85,9 +85,9 @@ export default function HoldingsPage() {
     fetchHoldings()
   }, [])
 
-  // Live autocomplete search for all Indian equities and mutual funds
+  // Live autocomplete search for Indian equities, mutual funds, and cryptocurrencies
   useEffect(() => {
-    if (name.length < 2 || (type !== 'Equity' && type !== 'Mutual Fund')) {
+    if (name.length < 2 || (type !== 'Equity' && type !== 'Mutual Fund' && type !== 'Crypto')) {
        setSuggestions([])
        return
     }
@@ -592,7 +592,7 @@ export default function HoldingsPage() {
                                      required={!(type === 'Commodity' && commoditySubtype === 'Physical')}
                                      value={name} 
                                      onChange={e => setName(e.target.value)} 
-                                     placeholder={type === 'Mutual Fund' ? "Type to search Mutual Funds..." : "Type to search Equities..."} 
+                                     placeholder={type === 'Mutual Fund' ? "Type to search Mutual Funds..." : (type === 'Crypto' ? "Type to search Cryptos (e.g. Bitcoin)..." : "Type to search Equities...")} 
                                      className="w-full rounded-md border py-2 px-3 bg-background" 
                                   />
                                   {searching && (

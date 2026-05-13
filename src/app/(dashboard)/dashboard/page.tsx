@@ -20,9 +20,9 @@ export default function Dashboard() {
   const [age, setAge] = useState<number>(30)
   const [ageInput, setAgeInput] = useState<string>("30")
   const [isAgeEditing, setIsAgeEditing] = useState(false)
-  const [nifty, setNifty] = useState({ price: 0, change: 0, changePercent: 0, loading: true })
-  const [gold, setGold] = useState({ price: 0, change: 0, changePercent: 0, loading: true })
-  const [silver, setSilver] = useState({ price: 0, change: 0, changePercent: 0, loading: true })
+  const [nifty, setNifty] = useState({ price: 0, change: 0, changePercent: 0, timestamp: "", loading: true })
+  const [gold, setGold] = useState({ price: 0, change: 0, changePercent: 0, timestamp: "", loading: true })
+  const [silver, setSilver] = useState({ price: 0, change: 0, changePercent: 0, timestamp: "", loading: true })
   const [currentDate, setCurrentDate] = useState("")
   const [isMarketOpen, setIsMarketOpen] = useState(false)
 
@@ -81,11 +81,12 @@ export default function Dashboard() {
         const niftyData = data['^NSEI'];
         if (niftyData) {
            setNifty({
-              price: niftyData.price || 0,
-              change: niftyData.change || 0,
-              changePercent: niftyData.changePercent || 0,
-              loading: false
-           });
+               price: niftyData.price || 0,
+               change: niftyData.change || 0,
+               changePercent: niftyData.changePercent || 0,
+               timestamp: niftyData.timestamp || "",
+               loading: false
+            });
         } else {
            setNifty(prev => ({ ...prev, loading: false }));
         }
@@ -94,11 +95,12 @@ export default function Dashboard() {
         const goldData = data['GOLD_INR_1G'];
         if (goldData) {
            setGold({
-              price: goldData.price || 0,
-              change: goldData.change || 0,
-              changePercent: goldData.changePercent || 0,
-              loading: false
-           });
+               price: goldData.price || 0,
+               change: goldData.change || 0,
+               changePercent: goldData.changePercent || 0,
+               timestamp: goldData.timestamp || "",
+               loading: false
+            });
         } else {
            setGold(prev => ({ ...prev, loading: false }));
         }
@@ -107,11 +109,12 @@ export default function Dashboard() {
         const silverData = data['SILVER_INR_1G'];
         if (silverData) {
            setSilver({
-              price: silverData.price || 0,
-              change: silverData.change || 0,
-              changePercent: silverData.changePercent || 0,
-              loading: false
-           });
+               price: silverData.price || 0,
+               change: silverData.change || 0,
+               changePercent: silverData.changePercent || 0,
+               timestamp: silverData.timestamp || "",
+               loading: false
+            });
         } else {
            setSilver(prev => ({ ...prev, loading: false }));
         }
@@ -819,7 +822,14 @@ export default function Dashboard() {
                       </div>
                    )}
                 </div>
-                <p className="text-[9px] font-medium text-muted-foreground/60">Real-Time Index</p>
+                <p className="text-[9px] font-medium text-muted-foreground/60 flex items-center gap-1">
+                   <span>Real-Time Index</span>
+                   {nifty.timestamp && (
+                      <span className="opacity-70 font-normal">
+                         • As of {new Date(nifty.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                      </span>
+                   )}
+                </p>
              </div>
             <div className="flex flex-col items-end gap-1">
                <div className="flex items-center bg-slate-50 dark:bg-slate-800/50 py-0.5 px-1.5 rounded border shadow-sm">
@@ -867,7 +877,14 @@ export default function Dashboard() {
                       </div>
                    )}
                 </div>
-                <p className="text-[9px] font-medium text-muted-foreground/60">24K Premium</p>
+                <p className="text-[9px] font-medium text-muted-foreground/60 flex items-center gap-1">
+                   <span>24K Premium</span>
+                   {gold.timestamp && (
+                      <span className="opacity-70 font-normal">
+                         • As of {new Date(gold.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                      </span>
+                   )}
+                </p>
              </div>
             <div className="h-9 w-9 flex items-center justify-center rounded-full bg-amber-500/10 border border-amber-500/20">
                <svg viewBox="0 0 24 24" className="h-5 w-5 text-yellow-500" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -911,7 +928,14 @@ export default function Dashboard() {
                       </div>
                    )}
                 </div>
-                <p className="text-[9px] font-medium text-muted-foreground/60">999 Pure Spec</p>
+                <p className="text-[9px] font-medium text-muted-foreground/60 flex items-center gap-1">
+                   <span>999 Pure Spec</span>
+                   {silver.timestamp && (
+                      <span className="opacity-70 font-normal">
+                         • As of {new Date(silver.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                      </span>
+                   )}
+                </p>
              </div>
             <div className="h-9 w-9 flex items-center justify-center rounded-full bg-slate-400/10 border border-slate-400/20">
                <svg viewBox="0 0 24 24" className="h-5 w-5 text-slate-300" fill="none" stroke="currentColor" strokeWidth="1.5">
