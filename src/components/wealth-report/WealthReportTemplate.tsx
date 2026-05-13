@@ -181,6 +181,23 @@ export function WealthReportTemplate({
          #wealth-report-container .w-16 { width: 3.5rem !important; }
          #wealth-report-container .h-14 { height: 3.2rem !important; }
          #wealth-report-container .w-14 { width: 3.2rem !important; }
+          
+          /* Prevent html2canvas from clipping text descenders / font baselines */
+          #wealth-report-container .truncate {
+             overflow: visible !important;
+             text-overflow: unset !important;
+             white-space: normal !important;
+          }
+          
+          #wealth-report-container p, 
+          #wealth-report-container span, 
+          #wealth-report-container h1, 
+          #wealth-report-container h2, 
+          #wealth-report-container h3, 
+          #wealth-report-container h4 {
+             overflow: visible !important;
+             padding-bottom: 3px !important; /* Extra headroom for lower font curves */
+          }
       ` }} />
 
       {/* ================= PAGE 1: COVER PAGE ================= */}
@@ -537,9 +554,9 @@ export function WealthReportTemplate({
                   <h2 className="text-4xl font-black text-white tracking-tight">Mutual Funds</h2>
                   <p className="text-slate-400 text-sm mt-1">Automated pooled capital allocations across custom AMCs.</p>
                </div>
-               <div className="bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-xl text-right">
+               <div className="bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-xl text-right relative overflow-hidden">
                   <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Managed Portfolio</p>
-                  <p className="text-xl font-black text-white">₹{mutualFunds.reduce((sum, h) => sum + h.currentValue, 0).toLocaleString('en-IN')}</p>
+                  <p className="text-xl font-black text-white">₹{Math.round(mutualFunds.reduce((sum, h) => sum + h.currentValue, 0)).toLocaleString('en-IN')}</p>
                </div>
             </div>
 
@@ -576,8 +593,8 @@ export function WealthReportTemplate({
                                  <span className="text-[10px] font-mono text-slate-500 mt-0.5 uppercase">CODE: {mf.symbol}</span>
                               </div>
                               <div className="col-span-3 text-right space-y-0.5">
-                                 <p className="text-sm font-extrabold text-slate-200">₹{mf.currentValue.toLocaleString('en-IN')}</p>
-                                 <p className="text-[10px] text-slate-500">Cost: ₹{mf.totalInvestment.toLocaleString('en-IN')}</p>
+                                 <p className="text-sm font-extrabold text-slate-200">₹{Math.round(mf.currentValue).toLocaleString('en-IN')}</p>
+                                 <p className="text-[10px] text-slate-500">Cost: ₹{Math.round(mf.totalInvestment).toLocaleString('en-IN')}</p>
                               </div>
                               {/* Vector Sparkline Spark */}
                               <div className="col-span-2 h-8 px-4 flex items-center justify-center">
@@ -739,14 +756,14 @@ export function WealthReportTemplate({
                      </div>
                      <div className="flex justify-between items-baseline">
                         <span className="text-slate-500 text-xs font-bold uppercase tracking-wide">Spot Fixing (1G)</span>
-                        <span className="text-base font-bold text-white">₹{goldPrice.toLocaleString('en-IN')}</span>
+                        <span className="text-base font-bold text-white">₹{Math.round(goldPrice).toLocaleString('en-IN')}</span>
                      </div>
                   </div>
 
                   <div className="space-y-2 pt-4">
                      <p className="text-[10px] font-bold tracking-widest text-amber-600 uppercase">Valuation Core</p>
                      <div className="flex justify-between items-baseline">
-                        <span className="text-3xl font-black text-white">₹{totalGoldValue.toLocaleString('en-IN')}</span>
+                        <span className="text-3xl font-black text-white">₹{Math.round(totalGoldValue).toLocaleString('en-IN')}</span>
                         {physicalGoldHoldings.length > 0 && (
                            <span className="text-emerald-400 text-sm font-bold">
                               +{((totalGoldValue - physicalGoldHoldings.reduce((s,h)=>s+h.totalInvestment,0)) / physicalGoldHoldings.reduce((s,h)=>s+h.totalInvestment,0) * 100 || 0).toFixed(1)}%
@@ -779,14 +796,14 @@ export function WealthReportTemplate({
                      </div>
                      <div className="flex justify-between items-baseline">
                         <span className="text-slate-500 text-xs font-bold uppercase tracking-wide">Spot Fixing (1G)</span>
-                        <span className="text-base font-bold text-white">₹{silverPrice.toLocaleString('en-IN')}</span>
+                        <span className="text-base font-bold text-white">₹{Math.round(silverPrice).toLocaleString('en-IN')}</span>
                      </div>
                   </div>
 
                   <div className="space-y-2 pt-4">
                      <p className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">Valuation Core</p>
                      <div className="flex justify-between items-baseline">
-                        <span className="text-3xl font-black text-white">₹{totalSilverValue.toLocaleString('en-IN')}</span>
+                        <span className="text-3xl font-black text-white">₹{Math.round(totalSilverValue).toLocaleString('en-IN')}</span>
                         {physicalSilverHoldings.length > 0 && (
                            <span className="text-emerald-400 text-sm font-bold">
                               +{((totalSilverValue - physicalSilverHoldings.reduce((s,h)=>s+h.totalInvestment,0)) / physicalSilverHoldings.reduce((s,h)=>s+h.totalInvestment,0) * 100 || 0).toFixed(1)}%
