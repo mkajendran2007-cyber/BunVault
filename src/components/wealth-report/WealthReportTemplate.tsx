@@ -82,7 +82,14 @@ export function WealthReportTemplate({
   const bestAsset = performanceSorted[0]
   const worstAsset = performanceSorted[performanceSorted.length - 1]
   const activeSipsCount = sips.filter(s => s.status === "Active").length
-  const monthlySipTotal = sips.filter(s => s.status === "Active").reduce((sum, s) => sum + s.amount, 0)
+  const monthlySipTotal = sips
+    .filter(s => s.status === "Active")
+    .reduce((sum, s) => {
+       let val = s.amount
+       if (s.frequency === 'Weekly') val = s.amount * 4
+       if (s.frequency === 'Daily') val = s.amount * 30
+       return sum + val
+    }, 0)
 
   // Normalized user representation
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Investor"
