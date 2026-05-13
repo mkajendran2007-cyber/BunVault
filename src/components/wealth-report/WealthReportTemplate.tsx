@@ -84,6 +84,9 @@ export function WealthReportTemplate({
   const activeSipsCount = sips.filter(s => s.status === "Active").length
   const monthlySipTotal = sips.filter(s => s.status === "Active").reduce((sum, s) => sum + s.amount, 0)
 
+  // Normalized user representation
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Investor"
+
   // 20-Year Future SIP Projection Math
   const sipProjection = React.useMemo(() => {
      const rate = 0.12 // 12% average annual return
@@ -128,33 +131,44 @@ export function WealthReportTemplate({
          {/* Background grid overlay */}
          <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20" />
 
-         {/* Header Brand */}
-         <div className="relative flex items-center gap-4">
-            <div className="bg-white p-2 rounded-2xl border border-blue-500/20 shadow-[0_0_40px_rgba(59,130,246,0.2)] flex items-center justify-center h-14 w-14">
-               <img src="/logo.png" alt="Bun Vault" className="h-full w-full object-contain" />
-            </div>
-            <div>
-               <h1 className="text-2xl font-black tracking-[0.2em] text-white">BUN VAULT</h1>
-               <p className="text-xs font-bold text-blue-400 tracking-widest uppercase">Premium Finance Ecosystem</p>
-            </div>
-         </div>
+          {/* Header Brand */}
+          <div className="relative flex items-center gap-4">
+             <div className="bg-white p-2 rounded-2xl border border-blue-500/20 shadow-[0_0_40px_rgba(59,130,246,0.2)] flex items-center justify-center h-14 w-14">
+                <img src="/logo.png" alt="Bun Vault" className="h-full w-full object-contain" />
+             </div>
+             <div>
+                <h1 className="text-2xl font-black tracking-[0.2em] text-white">BUN VAULT</h1>
+                <p className="text-xs font-bold text-blue-400 tracking-widest uppercase">Premium Finance Ecosystem</p>
+             </div>
+          </div>
 
-         {/* Centerpiece Titles */}
-         <div className="relative flex-1 flex flex-col justify-center">
-            <div className="space-y-4 max-w-2xl">
-               <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/30 text-blue-300 px-4 py-1.5 rounded-full text-sm font-semibold tracking-wide uppercase mb-4">
-                  <Activity className="w-4 h-4 animate-pulse text-blue-400" /> AI-Powered Intelligence
-               </div>
-               <h2 className="text-7xl font-black tracking-tight text-white leading-[1.1]">
-                  Personal <br />
-                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-cyan-400">
-                     Wealth Report
-                  </span>
-               </h2>
-               <div className="h-2 w-32 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" />
-               <p className="text-slate-400 text-lg max-w-lg pt-2 leading-relaxed">
-                  A high-fidelity, investor-grade analysis of your asset allocations, yield projections, and diversified corpus performance metrics.
-               </p>
+          {/* Large Luxury Center Logo Anchor */}
+          <div className="relative flex flex-col items-center justify-center py-8">
+             <div className="bg-slate-900/40 backdrop-blur-md p-8 rounded-[3rem] border border-slate-800/80 shadow-[0_0_100px_rgba(59,130,246,0.1)] flex items-center justify-center h-64 w-64 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-30" />
+                <div className="bg-white p-6 rounded-[2.5rem] shadow-2xl h-full w-full flex items-center justify-center relative z-10 border border-blue-500/10">
+                   <img src="/logo.png" alt="Bun Vault" className="h-full w-full object-contain" />
+                </div>
+             </div>
+             <div className="absolute w-[350px] h-[350px] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none -z-10" />
+          </div>
+
+          {/* Centerpiece Titles */}
+          <div className="relative flex-1 flex flex-col justify-center pt-4">
+             <div className="space-y-4 max-w-2xl">
+                <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/30 text-blue-300 px-4 py-1.5 rounded-full text-sm font-semibold tracking-wide uppercase mb-4">
+                   <Activity className="w-4 h-4 animate-pulse text-blue-400" /> AI-Powered Intelligence
+                </div>
+                <h2 className="text-[4.5rem] font-black tracking-tight text-white leading-[1.1]">
+                   <span className="capitalize">{userName}&apos;s</span> <br />
+                   <span className="text-blue-400 font-black">
+                      Wealth Report
+                   </span>
+                </h2>
+                <div className="h-2 w-32 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" />
+                <p className="text-slate-400 text-lg max-w-lg pt-2 leading-relaxed">
+                   A high-fidelity, investor-grade analysis of your asset allocations, yield projections, and diversified corpus performance metrics.
+                </p>
             </div>
          </div>
 
