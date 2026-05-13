@@ -319,6 +319,7 @@ export function WealthReportTemplate({
                                  outerRadius={95}
                                  paddingAngle={4}
                                  dataKey="value"
+                                 isAnimationActive={false}
                               >
                                  {assetAllocation.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={BLUE_COLORS[index % BLUE_COLORS.length]} stroke="#0f172a" strokeWidth={2} />

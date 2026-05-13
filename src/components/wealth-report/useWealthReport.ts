@@ -31,8 +31,8 @@ export function useWealthReport() {
       const html2canvas = (await import("html2canvas")).default
       const { jsPDF } = await import("jspdf")
 
-      // Small delay to allow off-screen DOM element to completely render with hydrated props and recharts
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      // Minor delay for immediate static mount settling
+      await new Promise((resolve) => setTimeout(resolve, 200))
 
       // Initialize A4 jsPDF Instance (Standard A4 measures 210mm x 297mm)
       const pdf = new jsPDF({
@@ -76,8 +76,8 @@ export function useWealthReport() {
         // Append image exactly covering full page canvas boundaries
         pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight, undefined, "FAST")
 
-        // Tiny macro-task yield to allow Browser thread breathing room and UI updates
-        await new Promise((resolve) => setTimeout(resolve, 300))
+        // Ultra-light macro-task yield to maintain UI progress repaint state
+        await new Promise((resolve) => setTimeout(resolve, 15))
       }
 
       setStatusText("Finalizing System Package...")
