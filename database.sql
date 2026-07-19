@@ -122,3 +122,62 @@ ON public.portfolio_snapshots FOR SELECT USING (auth.uid() = user_id);
 
 CREATE POLICY "Users can insert their own snapshots" 
 ON public.portfolio_snapshots FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- ============================================================
+-- 7. Expenses Table (Income + Expense entries)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.expenses (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  tx_type TEXT NOT NULL DEFAULT 'expense',  -- 'income' | 'expense'
+  amount NUMERIC NOT NULL,
+  income_type TEXT,       -- 'Pocket Money' | 'Salary' | 'Custom'
+  income_source TEXT,     -- custom label when income_type = 'Custom'
+  category TEXT,          -- expense category name (built-in or custom)
+  category_icon TEXT,     -- emoji icon for category
+  payment_mode TEXT,
+  account TEXT NOT NULL,  -- which account was debited/credited
+  description TEXT,
+  date DATE NOT NULL DEFAULT CURRENT_DATE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own expenses"
+ON public.expenses FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own expenses"
+ON public.expenses FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own expenses"
+ON public.expenses FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own expenses"
+ON public.expenses FOR DELETE USING (auth.uid() = user_id);
+
+-- ============================================================
+-- 8. Transfers Table (Account-to-account, CC repayments, etc.)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.transfers (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  from_account TEXT NOT NULL,
+  to_account TEXT NOT NULL,
+  amount NUMERIC NOT NULL,
+  description TEXT,
+  date DATE NOT NULL DEFAULT CURRENT_DATE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.transfers ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own transfers"
+ON public.transfers FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own transfers"
+ON public.transfers FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own transfers"
+ON public.transfers FOR DELETE USING (auth.uid() = user_id);
+

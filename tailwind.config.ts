@@ -3,10 +3,10 @@ import type { Config } from "tailwindcss"
 const config = {
   darkMode: ["class"],
   content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   prefix: "",
   theme: {
@@ -51,6 +51,29 @@ const config = {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        gold: {
+          DEFAULT: "#FACC15",
+          light: "#EAB308",
+          gradientStart: "#FEF08A",
+          gradientMid: "#FACC15",
+          gradientEnd: "#CA8A04",
+        },
+        expense: {
+          DEFAULT: "#FF3B30",
+          soft: "rgba(255, 59, 48, 0.15)",
+        },
+        investment: {
+          DEFAULT: "#00E676",
+          soft: "rgba(0, 230, 118, 0.15)",
+        },
+        surface: {
+          dark: "#0D1117",
+          light: "#FFFFFF",
+        },
+        sidebar: {
+          dark: "#08090B",
+          light: "#FFFFFF",
         },
       },
       borderRadius: {
