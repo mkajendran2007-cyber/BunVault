@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react"
 import { supabase } from "@/lib/supabase"
+import { getUserSetting, setUserSetting } from "@/lib/userSettings"
 import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
 import { ChevronDown, User, LogOut, Moon, Sun } from "lucide-react"
@@ -13,12 +14,14 @@ export default function UserAvatar() {
   const [email, setEmail] = useState("")
   const [avatar, setAvatar] = useState("")
   const [isOpen, setIsOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   
   const router = useRouter()
   const { theme, setTheme } = useTheme()
 
   useEffect(() => {
+    setMounted(true)
     async function loadUser() {
       // 1. Instant render from local cache if we have a session
       const { data: { session } } = await supabase.auth.getSession()
@@ -35,15 +38,32 @@ export default function UserAvatar() {
       if (user) {
         setIsLoggedIn(true)
         setEmail(user.email || "")
-        const metaName = user.user_metadata?.display_name || user.user_metadata?.full_name || ""
-        if (metaName) {
-          setName(metaName)
-          localStorage.setItem("bun_vault_name", metaName)
+
+        const cloudName = await getUserSetting("display_name")
+        const cloudAvatar = await getUserSetting(`bun_vault_avatar_${user.id}`)
+        
+        if (cloudName) {
+           setName(cloudName)
+           localStorage.setItem("bun_vault_name", cloudName)
+        } else {
+           const metaName = user.user_metadata?.display_name || user.user_metadata?.full_name || ""
+           if (metaName) {
+             setName(metaName)
+             setUserSetting("display_name", metaName)
+             localStorage.setItem("bun_vault_name", metaName)
+           }
         }
-        const metaAvatar = user.user_metadata?.avatar_url || ""
-        if (metaAvatar) {
-          setAvatar(metaAvatar)
-          localStorage.setItem(`bun_vault_avatar_${user.id}`, metaAvatar)
+
+        if (cloudAvatar) {
+           setAvatar(cloudAvatar)
+           localStorage.setItem(`bun_vault_avatar_${user.id}`, cloudAvatar)
+        } else {
+           const metaAvatar = user.user_metadata?.avatar_url || ""
+           if (metaAvatar) {
+             setAvatar(metaAvatar)
+             setUserSetting(`bun_vault_avatar_${user.id}`, metaAvatar)
+             localStorage.setItem(`bun_vault_avatar_${user.id}`, metaAvatar)
+           }
         }
       } else {
         setIsLoggedIn(false)
@@ -97,9 +117,9 @@ export default function UserAvatar() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-background border border-primary/25 rounded-xl shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-3 duration-300 divide-y divide-primary/10">
+        <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#0F141C] border-2 border-slate-300 dark:border-slate-800 rounded-xl shadow-[0_25px_80px_rgba(0,0,0,0.4)] dark:shadow-[0_25px_80px_rgba(0,0,0,0.85)] p-2 z-[9999] opacity-100 animate-in fade-in slide-in-from-top-3 duration-300 divide-y divide-slate-200 dark:divide-slate-800">
           {/* User Profile Summary */}
-          <div className="px-3 py-2.5 border-b border-primary/10 mb-1">
+          <div className="px-3 py-2.5 border-b border-slate-200 dark:border-slate-800 mb-1">
             <p className="font-semibold text-card-foreground text-sm truncate">{name || "Anonymous User"}</p>
             <p className="text-xs text-muted-foreground truncate">{email || "Not logged in"}</p>
           </div>
@@ -119,8 +139,8 @@ export default function UserAvatar() {
               onClick={toggleTheme}
               className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-muted text-card-foreground transition-colors text-left"
             >
-              {theme === "dark" ? <Sun className="h-4 w-4 text-muted-foreground" /> : <Moon className="h-4 w-4 text-muted-foreground" />}
-              <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+              {mounted && theme === "dark" ? <Sun className="h-4 w-4 text-muted-foreground" /> : <Moon className="h-4 w-4 text-muted-foreground" />}
+              <span>{mounted && theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
             </button>
 
             <button 

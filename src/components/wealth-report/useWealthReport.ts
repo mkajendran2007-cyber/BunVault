@@ -94,9 +94,31 @@ export function useWealthReport() {
       alert("PDF generation failed during rasterization. Please ensure dynamic chart packages are hydrated.")
     } finally {
       setIsGenerating(false)
+      setReportData(null)
       setGenerationStep(0)
       setStatusText("")
     }
+  }
+
+  const [reportData, setReportData] = useState<WealthReportData | null>(null)
+
+  const generateReport = (data: WealthReportData) => {
+    setReportData(data)
+    setIsGenerating(true)
+  }
+
+  const completeGeneration = () => {
+    setIsGenerating(false)
+    setReportData(null)
+    setGenerationStep(0)
+    setStatusText("")
+  }
+
+  const abortGeneration = () => {
+    setIsGenerating(false)
+    setReportData(null)
+    setGenerationStep(0)
+    setStatusText("")
   }
 
   return {
@@ -104,6 +126,10 @@ export function useWealthReport() {
     isGenerating,
     generationStep,
     totalSteps: TOTAL_PAGES,
-    statusText
+    statusText,
+    reportData,
+    generateReport,
+    completeGeneration,
+    abortGeneration
   }
 }

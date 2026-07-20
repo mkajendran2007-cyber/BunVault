@@ -75,6 +75,32 @@ const config = {
           dark: "#08090B",
           light: "#FFFFFF",
         },
+        emerald: {
+          50: "#e0ffe5",
+          100: "#b3ffc2",
+          200: "#80ff9a",
+          300: "#4dff73",
+          400: "#26ff55",
+          500: "#00E676", // Stark vivid neon green
+          600: "#00b35c",
+          700: "#008042",
+          800: "#004d28",
+          900: "#001a0d",
+          950: "#000d06",
+        },
+        rose: {
+          50: "#ffe5e9",
+          100: "#ffb3be",
+          200: "#ff8093",
+          300: "#ff4d68",
+          400: "#ff2647",
+          500: "#FF1744", // Stark vivid high-contrast red
+          600: "#cc1236",
+          700: "#990e29",
+          800: "#66091b",
+          900: "#33050e",
+          950: "#1a0207",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

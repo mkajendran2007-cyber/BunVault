@@ -24,7 +24,7 @@ export function GeneratingLoader({ step, total, statusText }: GeneratingLoaderPr
         </div>
 
         <div className="space-y-2">
-           <h3 className="text-xl font-black text-white tracking-tight flex items-center justify-center gap-2">
+           <h3 className="text-xl font-bold text-white tracking-tight flex items-center justify-center gap-2">
               <Activity className="h-5 w-5 text-emerald-400 animate-pulse" /> Compiling Wealth Report
            </h3>
            <p className="text-xs font-mono text-blue-400 tracking-wider uppercase font-bold">{statusText || "Vector-Rasterizing Engines..."}</p>

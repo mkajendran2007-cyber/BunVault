@@ -6,12 +6,20 @@ import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
 import { useTheme } from "next-themes"
 import { useRouter } from "next/navigation"
-import { User, LogOut, Palette, Database, ShieldAlert, Camera, Save, Key } from "lucide-react"
+import { User, LogOut, Palette, Database, ShieldAlert, Camera, Save, Key, Download, Volume2, VolumeX, Settings2 } from "lucide-react"
+import { toast } from "sonner"
+import { engine } from "@/lib/AudioEngine"
+import { getUserSetting, setUserSetting } from "@/lib/userSettings"
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Profile states
   const [userEmail, setUserEmail] = useState<string>("")
@@ -25,20 +33,41 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [changingPassword, setChangingPassword] = useState(false)
 
+  // Audio states
+  const [audioVol, setAudioVol] = useState(30)
+  const [audioMuted, setAudioMuted] = useState(false)
+
   useEffect(() => {
     async function loadUser() {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         setUserEmail(user.email || "")
-        // Attempt to fetch name from Supabase user_metadata or localStorage fallback
-        const metaName = user.user_metadata?.display_name || user.user_metadata?.full_name || ""
-        const localName = localStorage.getItem("bun_vault_name") || ""
-        setDisplayName(metaName || localName || "")
 
-        const localAvatar = localStorage.getItem(`bun_vault_avatar_${user.id}`) || ""
-        setAvatar(localAvatar)
+        const cloudName = await getUserSetting("display_name")
+        const cloudAvatar = await getUserSetting(`bun_vault_avatar_${user.id}`)
+
+        if (cloudName) {
+           setDisplayName(cloudName)
+           localStorage.setItem("bun_vault_name", cloudName)
+        } else {
+           const metaName = user.user_metadata?.display_name || user.user_metadata?.full_name || ""
+           const localName = localStorage.getItem("bun_vault_name") || ""
+           setDisplayName(metaName || localName || "")
+        }
+
+        if (cloudAvatar) {
+           setAvatar(cloudAvatar)
+           localStorage.setItem(`bun_vault_avatar_${user.id}`, cloudAvatar)
+        } else {
+           const localAvatar = localStorage.getItem(`bun_vault_avatar_${user.id}`) || ""
+           setAvatar(localAvatar)
+        }
       }
       setLoading(false)
+
+      // Audio engine setup
+      setAudioVol(Math.round(engine.getVolume() * 100))
+      setAudioMuted(engine.getMuted())
     }
     loadUser()
   }, [])
@@ -47,17 +76,16 @@ export default function SettingsPage() {
     e.preventDefault()
     setSavingProfile(true)
     try {
-      // Save display name to Supabase Auth metadata
       const { error } = await supabase.auth.updateUser({
         data: { display_name: displayName }
       })
-
       if (error) throw error
-
+      setUserSetting("display_name", displayName)
       localStorage.setItem("bun_vault_name", displayName)
-      window.location.reload() // Trigger refresh to update navbar avatar/name
+      toast.success("Profile updated successfully!")
+      router.refresh()
     } catch (err: any) {
-      alert("Failed to update profile: " + err.message)
+      toast.error("Failed to update profile: " + err.message)
     } finally {
       setSavingProfile(false)
     }
@@ -69,7 +97,7 @@ export default function SettingsPage() {
 
     // Limit file size to 2MB to keep Base64 storage friendly
     if (file.size > 2 * 1024 * 1024) {
-      alert("File size too large. Please select an image smaller than 2MB.")
+      toast.error("File too large. Please select an image under 2MB.")
       return
     }
 
@@ -80,6 +108,7 @@ export default function SettingsPage() {
     reader.onloadend = () => {
       const base64String = reader.result as string
       setAvatar(base64String)
+      setUserSetting(`bun_vault_avatar_${user.id}`, base64String)
       localStorage.setItem(`bun_vault_avatar_${user.id}`, base64String)
     };
     reader.readAsDataURL(file)
@@ -88,27 +117,22 @@ export default function SettingsPage() {
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault()
     if (password.length < 8) {
-      alert("Password must be at least 8 characters long.")
+      toast.error("Password must be at least 8 characters long.")
       return
     }
     if (password !== confirmPassword) {
-      alert("Passwords do not match.")
+      toast.error("Passwords do not match.")
       return
     }
-
     setChangingPassword(true)
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: password
-      })
-
+      const { error } = await supabase.auth.updateUser({ password })
       if (error) throw error
-
-      alert("Password updated successfully!")
+      toast.success("Password updated successfully!")
       setPassword("")
       setConfirmPassword("")
     } catch (err: any) {
-      alert("Failed to change password: " + err.message)
+      toast.error("Failed to change password: " + err.message)
     } finally {
       setChangingPassword(false)
     }
@@ -119,22 +143,50 @@ export default function SettingsPage() {
     if (!error) {
       router.push("/login")
     } else {
-      alert("Error signing out: " + error.message)
+      toast.error("Error signing out: " + error.message)
     }
   }
 
   const handleClearCache = () => {
-    if (confirm("Are you sure you want to clear your local preferences?")) {
-      localStorage.removeItem("bun_vault_age")
-      localStorage.removeItem("bun_vault_name")
-      localStorage.removeItem("bun_vault_avatar")
-      for (let i = localStorage.length - 1; i >= 0; i--) {
-         const key = localStorage.key(i);
-         if (key?.startsWith("bun_vault_avatar_")) localStorage.removeItem(key);
-      }
-      alert("Preferences cleared successfully!")
-      window.location.reload()
+    localStorage.removeItem("bun_vault_age")
+    localStorage.removeItem("bun_vault_name")
+    localStorage.removeItem("bun_vault_avatar")
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i)
+      if (key?.startsWith("bun_vault_avatar_")) localStorage.removeItem(key)
     }
+    toast.success("Local preferences cleared!")
+    router.refresh()
+  }
+
+  const handleExportCSV = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { toast.error("Please login first."); return }
+      const { data: holdings } = await supabase.from('holdings').select('*').eq('user_id', user.id)
+      if (!holdings || holdings.length === 0) { toast.warning("No holdings to export."); return }
+      const header = ['Name', 'Symbol', 'Type', 'Qty', 'Buy Price', 'Purchase Date']
+      const rows = holdings.map(h => [h.name, h.symbol, h.type, h.qty, h.buy_price, h.purchase_date].join(','))
+      const csv = [header.join(','), ...rows].join('\n')
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = 'bun_vault_holdings.csv'; a.click()
+      URL.revokeObjectURL(url)
+      toast.success("Holdings exported as CSV!")
+    } catch (e: any) {
+      toast.error("Export failed: " + e.message)
+    }
+  }
+
+  const handleAudioSave = () => {
+    engine.savePreferences(audioVol / 100, audioMuted)
+    toast.success("Audio preferences saved")
+  }
+
+  const handlePreviewSound = () => {
+    engine.savePreferences(audioVol / 100, audioMuted)
+    engine.playSuccess()
   }
 
   return (
@@ -279,27 +331,89 @@ export default function SettingsPage() {
                   <label className="text-xs text-muted-foreground uppercase tracking-wider block mb-2">Display Theme</label>
                   <div className="grid grid-cols-3 gap-2">
                      <Button 
-                        variant={theme === "light" ? "default" : "outline"} 
+                        variant={mounted && theme === "light" ? "default" : "outline"} 
                         size="sm" 
                         onClick={() => setTheme("light")}
                      >
                         Light
                      </Button>
                      <Button 
-                        variant={theme === "dark" ? "default" : "outline"} 
+                        variant={mounted && theme === "dark" ? "default" : "outline"} 
                         size="sm" 
                         onClick={() => setTheme("dark")}
                      >
                         Dark
                      </Button>
                      <Button 
-                        variant={theme === "system" ? "default" : "outline"} 
+                        variant={mounted && theme === "system" ? "default" : "outline"} 
                         size="sm" 
                         onClick={() => setTheme("system")}
                      >
                         System
                      </Button>
                   </div>
+               </div>
+            </CardContent>
+         </Card>
+
+         {/* Audio & Sound Preferences Card */}
+         <Card className="glass-panel">
+            <CardHeader className="flex flex-row items-center gap-4">
+               <div className="h-12 w-12 bg-amber-500/10 rounded-full flex items-center justify-center text-amber-500">
+                  {audioMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
+               </div>
+               <div>
+                  <CardTitle>Sound & Audio</CardTitle>
+                  <CardDescription>Premium Enterprise Audio System.</CardDescription>
+               </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+               <div className="flex items-center justify-between border border-amber-500/20 bg-amber-500/5 p-3 rounded-lg">
+                  <div>
+                     <p className="text-sm font-medium">System Sounds</p>
+                     <p className="text-xs text-muted-foreground mt-0.5">{audioMuted ? 'All sounds muted' : 'Audio enabled'}</p>
+                  </div>
+                  <Button 
+                    variant={audioMuted ? "default" : "outline"} 
+                    size="sm" 
+                    onClick={() => {
+                       const newMuted = !audioMuted;
+                       setAudioMuted(newMuted);
+                       engine.savePreferences(audioVol / 100, newMuted);
+                    }}
+                    className={audioMuted ? "bg-amber-500 text-slate-950 hover:bg-amber-600" : "text-amber-500 hover:text-amber-400 border-amber-500/30"}
+                  >
+                     {audioMuted ? "Unmute" : "Mute All"}
+                  </Button>
+               </div>
+               
+               <div className="space-y-3">
+                  <div className="flex justify-between text-sm font-medium">
+                     <span>Master Volume</span>
+                     <span className="text-amber-500">{audioVol}%</span>
+                  </div>
+                  <input
+                     type="range"
+                     min={0}
+                     max={100}
+                     step={5}
+                     value={audioVol}
+                     onChange={(e) => {
+                       const v = Number(e.target.value);
+                       setAudioVol(v);
+                       engine.savePreferences(v / 100, audioMuted);
+                     }}
+                     className="w-full accent-amber-500 h-2 bg-muted rounded-lg cursor-pointer"
+                  />
+               </div>
+
+               <div className="flex gap-3 pt-2">
+                  <Button variant="outline" className="flex-1 border-amber-500/30 text-amber-500 hover:bg-amber-500/10" onClick={handlePreviewSound}>
+                    <Settings2 className="h-4 w-4 mr-2" /> Preview Sound
+                  </Button>
+                  <Button className="flex-1 bg-amber-500 text-slate-950 hover:bg-amber-600" onClick={handleAudioSave}>
+                    <Save className="h-4 w-4 mr-2" /> Save Settings
+                  </Button>
                </div>
             </CardContent>
          </Card>
@@ -312,13 +426,22 @@ export default function SettingsPage() {
                </div>
                <div>
                   <CardTitle>Data Management</CardTitle>
-                  <CardDescription>Reset local browser pref cached states.</CardDescription>
+                  <CardDescription>Export or reset your local data.</CardDescription>
                </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3">
+               <div className="flex items-center justify-between border border-blue-500/20 bg-blue-500/5 p-3 rounded-lg">
+                  <div>
+                     <p className="text-sm font-medium">Export Holdings CSV</p>
+                     <p className="text-xs text-muted-foreground mt-0.5">Download all your holdings as a spreadsheet.</p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={handleExportCSV} className="text-blue-500 hover:text-blue-400 border-blue-500/30 hover:bg-blue-500/10 gap-2">
+                     <Download className="h-3.5 w-3.5" /> Export
+                  </Button>
+               </div>
                <div className="flex items-center justify-between border border-emerald-500/20 bg-emerald-500/5 p-3 rounded-lg">
                   <div>
-                     <p className="text-sm font-medium">Clear Cache</p>
+                     <p className="text-sm font-medium">Clear Local Cache</p>
                      <p className="text-xs text-muted-foreground mt-0.5">Clears profile photo, name, and age preferences.</p>
                   </div>
                   <Button variant="outline" size="sm" onClick={handleClearCache} className="text-emerald-500 hover:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10">

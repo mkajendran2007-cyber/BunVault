@@ -4,6 +4,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import InstallPrompt from "@/components/InstallPrompt";
 import SmoothSplash from "@/components/SmoothSplash";
+import { Toaster } from "sonner";
+import AudioProvider from "@/components/AudioProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,9 +28,12 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen bg-background text-foreground antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <SmoothSplash />
-          {children}
-          <InstallPrompt />
+          <AudioProvider>
+            <SmoothSplash />
+            {children}
+            <InstallPrompt />
+            <Toaster richColors position="top-right" theme="system" />
+          </AudioProvider>
         </ThemeProvider>
       </body>
     </html>

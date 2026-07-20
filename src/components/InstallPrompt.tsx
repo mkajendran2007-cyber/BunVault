@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { Download, X, Smartphone } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import AppBrandLogo from "@/components/AppBrandLogo"
 
 export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
@@ -65,8 +66,8 @@ export default function InstallPrompt() {
 
         <div className="flex items-start gap-3">
           {/* Logo Container */}
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white p-1.5 shadow-md border border-white/10">
-            <img src="/logo.png" alt="Bun Vault Logo" className="h-full w-full object-contain" />
+          <div className="shrink-0">
+            <AppBrandLogo size="header" />
           </div>
 
           {/* Details */}

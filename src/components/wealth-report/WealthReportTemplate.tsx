@@ -18,30 +18,47 @@ const PAGE_HEIGHT = 1414 // px (A4 Aspect ratio: 1 : 1.414)
 const BLUE_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
 
 interface WealthReportTemplateProps {
-  user: any
-  holdings: any[]
-  sips: any[]
-  chartData: any[]
-  totalInvestment: number
-  currentValue: number
-  goldPrice: number
-  silverPrice: number
-  niftyPrice: number
-  currentDate: string
+  user?: any
+  holdings?: any[]
+  sips?: any[]
+  chartData?: any[]
+  totalInvestment?: number
+  currentValue?: number
+  goldPrice?: number
+  silverPrice?: number
+  niftyPrice?: number
+  currentDate?: string
+  data?: any
+  onReady?: () => void
+  onError?: (err?: any) => void
 }
 
-export function WealthReportTemplate({
-  user,
-  holdings,
-  sips,
-  chartData,
-  totalInvestment,
-  currentValue,
-  goldPrice,
-  silverPrice,
-  niftyPrice,
-  currentDate
-}: WealthReportTemplateProps) {
+export function WealthReportTemplate(props: WealthReportTemplateProps) {
+  const user: any = props.data?.user || props.user || {}
+  const holdings: any[] = props.data?.holdings || props.holdings || []
+  const sips: any[] = props.data?.sips || props.sips || []
+  const chartData: any[] = props.data?.chartData || props.chartData || []
+  const totalInvestment: number = props.data?.totalInvestment ?? props.totalInvestment ?? 0
+  const currentValue: number = props.data?.currentValue ?? props.currentValue ?? 0
+  const goldPrice: number = props.data?.goldPrice ?? props.goldPrice ?? 0
+  const silverPrice: number = props.data?.silverPrice ?? props.silverPrice ?? 0
+  const niftyPrice = props.data?.niftyPrice ?? props.niftyPrice ?? 0
+  const currentDate = props.data?.currentDate || props.currentDate || new Date().toISOString().split("T")[0]
+  const onReady = props.onReady
+  const onError = props.onError
+
+  React.useEffect(() => {
+    if (onReady) {
+      const timer = setTimeout(() => {
+        try {
+          onReady()
+        } catch (err) {
+          if (onError) onError(err)
+        }
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [onReady, onError])
   
   const totalPL = currentValue - totalInvestment
   const plPercent = totalInvestment > 0 ? (totalPL / totalInvestment) * 100 : 0
@@ -49,7 +66,7 @@ export function WealthReportTemplate({
   // Asset breakdown calculations
   const assetAllocation = React.useMemo(() => {
     const split: Record<string, number> = { Equity: 0, "Mutual Fund": 0, Debt: 0, Crypto: 0, Commodity: 0 }
-    holdings.forEach(h => {
+    holdings.forEach((h: any) => {
       if (split[h.type] !== undefined) split[h.type] += h.currentValue
       else split[h.type] = h.currentValue
     })
@@ -59,19 +76,27 @@ export function WealthReportTemplate({
   }, [holdings])
 
   // Filtered asset lists
-  const mutualFunds = holdings.filter(h => h.type === "Mutual Fund")
-  const stocks = holdings.filter(h => h.type === "Equity")
-  const cryptos = holdings.filter(h => h.type === "Crypto")
-  const commodity = holdings.filter(h => h.type === "Commodity")
-  const debt = holdings.filter(h => h.type === "Debt")
+  const mutualFunds = holdings.filter((h: any) => h.type === "Mutual Fund")
+  const stocks = holdings.filter((h: any) => h.type === "Equity")
+  const cryptos = holdings.filter((h: any) => h.type === "Crypto")
+  const commodity = holdings.filter((h: any) => h.type === "Commodity")
+  const debt = holdings.filter((h: any) => h.type === "Debt")
   
   // Gold and silver specific Gram aggregations
-  const physicalGoldHoldings = holdings.filter(h => h.symbol === "GOLD_INR_1G")
-  const physicalSilverHoldings = holdings.filter(h => h.symbol === "SILVER_INR_1G")
-  const totalGoldGrams = physicalGoldHoldings.reduce((sum, h) => sum + h.qty, 0)
-  const totalSilverGrams = physicalSilverHoldings.reduce((sum, h) => sum + h.qty, 0)
-  const totalGoldValue = physicalGoldHoldings.reduce((sum, h) => sum + h.currentValue, 0)
-  const totalSilverValue = physicalSilverHoldings.reduce((sum, h) => sum + h.currentValue, 0)
+  const physicalGoldHoldings = holdings.filter((h: any) => h.symbol === "GOLD_INR_1G")
+  const physicalSilverHoldings = holdings.filter((h: any) => h.symbol === "SILVER_INR_1G")
+  const totalGoldGrams = physicalGoldHoldings.reduce((sum: number, h: any) => sum + (h.qty || 0), 0)
+  const totalSilverGrams = physicalSilverHoldings.reduce((sum: number, h: any) => sum + (h.qty || 0), 0)
+  const totalGoldValue = physicalGoldHoldings.reduce((sum: number, h: any) => sum + (h.currentValue || 0), 0)
+  const totalSilverValue = physicalSilverHoldings.reduce((sum: number, h: any) => sum + (h.currentValue || 0), 0)
+
+  // Unified dual-decimal currency helper
+  const formatINR = (val: number) => {
+     return Number(val || 0).toLocaleString('en-IN', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+     });
+  };
 
   // Dynamic Insights Calculation
   const performanceSorted = [...holdings].sort((a, b) => {
@@ -197,7 +222,24 @@ export function WealthReportTemplate({
           #wealth-report-container h4 {
              overflow: visible !important;
              padding-bottom: 3px !important; /* Extra headroom for lower font curves */
-          }
+           }
+           
+           /* --- Strategic Contrast & Weight Polish --- */
+           #wealth-report-container .text-slate-500 { color: #94a3b8 !important; } 
+           #wealth-report-container .text-slate-600 { color: #64748b !important; } 
+           #wealth-report-container .text-slate-700 { color: #475569 !important; } 
+           #wealth-report-container .font-extrabold:not(h1):not(h2):not(h3) { font-weight: 700 !important; }
+           #wealth-report-container p.font-bold, #wealth-report-container span.font-bold { font-weight: 800 !important; }
+           #wealth-report-container p.font-bold, #wealth-report-container span.font-bold { font-weight: 600 !important; }
+           #wealth-report-container [class*="bg-slate-900"] { 
+              box-shadow: 0 15px 40px -15px rgba(0,0,0,0.4) !important;
+              backdrop-filter: blur(12px) !important;
+           }
+           #wealth-report-container .border-slate-900,
+           #wealth-report-container .border-slate-800 {
+              border-color: rgba(51, 65, 85, 0.35) !important; 
+           }
+          
       ` }} />
 
       {/* ================= PAGE 1: COVER PAGE ================= */}
@@ -215,7 +257,7 @@ export function WealthReportTemplate({
                 <img src="/logo.png" alt="Bun Vault" className="h-full w-full object-contain" />
              </div>
              <div>
-                <h1 className="text-2xl font-black tracking-[0.2em] text-white">BUN VAULT</h1>
+                <h1 className="text-2xl font-bold tracking-[0.2em] text-white">BUN VAULT</h1>
                 <p className="text-xs font-bold text-blue-400 tracking-widest uppercase">Premium Finance Ecosystem</p>
              </div>
           </div>
@@ -237,9 +279,9 @@ export function WealthReportTemplate({
                 <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/30 text-blue-300 px-4 py-1.5 rounded-full text-sm font-semibold tracking-wide uppercase mb-4">
                    <Activity className="w-4 h-4 animate-pulse text-blue-400" /> AI-Powered Intelligence
                 </div>
-                <h2 className="text-[4.5rem] font-black tracking-tight text-white leading-[1.1]">
+                <h2 className="text-[4.5rem] font-bold tracking-tight text-white leading-[1.1]">
                    <span className="capitalize">{userName}&apos;s</span> <br />
-                   <span className="text-blue-400 font-black">
+                   <span className="text-blue-400 font-bold">
                       Wealth Report
                    </span>
                 </h2>
@@ -255,7 +297,7 @@ export function WealthReportTemplate({
             <div className="grid grid-cols-12 gap-6">
                <div className="col-span-5 space-y-2 pl-4">
                   <p className="text-xs font-bold tracking-widest text-slate-500 uppercase">Portfolio Value</p>
-                  <h3 className="text-3xl font-black text-white">₹{Math.round(currentValue).toLocaleString('en-IN')}</h3>
+                  <h3 className="text-3xl font-bold text-white">₹{formatINR(currentValue)}</h3>
                   <p className={`text-sm font-bold flex items-center gap-1.5 ${totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                      {totalPL >= 0 ? <TrendingUp className="w-4 h-4"/> : <TrendingDown className="w-4 h-4"/>}
                      {totalPL >= 0 ? '+' : ''}{plPercent.toFixed(2)}% Growth
@@ -263,7 +305,7 @@ export function WealthReportTemplate({
                </div>
                <div className="col-span-3 space-y-2 pl-6 border-l border-slate-800">
                   <p className="text-xs font-bold tracking-widest text-slate-500 uppercase">Asset Count</p>
-                  <h3 className="text-3xl font-black text-white">{holdings.length}</h3>
+                  <h3 className="text-3xl font-bold text-white">{holdings.length}</h3>
                   <p className="text-sm font-semibold text-slate-400 flex items-center gap-1.5">
                      Across {assetAllocation.length} Classes
                   </p>
@@ -297,7 +339,7 @@ export function WealthReportTemplate({
 
          <div className="relative flex-1 flex flex-col pt-10 space-y-10">
             <div>
-               <h2 className="text-4xl font-black text-white tracking-tight">Executive Summary</h2>
+               <h2 className="text-4xl font-bold text-white tracking-tight">Executive Summary</h2>
                <p className="text-slate-400 text-sm mt-1">Overview of capital deployment efficiency and return yields.</p>
             </div>
 
@@ -305,21 +347,21 @@ export function WealthReportTemplate({
             <div className="grid grid-cols-4 gap-4">
                <div className="bg-slate-900/50 border border-slate-800/60 rounded-2xl p-4 space-y-2 relative overflow-hidden">
                   <p className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">Deployed Capital</p>
-                  <p className="text-xl font-black text-white truncate">₹{Math.round(totalInvestment).toLocaleString('en-IN')}</p>
+                  <p className="text-xl font-bold text-white truncate">₹{formatINR(totalInvestment)}</p>
                </div>
                <div className="bg-slate-900/50 border border-slate-800/60 rounded-2xl p-4 space-y-2 relative overflow-hidden">
                   <p className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">Current Valuation</p>
-                  <p className="text-xl font-black text-blue-400 truncate">₹{Math.round(currentValue).toLocaleString('en-IN')}</p>
+                  <p className="text-xl font-bold text-blue-400 truncate">₹{formatINR(currentValue)}</p>
                </div>
                <div className="bg-slate-900/50 border border-slate-800/60 rounded-2xl p-4 space-y-2 relative overflow-hidden">
                   <p className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">Absolute Yield</p>
-                  <p className={`text-xl font-black truncate ${totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                     {totalPL >= 0 ? '+' : ''}₹{Math.round(Math.abs(totalPL)).toLocaleString('en-IN')}
+                  <p className={`text-xl font-bold truncate ${totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                     {totalPL >= 0 ? '+' : ''}₹{formatINR(Math.abs(totalPL))}
                   </p>
                </div>
                <div className="bg-slate-900/50 border border-slate-800/60 rounded-2xl p-4 space-y-2 relative overflow-hidden">
                   <p className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">Yield Rate</p>
-                  <p className={`text-xl font-black truncate ${totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  <p className={`text-xl font-bold truncate ${totalPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                      {totalPL >= 0 ? '+' : ''}{plPercent.toFixed(2)}%
                   </p>
                </div>
@@ -367,7 +409,7 @@ export function WealthReportTemplate({
                                     <span className="text-xs font-bold text-slate-300">{item.name}</span>
                                  </div>
                                  <div className="text-right">
-                                    <p className="text-xs font-bold text-white">₹{item.value.toLocaleString('en-IN')}</p>
+                                    <p className="text-xs font-bold text-white">₹{formatINR(item.value)}</p>
                                     <p className="text-[10px] font-bold text-slate-500">{pct.toFixed(1)}%</p>
                                  </div>
                               </div>
@@ -391,9 +433,9 @@ export function WealthReportTemplate({
                         <div className="flex justify-between items-end">
                            <div>
                               <p className="text-[10px] text-slate-500">Current Value</p>
-                              <p className="text-sm font-bold text-white">₹{bestAsset.currentValue.toLocaleString('en-IN')}</p>
+                              <p className="text-sm font-bold text-white">₹{formatINR(bestAsset.currentValue)}</p>
                            </div>
-                           <span className="bg-emerald-500/10 text-emerald-400 text-xs font-black px-2 py-0.5 rounded border border-emerald-500/20">
+                           <span className="bg-emerald-500/10 text-emerald-400 text-xs font-bold px-2 py-0.5 rounded border border-emerald-500/20">
                               +{(((bestAsset.currentValue - bestAsset.totalInvestment)/bestAsset.totalInvestment)*100).toFixed(1)}%
                            </span>
                         </div>
@@ -412,9 +454,9 @@ export function WealthReportTemplate({
                         <div className="flex justify-between items-end">
                            <div>
                               <p className="text-[10px] text-slate-500">Current Value</p>
-                              <p className="text-sm font-bold text-white">₹{worstAsset.currentValue.toLocaleString('en-IN')}</p>
+                              <p className="text-sm font-bold text-white">₹{formatINR(worstAsset.currentValue)}</p>
                            </div>
-                           <span className={`text-xs font-black px-2 py-0.5 rounded border ${((worstAsset.currentValue - worstAsset.totalInvestment)/worstAsset.totalInvestment) >= 0 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
+                           <span className={`text-xs font-bold px-2 py-0.5 rounded border ${((worstAsset.currentValue - worstAsset.totalInvestment)/worstAsset.totalInvestment) >= 0 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
                               {(((worstAsset.currentValue - worstAsset.totalInvestment)/worstAsset.totalInvestment)*100).toFixed(1)}%
                            </span>
                         </div>
@@ -427,7 +469,7 @@ export function WealthReportTemplate({
                         <Calendar className="w-4 h-4 text-blue-400" /> SIP Consistency Rate
                      </h4>
                      <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-black text-white">{monthlySipTotal > 0 ? "98" : "00"}</span>
+                        <span className="text-4xl font-bold text-white">{monthlySipTotal > 0 ? "98" : "00"}</span>
                         <span className="text-xs font-bold text-slate-500 tracking-widest">/ 100 SCORE</span>
                      </div>
                      <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
@@ -462,7 +504,7 @@ export function WealthReportTemplate({
 
          <div className="relative flex-1 flex flex-col pt-10 space-y-8">
             <div>
-               <h2 className="text-4xl font-black text-white tracking-tight">Portfolio Breakdown</h2>
+               <h2 className="text-4xl font-bold text-white tracking-tight">Portfolio Breakdown</h2>
                <p className="text-slate-400 text-sm mt-1">Granular insights into valuation weights across 6 asset classifications.</p>
             </div>
 
@@ -505,7 +547,7 @@ export function WealthReportTemplate({
                         <div className="flex justify-between items-start">
                            <div>
                               <p className="text-xs font-bold tracking-widest text-slate-500 uppercase">{card.label}</p>
-                              <h3 className="text-2xl font-black text-white mt-1">₹{listVal.toLocaleString('en-IN')}</h3>
+                              <h3 className="text-2xl font-bold text-white mt-1">₹{listVal.toLocaleString('en-IN')}</h3>
                            </div>
                            <div className="bg-slate-900 border border-slate-800 rounded-xl px-3 py-1 text-[10px] font-extrabold text-slate-400 tracking-widest uppercase shadow-sm">
                               {weight.toFixed(1)}% WT
@@ -551,12 +593,12 @@ export function WealthReportTemplate({
          <div className="relative flex-1 flex flex-col pt-10 space-y-6">
             <div className="flex justify-between items-end">
                <div>
-                  <h2 className="text-4xl font-black text-white tracking-tight">Mutual Funds</h2>
+                  <h2 className="text-4xl font-bold text-white tracking-tight">Mutual Funds</h2>
                   <p className="text-slate-400 text-sm mt-1">Automated pooled capital allocations across custom AMCs.</p>
                </div>
                <div className="bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-xl text-right relative overflow-hidden">
                   <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Managed Portfolio</p>
-                  <p className="text-xl font-black text-white">₹{Math.round(mutualFunds.reduce((sum, h) => sum + h.currentValue, 0)).toLocaleString('en-IN')}</p>
+                  <p className="text-xl font-bold text-white">₹{formatINR(mutualFunds.reduce((sum, h) => sum + h.currentValue, 0))}</p>
                </div>
             </div>
 
@@ -593,8 +635,8 @@ export function WealthReportTemplate({
                                  <span className="text-[10px] font-mono text-slate-500 mt-0.5 uppercase">CODE: {mf.symbol}</span>
                               </div>
                               <div className="col-span-3 text-right space-y-0.5">
-                                 <p className="text-sm font-extrabold text-slate-200">₹{Math.round(mf.currentValue).toLocaleString('en-IN')}</p>
-                                 <p className="text-[10px] text-slate-500">Cost: ₹{Math.round(mf.totalInvestment).toLocaleString('en-IN')}</p>
+                                 <p className="text-sm font-extrabold text-slate-200">₹{formatINR(mf.currentValue)}</p>
+                                 <p className="text-[10px] text-slate-500">Cost: ₹{formatINR(mf.totalInvestment)}</p>
                               </div>
                               {/* Vector Sparkline Spark */}
                               <div className="col-span-2 h-8 px-4 flex items-center justify-center">
@@ -606,12 +648,12 @@ export function WealthReportTemplate({
                                              <stop offset="95%" stopColor={ret >= 0 ? "#10b981" : "#ef4444"} stopOpacity={0}/>
                                           </linearGradient>
                                        </defs>
-                                       <Area type="monotone" dataKey="v" stroke={ret >= 0 ? "#10b981" : "#ef4444"} fill={`url(#grad-${idx})`} strokeWidth={1.5} isAnimationActive={false} dot={false} />
+                                       <Area type="monotone" dataKey="v" stroke={ret >= 0 ? "#34d399" : "#f43f5e"} fill={`url(#grad-${idx})`} strokeWidth={2.5} isAnimationActive={false} dot={false} />
                                     </AreaChart>
                                  </ResponsiveContainer>
                               </div>
                               <div className="col-span-2 text-right flex flex-col items-end">
-                                 <span className={`text-sm font-black ${pl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                 <span className={`text-sm font-bold ${pl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                                     {pl >= 0 ? '+' : ''}{ret.toFixed(1)}%
                                  </span>
                                  <span className="text-[10px] font-bold text-slate-500">XIRR Est.</span>
@@ -645,12 +687,12 @@ export function WealthReportTemplate({
          <div className="relative flex-1 flex flex-col pt-10 space-y-6">
             <div className="flex justify-between items-end">
                <div>
-                  <h2 className="text-4xl font-black text-white tracking-tight">Stock Holdings</h2>
+                  <h2 className="text-4xl font-bold text-white tracking-tight">Stock Holdings</h2>
                   <p className="text-slate-400 text-sm mt-1">Direct equity listings tracked against live market valuations.</p>
                </div>
                <div className="bg-blue-500/10 border border-blue-500/20 px-4 py-2 rounded-xl text-right">
                   <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Equity Allocation</p>
-                  <p className="text-xl font-black text-white">₹{stocks.reduce((sum, h) => sum + h.currentValue, 0).toLocaleString('en-IN')}</p>
+                  <p className="text-xl font-bold text-white">₹{formatINR(stocks.reduce((sum, h) => sum + h.currentValue, 0))}</p>
                </div>
             </div>
 
@@ -689,13 +731,13 @@ export function WealthReportTemplate({
                                  {stock.qty}
                               </div>
                               <div className="col-span-2 text-right font-medium text-slate-400 text-sm">
-                                 ₹{stock.buy_price.toLocaleString('en-IN')}
+                                 ₹{formatINR(stock.buy_price)}
                               </div>
                               <div className="col-span-2 text-right font-extrabold text-slate-200 text-sm">
-                                 ₹{(stock.livePrice || stock.buy_price).toLocaleString('en-IN')}
+                                 ₹{formatINR(stock.livePrice || stock.buy_price)}
                               </div>
                               <div className="col-span-2 text-right flex flex-col items-end">
-                                 <span className={`text-sm font-black px-2 py-0.5 rounded ${pl >= 0 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
+                                 <span className={`text-sm font-bold px-2 py-0.5 rounded ${pl >= 0 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
                                     {pl >= 0 ? '+' : ''}{ret.toFixed(1)}%
                                  </span>
                               </div>
@@ -728,7 +770,7 @@ export function WealthReportTemplate({
 
          <div className="relative flex-1 flex flex-col pt-10 space-y-10">
             <div>
-               <h2 className="text-4xl font-black text-white tracking-tight">Precious Metals</h2>
+               <h2 className="text-4xl font-bold text-white tracking-tight">Precious Metals</h2>
                <p className="text-slate-400 text-sm mt-1">Highly liquid bullion holdings synced with international gold and silver market fixings.</p>
             </div>
 
@@ -744,7 +786,7 @@ export function WealthReportTemplate({
                         <Landmark className="w-full h-full text-amber-950" />
                      </div>
                      <div>
-                        <h3 className="text-3xl font-black tracking-tight text-amber-200">Gold Vault</h3>
+                        <h3 className="text-3xl font-bold tracking-tight text-amber-200">Gold Vault</h3>
                         <p className="text-amber-600/80 text-xs font-bold tracking-widest mt-1 uppercase">Hedge Security Asset</p>
                      </div>
                   </div>
@@ -752,18 +794,18 @@ export function WealthReportTemplate({
                   <div className="py-8 border-y border-amber-950/40 space-y-6">
                      <div className="flex justify-between items-baseline">
                         <span className="text-slate-500 text-xs font-bold uppercase tracking-wide">Physical Mass</span>
-                        <span className="text-2xl font-black text-amber-100">{totalGoldGrams.toFixed(2)} <span className="text-xs text-slate-500">Grams</span></span>
+                        <span className="text-2xl font-bold text-amber-100">{totalGoldGrams.toFixed(2)} <span className="text-xs text-slate-500">Grams</span></span>
                      </div>
                      <div className="flex justify-between items-baseline">
                         <span className="text-slate-500 text-xs font-bold uppercase tracking-wide">Spot Fixing (1G)</span>
-                        <span className="text-base font-bold text-white">₹{Math.round(goldPrice).toLocaleString('en-IN')}</span>
+                        <span className="text-base font-bold text-white">₹{formatINR(goldPrice)}</span>
                      </div>
                   </div>
 
                   <div className="space-y-2 pt-4">
                      <p className="text-[10px] font-bold tracking-widest text-amber-600 uppercase">Valuation Core</p>
                      <div className="flex justify-between items-baseline">
-                        <span className="text-3xl font-black text-white">₹{Math.round(totalGoldValue).toLocaleString('en-IN')}</span>
+                        <span className="text-3xl font-bold text-white">₹{formatINR(totalGoldValue)}</span>
                         {physicalGoldHoldings.length > 0 && (
                            <span className="text-emerald-400 text-sm font-bold">
                               +{((totalGoldValue - physicalGoldHoldings.reduce((s,h)=>s+h.totalInvestment,0)) / physicalGoldHoldings.reduce((s,h)=>s+h.totalInvestment,0) * 100 || 0).toFixed(1)}%
@@ -784,7 +826,7 @@ export function WealthReportTemplate({
                         <Shield className="w-full h-full text-slate-950" />
                      </div>
                      <div>
-                        <h3 className="text-3xl font-black tracking-tight text-slate-100">Silver Ledger</h3>
+                        <h3 className="text-3xl font-bold tracking-tight text-slate-100">Silver Ledger</h3>
                         <p className="text-slate-500 text-xs font-bold tracking-widest mt-1 uppercase">Diversified Security</p>
                      </div>
                   </div>
@@ -792,18 +834,18 @@ export function WealthReportTemplate({
                   <div className="py-8 border-y border-slate-800 space-y-6">
                      <div className="flex justify-between items-baseline">
                         <span className="text-slate-500 text-xs font-bold uppercase tracking-wide">Physical Mass</span>
-                        <span className="text-2xl font-black text-slate-100">{totalSilverGrams.toFixed(2)} <span className="text-xs text-slate-500">Grams</span></span>
+                        <span className="text-2xl font-bold text-slate-100">{totalSilverGrams.toFixed(2)} <span className="text-xs text-slate-500">Grams</span></span>
                      </div>
                      <div className="flex justify-between items-baseline">
                         <span className="text-slate-500 text-xs font-bold uppercase tracking-wide">Spot Fixing (1G)</span>
-                        <span className="text-base font-bold text-white">₹{Math.round(silverPrice).toLocaleString('en-IN')}</span>
+                        <span className="text-base font-bold text-white">₹{formatINR(silverPrice)}</span>
                      </div>
                   </div>
 
                   <div className="space-y-2 pt-4">
                      <p className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">Valuation Core</p>
                      <div className="flex justify-between items-baseline">
-                        <span className="text-3xl font-black text-white">₹{Math.round(totalSilverValue).toLocaleString('en-IN')}</span>
+                        <span className="text-3xl font-bold text-white">₹{formatINR(totalSilverValue)}</span>
                         {physicalSilverHoldings.length > 0 && (
                            <span className="text-emerald-400 text-sm font-bold">
                               +{((totalSilverValue - physicalSilverHoldings.reduce((s,h)=>s+h.totalInvestment,0)) / physicalSilverHoldings.reduce((s,h)=>s+h.totalInvestment,0) * 100 || 0).toFixed(1)}%
@@ -836,12 +878,12 @@ export function WealthReportTemplate({
          <div className="relative flex-1 flex flex-col pt-10 space-y-8">
             <div className="flex justify-between items-end">
                <div>
-                  <h2 className="text-4xl font-black text-white tracking-tight">SIP Tracker</h2>
+                  <h2 className="text-4xl font-bold text-white tracking-tight">SIP Tracker</h2>
                   <p className="text-slate-400 text-sm mt-1">Compounding trajectory calculated from current monthly systematic inflows.</p>
                </div>
                <div className="bg-slate-900/50 border border-slate-800 rounded-2xl px-5 py-3 text-right">
                   <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Monthly Deployment</p>
-                  <p className="text-2xl font-black text-white">₹{monthlySipTotal.toLocaleString('en-IN')}</p>
+                  <p className="text-2xl font-bold text-white">₹{formatINR(monthlySipTotal)}</p>
                </div>
             </div>
 
@@ -854,7 +896,7 @@ export function WealthReportTemplate({
                   </div>
                   <div className="text-right">
                      <p className="text-xs font-bold text-slate-400">Terminal 20Y Corpus</p>
-                     <p className="text-xl font-black text-blue-400">₹{(sipProjection[sipProjection.length-1]?.corpus || 0).toLocaleString('en-IN')}</p>
+                     <p className="text-xl font-bold text-blue-400">₹{formatINR(sipProjection[sipProjection.length-1]?.corpus || 0)}</p>
                   </div>
                </div>
 
@@ -863,11 +905,11 @@ export function WealthReportTemplate({
                      <AreaChart data={sipProjection} margin={{ top: 10, right: 10, left: 20, bottom: 20 }}>
                         <defs>
                            <linearGradient id="colorCorpus" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                              <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.4}/>
+                              <stop offset="95%" stopColor="#60a5fa" stopOpacity={0}/>
                            </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                        <CartesianGrid stroke="rgba(148, 163, 184, 0.2)" strokeDasharray="4 4" vertical={false} />
                         <XAxis dataKey="year" stroke="#475569" fontSize={11} tickLine={false} axisLine={false} />
                         <YAxis 
                            stroke="#475569" 
@@ -876,7 +918,7 @@ export function WealthReportTemplate({
                            tickLine={false} 
                            axisLine={false} 
                         />
-                        <Area type="monotone" dataKey="corpus" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorCorpus)" isAnimationActive={false} />
+                        <Area type="monotone" dataKey="corpus" stroke="#60a5fa" strokeWidth={4} fillOpacity={1} fill="url(#colorCorpus)" isAnimationActive={false} />
                      </AreaChart>
                   </ResponsiveContainer>
                </div>
@@ -895,7 +937,7 @@ export function WealthReportTemplate({
                            <p className="text-sm font-bold text-slate-200 truncate max-w-[140px]">{sip.name}</p>
                            <p className="text-[10px] text-slate-500 mt-0.5">{sip.frequency} AutoPay</p>
                         </div>
-                        <span className="text-base font-black text-white">₹{sip.amount.toLocaleString('en-IN')}</span>
+                        <span className="text-base font-bold text-white">₹{formatINR(sip.amount)}</span>
                      </div>
                   ))}
                   {activeSipsCount === 0 && (
@@ -932,7 +974,7 @@ export function WealthReportTemplate({
                   <Zap className="w-7 h-7 text-cyan-400" />
                </div>
                <div>
-                  <h2 className="text-4xl font-black text-white tracking-tight">AI Insights Engine</h2>
+                  <h2 className="text-4xl font-bold text-white tracking-tight">AI Insights Engine</h2>
                   <p className="text-slate-400 text-sm mt-1 font-mono text-cyan-500/80">Vector-analyzing risk metrics, overexposure threats, and rebalancing models.</p>
                </div>
             </div>
@@ -944,12 +986,12 @@ export function WealthReportTemplate({
                         SCANNED SYSTEM LEDGER: OK
                      </div>
                      <div className="space-y-4">
-                        <h3 className="text-2xl font-black text-slate-100">Diversification Analysis</h3>
+                        <h3 className="text-2xl font-bold text-slate-100">Diversification Analysis</h3>
                         <p className="text-sm text-slate-400 leading-relaxed">
-                           Based on mathematical covariance matrices calculated from your current **{assetAllocation.length}** active asset distributions, the portfolio shows a highly rationalised capital spread.
+                           Based on stochastic asset modeling across your current **{assetAllocation.length}** core allocation vectors, the framework reveals systematic diversification. Your tactical spread reduces correlation risk while capturing active market beta.
                         </p>
                         <p className="text-sm text-slate-400 leading-relaxed">
-                           **Equity & High-Risk Exposure**: You maintain structural limits with high risk weightings balanced by hedges in metal. Recommended holding periods are estimated at 5+ years to maximize absolute ROI yields.
+                           **Optimized Equity Ceiling**: High-conviction growth allocations are statistically hedged via sovereign gold holdings. Maintaining this configuration over a 5-year horizon maximizes probability of absolute alpha yield curves.
                         </p>
                      </div>
                   </div>
@@ -957,11 +999,11 @@ export function WealthReportTemplate({
                   <div className="pt-6 border-t border-slate-800/80 grid grid-cols-2 gap-4 font-mono">
                      <div className="p-4 bg-slate-950/80 border border-slate-900 rounded-2xl space-y-1">
                         <p className="text-[10px] text-slate-500 uppercase">Savings Discipline</p>
-                        <p className="text-xl font-black text-emerald-400">OPTIMAL (A+)</p>
+                        <p className="text-xl font-bold text-emerald-400">OPTIMAL (A+)</p>
                      </div>
                      <div className="p-4 bg-slate-950/80 border border-slate-900 rounded-2xl space-y-1">
                         <p className="text-[10px] text-slate-500 uppercase">Volatility Risk</p>
-                        <p className="text-xl font-black text-orange-400">MODERATE</p>
+                        <p className="text-xl font-bold text-orange-400">MODERATE</p>
                      </div>
                   </div>
                </div>
@@ -975,7 +1017,7 @@ export function WealthReportTemplate({
                            <circle cx="50" cy="50" r="40" stroke="#06b6d4" strokeWidth="8" fill="transparent" strokeDasharray="251.2" strokeDashoffset="80" strokeLinecap="round" />
                         </svg>
                         <div className="absolute flex flex-col items-center">
-                           <span className="text-3xl font-black text-white">68</span>
+                           <span className="text-3xl font-bold text-white">68</span>
                            <span className="text-[9px] text-slate-500 tracking-widest font-bold uppercase">/ 100 SCORE</span>
                         </div>
                      </div>
@@ -987,15 +1029,15 @@ export function WealthReportTemplate({
                      <div className="space-y-3">
                         <div className="flex items-start gap-2 text-xs text-slate-400">
                            <CheckCircle2 className="w-4 h-4 text-cyan-500 shrink-0 mt-0.5"/>
-                           <span>Maintain physical bullion levels as an inflationary tailwind defense.</span>
+                           <span>Optimize real-asset buffers to counteract inflationary drawdowns.</span>
                         </div>
                         <div className="flex items-start gap-2 text-xs text-slate-400">
                            <CheckCircle2 className="w-4 h-4 text-cyan-500 shrink-0 mt-0.5"/>
-                           <span>Systematic Auto-Pay frequency keeps your market entry points averaged.</span>
+                           <span>Systematic DCA pipes exhibit consistent algorithmic entry averaging.</span>
                         </div>
                         <div className="flex items-start gap-2 text-xs text-slate-400">
                            <CheckCircle2 className="w-4 h-4 text-slate-600 shrink-0 mt-0.5"/>
-                           <span className="text-slate-500">Actionable suggestion queue cleared successfully.</span>
+                           <span className="text-slate-500">Portfolio alignment matches prime target risk tolerances.</span>
                         </div>
                      </div>
                   </div>
@@ -1023,7 +1065,7 @@ export function WealthReportTemplate({
 
          <div className="relative flex-1 flex flex-col pt-10 space-y-8">
             <div>
-               <h2 className="text-4xl font-black text-white tracking-tight">Performance Analytics</h2>
+               <h2 className="text-4xl font-bold text-white tracking-tight">Performance Analytics</h2>
                <p className="text-slate-400 text-sm mt-1">Visual deep dive into monthly net worth dynamics and historical snapshots.</p>
             </div>
 
@@ -1039,10 +1081,10 @@ export function WealthReportTemplate({
                   <div className="flex-1 w-full">
                      <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={chartData && chartData.length > 0 ? chartData : [{date: 'Empty', current: 0, invested: 0}]}>
-                           <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                           <CartesianGrid stroke="rgba(148, 163, 184, 0.2)" strokeDasharray="4 4" vertical={false} />
                            <XAxis dataKey="date" stroke="#475569" fontSize={10} tickLine={false} />
                            <YAxis stroke="#475569" fontSize={10} tickFormatter={(v)=>`₹${v/1000}K`} tickLine={false} width={40} />
-                           <Area type="monotone" dataKey="current" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.1} strokeWidth={2} isAnimationActive={false} />
+                           <Area type="monotone" dataKey="current" stroke="#a78bfa" fill="#8b5cf6" fillOpacity={0.15} strokeWidth={3} isAnimationActive={false} />
                         </AreaChart>
                      </ResponsiveContainer>
                   </div>
@@ -1057,10 +1099,10 @@ export function WealthReportTemplate({
                   <div className="flex-1 w-full">
                      <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={assetAllocation}>
-                           <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                           <CartesianGrid stroke="rgba(148, 163, 184, 0.2)" strokeDasharray="4 4" vertical={false} />
                            <XAxis dataKey="name" stroke="#475569" fontSize={9} tickLine={false} />
                            <YAxis stroke="#475569" fontSize={10} tickFormatter={(v)=>`₹${(v/1000).toFixed(0)}k`} tickLine={false} width={40} />
-                           <Bar dataKey="value" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                           <Bar dataKey="value" radius={[8, 8, 0, 0]} barSize={35} isAnimationActive={false}>
                               {assetAllocation.map((e,i)=>(
                                  <Cell key={`cell-${i}`} fill={BLUE_COLORS[i%BLUE_COLORS.length]} />
                               ))}
@@ -1079,11 +1121,11 @@ export function WealthReportTemplate({
                   <div className="flex-1 w-full">
                      <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={chartData && chartData.length > 0 ? chartData : [{date: 'Empty', current: 0, invested: 0}]}>
-                           <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                           <CartesianGrid stroke="rgba(148, 163, 184, 0.2)" strokeDasharray="4 4" vertical={false} />
                            <XAxis dataKey="date" stroke="#475569" fontSize={10} tickLine={false} />
                            <YAxis stroke="#475569" fontSize={10} tickFormatter={(v)=>`₹${v/1000}K`} tickLine={false} width={40} />
-                           <Line type="monotone" dataKey="invested" stroke="#475569" strokeWidth={2} strokeDasharray="4 4" dot={false} isAnimationActive={false} />
-                           <Line type="monotone" dataKey="current" stroke="#10b981" strokeWidth={2} dot={false} isAnimationActive={false} />
+                           <Line type="monotone" dataKey="invested" stroke="#475569" strokeWidth={3} strokeDasharray="4 4" dot={false} isAnimationActive={false} />
+                           <Line type="monotone" dataKey="current" stroke="#34d399" strokeWidth={3} dot={false} isAnimationActive={false} />
                         </LineChart>
                      </ResponsiveContainer>
                   </div>
@@ -1108,7 +1150,7 @@ export function WealthReportTemplate({
                      </div>
                      <div className="flex justify-between">
                         <span className="text-xs text-slate-500">Nifty 50 Benchmark</span>
-                        <span className="text-xs font-mono text-white font-bold">₹{niftyPrice.toLocaleString('en-IN')}</span>
+                        <span className="text-xs font-mono text-white font-bold">₹{formatINR(niftyPrice)}</span>
                      </div>
                   </div>
                </div>
@@ -1128,7 +1170,7 @@ export function WealthReportTemplate({
          <div className="absolute top-[-200px] left-[-200px] w-[600px] h-[600px] rounded-full bg-blue-500/5 blur-[120px]" />
          
          <div className="relative border-b border-slate-900/80 pb-8 text-center">
-            <h2 className="text-xl font-black tracking-[0.2em] text-white">BUN VAULT</h2>
+            <h2 className="text-xl font-bold tracking-[0.2em] text-white">BUN VAULT</h2>
             <p className="text-[9px] font-bold text-blue-400 tracking-widest uppercase mt-1">SMART WEALTH ECOSYSTEM</p>
          </div>
 
@@ -1156,7 +1198,7 @@ export function WealthReportTemplate({
                      <div className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-cyan-400 rounded-full transition-all duration-500" style={{ width: `${fireProgress}%` }} />
                   </div>
                   <div className="flex justify-between items-baseline mt-2 font-mono">
-                     <span className="text-xs text-slate-400">₹{Math.round(totalInvestment).toLocaleString('en-IN')}</span>
+                     <span className="text-xs text-slate-400">₹{formatINR(totalInvestment)}</span>
                      <span className="bg-blue-500/10 text-blue-400 border border-blue-500/30 text-[10px] px-2 py-0.5 rounded font-bold">{fireProgress}% REACHED</span>
                      <span className="text-xs text-slate-500 uppercase">{firePhaseLabel}</span>
                   </div>
