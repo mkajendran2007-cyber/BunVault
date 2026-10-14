@@ -101,6 +101,23 @@ export default function DashboardPage() {
 
   useEffect(() => {
     setMounted(true)
+
+    // 0ms Instant Cache Load - eliminates 0 investment delay flicker on mount
+    try {
+      const cachedHoldings = localStorage.getItem("bun_vault_holdings_cache")
+      const cachedNetWorth = localStorage.getItem("bun_vault_networth_cache")
+      const cachedInvested = localStorage.getItem("bun_vault_invested_cache")
+      if (cachedHoldings && cachedNetWorth) {
+        const parsedH = JSON.parse(cachedHoldings)
+        if (Array.isArray(parsedH) && parsedH.length > 0) {
+          setHoldings(parsedH)
+          setNetWorth(Number(cachedNetWorth))
+          if (cachedInvested) setInvested(Number(cachedInvested))
+          setLoading(false)
+        }
+      }
+    } catch (e) {}
+
     fetchData()
     // Sync initial state from local storage immediately for fast UX
     const savedOrder = localStorage.getItem("bun_vault_dashboard_order")
@@ -147,9 +164,9 @@ export default function DashboardPage() {
     }
     if (activeHoldings.length === 0) {
        activeHoldings = [
-         { id: 'demo-1', name: 'Physical Gold 24K (1g)', symbol: 'GOLD_INR_1G', type: 'Commodity', qty: 25, buy_price: 7750.00, currentPrice: 7842.00 },
-         { id: 'demo-2', name: 'Physical Silver Bullion (1g)', symbol: 'SILVER_INR_1G', type: 'Commodity', qty: 450, buy_price: 92.00, currentPrice: 94.50 },
-         { id: 'demo-3', name: 'Sovereign Gold Bond 24K 999', symbol: 'GOLD_INR_1G', type: 'Commodity', qty: 15, buy_price: 7700.00, currentPrice: 7842.00 },
+         { id: 'demo-1', name: 'Physical Gold 24K (1g)', symbol: 'GOLD_INR_1G', type: 'Commodity', qty: 25, buy_price: 8450.00, currentPrice: 8650.00 },
+         { id: 'demo-2', name: 'Physical Silver Bullion (1g)', symbol: 'SILVER_INR_1G', type: 'Commodity', qty: 450, buy_price: 95.00, currentPrice: 98.50 },
+         { id: 'demo-3', name: 'Sovereign Gold Bond 24K 999', symbol: 'GOLD_INR_1G', type: 'Commodity', qty: 15, buy_price: 8400.00, currentPrice: 8650.00 },
          { id: 'demo-4', name: 'Reliance Industries Ltd', symbol: 'RELIANCE.NS', type: 'Equity', qty: 10, buy_price: 2850.00, currentPrice: 2950.00 },
          { id: 'demo-5', name: 'Axis Bank Ltd', symbol: 'AXISBANK.NS', type: 'Equity', qty: 15, buy_price: 1100.00, currentPrice: 1180.00 }
        ]
@@ -183,13 +200,17 @@ export default function DashboardPage() {
          return { ...h, currentPrice: parsedCurrentPrice }
        }
 
-       const priceData = priceMap[h.symbol]
+       const priceData = priceMap[h.symbol] || priceMap[`${h.symbol}.NS`] || priceMap[h.symbol.replace(".NS", "")]
        let cur = priceData?.price || Number(h.currentPrice || h.buy_price || 0)
 
-       if (h.symbol === 'GOLD_INR_1G' || h.symbol === 'GOLD' || h.name?.toLowerCase().includes('gold 24k') || h.name?.toLowerCase().includes('physical gold')) {
-          cur = priceData?.price || 7842.00
-       } else if (h.symbol === 'SILVER_INR_1G' || h.symbol === 'SILVER' || h.name?.toLowerCase().includes('silver bullion')) {
-          cur = priceData?.price || 94.50
+       if (h.symbol === 'GOLD_24K_1G' || h.symbol === 'GOLD_INR_1G' || h.symbol === 'GOLD' || h.name?.toLowerCase().includes('24k')) {
+          cur = priceData?.price || 14826.00
+       } else if (h.symbol === 'GOLD_22K_1G' || h.name?.toLowerCase().includes('22k')) {
+          cur = priceData?.price || 13590.00
+       } else if (h.symbol === 'GOLD_18K_1G' || h.name?.toLowerCase().includes('18k')) {
+          cur = priceData?.price || 11165.00
+       } else if (h.symbol === 'SILVER_INR_1G' || h.symbol === 'SILVER' || h.name?.toLowerCase().includes('silver')) {
+          cur = priceData?.price || 219.04
        }
 
        return { ...h, currentPrice: cur }
@@ -212,6 +233,13 @@ export default function DashboardPage() {
 
     setNetWorth(totalVal)
     setInvested(totalInv)
+
+    // Save instant cache for next app load
+    try {
+      localStorage.setItem("bun_vault_holdings_cache", JSON.stringify(syncedHoldings))
+      localStorage.setItem("bun_vault_networth_cache", totalVal.toString())
+      localStorage.setItem("bun_vault_invested_cache", totalInv.toString())
+    } catch (e) {}
     const diff = totalVal - totalInv
     const diffPct = totalInv > 0 ? (diff / totalInv) * 100 : 0
     setChange24h(diff)
@@ -245,21 +273,22 @@ export default function DashboardPage() {
           setWatchlist(wData)
        } else {
           setWatchlist([
-            { symbol: "NIFTY", name: "Nifty 50 Index", buy_price: priceMap['^NSEI']?.price || 24850.25, chg: priceMap['^NSEI']?.changePercent || 0.42 },
-            { symbol: "GOLD", name: "Gold 24K (1g)", buy_price: priceMap['GOLD_INR_1G']?.price || 7842.00, chg: priceMap['GOLD_INR_1G']?.changePercent || 0.64 },
-            { symbol: "SILVER", name: "Silver Bullion (1g)", buy_price: priceMap['SILVER_INR_1G']?.price || 94.50, chg: priceMap['SILVER_INR_1G']?.changePercent || 1.12 },
+            { symbol: "NIFTY", name: "Nifty 50 Index", buy_price: priceMap['^NSEI']?.price || 22622.70, chg: priceMap['^NSEI']?.changePercent || 1.16 },
+            { symbol: "GOLD", name: "Gold 24K (1g)", buy_price: priceMap['GOLD_24K_1G']?.price || 14826.00, chg: priceMap['GOLD_24K_1G']?.changePercent || 0.52 },
+            { symbol: "GOLD_22K", name: "Gold 22K (1g)", buy_price: priceMap['GOLD_22K_1G']?.price || 13590.00, chg: priceMap['GOLD_22K_1G']?.changePercent || 0.52 },
+            { symbol: "SILVER", name: "Silver Bullion (1g)", buy_price: priceMap['SILVER_INR_1G']?.price || 219.04, chg: priceMap['SILVER_INR_1G']?.changePercent || 0.48 },
           ])
        }
     } else {
        setWatchlist([
-          { symbol: "NIFTY", name: "Nifty 50 Index", buy_price: priceMap['^NSEI']?.price || 24850.25, chg: priceMap['^NSEI']?.changePercent || 0.42 },
-          { symbol: "GOLD", name: "Gold 24K (1g)", buy_price: priceMap['GOLD_INR_1G']?.price || 7842.00, chg: priceMap['GOLD_INR_1G']?.changePercent || 0.64 },
-          { symbol: "SILVER", name: "Silver Bullion (1g)", buy_price: priceMap['SILVER_INR_1G']?.price || 94.50, chg: priceMap['SILVER_INR_1G']?.changePercent || 1.12 },
+          { symbol: "NIFTY", name: "Nifty 50 Index", buy_price: priceMap['^NSEI']?.price || 22622.70, chg: priceMap['^NSEI']?.changePercent || 1.16 },
+          { symbol: "GOLD", name: "Gold 24K (1g)", buy_price: priceMap['GOLD_24K_1G']?.price || 14826.00, chg: priceMap['GOLD_24K_1G']?.changePercent || 0.52 },
+          { symbol: "GOLD_22K", name: "Gold 22K (1g)", buy_price: priceMap['GOLD_22K_1G']?.price || 13590.00, chg: priceMap['GOLD_22K_1G']?.changePercent || 0.52 },
+          { symbol: "SILVER", name: "Silver Bullion (1g)", buy_price: priceMap['SILVER_INR_1G']?.price || 219.04, chg: priceMap['SILVER_INR_1G']?.changePercent || 0.48 },
        ])
     }
 
     setLoading(false)
-    engine.playChime()
   }
 
   const handleToggleWidget = (id: string) => {

@@ -15,13 +15,13 @@ import {
 
 // --- 12 SECTION DATA & CONSTANTS ---
 const LIVE_TICKERS = [
-  { label: "NIFTY 50", value: "24,832.40", change: "+1.24%", up: true },
-  { label: "GOLD 24K (1G)", value: "₹14,101.00", change: "+0.65%", up: true },
-  { label: "SILVER 999 (1G)", value: "₹216.45", change: "+0.42%", up: true },
-  { label: "TCS.NS", value: "₹4,120.50", change: "+1.85%", up: true },
-  { label: "RELIANCE.NS", value: "₹2,985.00", change: "-0.32%", up: false },
-  { label: "BTC / INR", value: "₹58,50,000", change: "+3.40%", up: true },
-  { label: "SOVEREIGN GOLD IV", value: "₹14,150.00", change: "+0.80%", up: true },
+  { label: "NIFTY 50", value: "22,622.70", change: "+1.16%", up: true },
+  { label: "GOLD 24K (1G)", value: "₹14,826.00", change: "+0.52%", up: true },
+  { label: "GOLD 22K (1G)", value: "₹13,590.00", change: "+0.52%", up: true },
+  { label: "SILVER 999 (1G)", value: "₹219.04", change: "+0.48%", up: true },
+  { label: "TCS.NS", value: "₹2,304.90", change: "+1.57%", up: true },
+  { label: "RELIANCE.NS", value: "₹1,174.60", change: "+0.68%", up: true },
+  { label: "BTC / INR", value: "₹77,82,222", change: "-1.71%", up: false },
 ]
 
 const PILLAR_MODULES = [

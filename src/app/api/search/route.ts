@@ -13,6 +13,11 @@ export async function GET(request: Request) {
   }
 
   try {
+    const headers = {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+      "Accept": "application/json"
+    };
+
     if (type === "Mutual Fund") {
       const now = Date.now();
       // Cache for 1 hour to prevent excessive hits while keeping it fresh
@@ -24,7 +29,7 @@ export async function GET(request: Request) {
       
       const queryLower = q.toLowerCase();
       const matches = cachedMfList
-        .filter(item => item.schemeName.toLowerCase().includes(queryLower))
+        .filter(item => item.schemeName && item.schemeName.toLowerCase().includes(queryLower))
         .slice(0, 15)
         .map(item => ({
           name: item.schemeName,
@@ -34,7 +39,7 @@ export async function GET(request: Request) {
         
       return NextResponse.json(matches);
     } else if (type === "Equity") {
-      const res = await fetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${q}&quotesCount=20&newsCount=0`);
+      const res = await fetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(q)}&quotesCount=20&newsCount=0`, { headers });
       const data = await res.json();
       
       if (data.quotes) {
@@ -49,7 +54,7 @@ export async function GET(request: Request) {
         return NextResponse.json(matches);
       }
     } else if (type === "Crypto") {
-      const res = await fetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${q}&quotesCount=20&newsCount=0`);
+      const res = await fetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(q)}&quotesCount=20&newsCount=0`, { headers });
       const data = await res.json();
       
       if (data.quotes) {

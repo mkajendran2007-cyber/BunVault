@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
        }
     }
 
-    // 3. Construct Expense Record
+    // 3. Construct Expense Record matching Supabase schema
     const expenseRecord = {
       user_id: targetUserId || "anon-webhook-user",
       date: new Date().toISOString().split("T")[0],
@@ -57,7 +57,8 @@ export async function POST(req: NextRequest) {
       category_icon: parsed.icon,
       description: parsed.description,
       payment_mode: parsed.paymentMode,
-      type: parsed.type,
+      account: parsed.paymentMode === "Credit Card" ? "Utkarsh Small Finance Bank Credit Card" : "SBI Savings Account (Main)",
+      tx_type: parsed.type.toLowerCase() === "income" ? "income" : "expense",
       created_at: new Date().toISOString()
     }
 

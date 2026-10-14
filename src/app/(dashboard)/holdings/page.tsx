@@ -84,6 +84,7 @@ function HoldingsContent() {
   const [buyPrice, setBuyPrice] = useState("")
   const [commoditySubtype, setCommoditySubtype] = useState("Physical")
   const [metalType, setMetalType] = useState("Gold")
+  const [goldPurity, setGoldPurity] = useState<'24K' | '22K' | '18K'>('24K')
   const [debtSubtype, setDebtSubtype] = useState("FD/RD")
   const [totalInvestment, setTotalInvestment] = useState("")
   const [currentVal, setCurrentVal] = useState("")
@@ -106,6 +107,18 @@ function HoldingsContent() {
   ])
 
   useEffect(() => {
+    // 0ms Instant Cache Load - eliminates 0 investment delay flicker on mount
+    try {
+      const cachedHoldings = localStorage.getItem("bun_vault_holdings_cache")
+      if (cachedHoldings) {
+        const parsed = JSON.parse(cachedHoldings)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setHoldings(parsed)
+          setLoading(false)
+        }
+      }
+    } catch (e) {}
+
     fetchHoldings()
   }, [])
 
@@ -210,20 +223,29 @@ function HoldingsContent() {
         return { ...holding, currentPrice: parsedCurrentPrice }
       }
       
-      const priceData = priceMap[holding.symbol]
+      const priceData = priceMap[holding.symbol] || priceMap[`${holding.symbol}.NS`] || priceMap[holding.symbol.replace(".NS", "")]
       let curPrice = priceData?.price || Number(holding.currentPrice || holding.buy_price || 0)
-      if (holding.symbol === 'GOLD_INR_1G' || holding.symbol === 'GOLD' || holding.name?.toLowerCase().includes('gold 24k') || holding.name?.toLowerCase().includes('physical gold')) {
-         curPrice = priceData?.price || 7842.00
-      } else if (holding.symbol === 'SILVER_INR_1G' || holding.symbol === 'SILVER' || holding.name?.toLowerCase().includes('silver bullion')) {
-         curPrice = priceData?.price || 94.50
+
+      if (holding.symbol === 'GOLD_24K_1G' || holding.symbol === 'GOLD_INR_1G' || holding.symbol === 'GOLD' || holding.name?.toLowerCase().includes('24k')) {
+         curPrice = priceData?.price || 14826.00
+      } else if (holding.symbol === 'GOLD_22K_1G' || holding.name?.toLowerCase().includes('22k')) {
+         curPrice = priceData?.price || 13590.00
+      } else if (holding.symbol === 'GOLD_18K_1G' || holding.name?.toLowerCase().includes('18k')) {
+         curPrice = priceData?.price || 11165.00
+      } else if (holding.symbol === 'SILVER_INR_1G' || holding.symbol === 'SILVER' || holding.name?.toLowerCase().includes('silver')) {
+         curPrice = priceData?.price || 219.04
       }
-      return { 
+
+      return {
          ...holding, 
          currentPrice: curPrice 
       }
     })
 
     setHoldings(holdingsWithLivePrices)
+    try {
+      localStorage.setItem("bun_vault_holdings_cache", JSON.stringify(holdingsWithLivePrices))
+    } catch (e) {}
     setLoading(false)
   }
 
@@ -237,6 +259,7 @@ function HoldingsContent() {
     setBuyPrice("")
     setCommoditySubtype("Physical")
     setMetalType("Gold")
+    setGoldPurity("24K")
     setDebtSubtype("FD/RD")
     setTotalInvestment("")
     setCurrentVal("")
@@ -352,8 +375,21 @@ function HoldingsContent() {
     let finalQty = parseFloat(qty)
     
     if (type === 'Commodity' && commoditySubtype === 'Physical') {
-       finalSymbol = metalType === 'Gold' ? 'GOLD_INR_1G' : 'SILVER_INR_1G'
-       finalName = `Physical ${metalType}`
+       if (metalType === 'Gold') {
+          if (goldPurity === '24K') {
+             finalSymbol = 'GOLD_24K_1G'
+             finalName = 'Physical Gold (24K - 99.9% Purity)'
+          } else if (goldPurity === '22K') {
+             finalSymbol = 'GOLD_22K_1G'
+             finalName = 'Physical Gold Jewelry (22K - 91.6% Purity)'
+          } else {
+             finalSymbol = 'GOLD_18K_1G'
+             finalName = 'Physical Gold Ornament (18K - 75.0% Purity)'
+          }
+       } else {
+          finalSymbol = 'SILVER_INR_1G'
+          finalName = 'Physical Silver Bullion (999 Purity)'
+       }
        finalBuyPrice = parseFloat(buyPrice) / parseFloat(qty)
     } else if (type === 'Debt' && debtSubtype === 'FD/RD') {
        finalSymbol = `FDRD_${parseFloat(currentVal)}`
@@ -1273,12 +1309,50 @@ function HoldingsContent() {
                      </div>
 
                      {type === 'Commodity' && commoditySubtype === 'Physical' ? (
-                        <div>
-                           <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Bullion Type</label>
-                           <div className="flex gap-2 p-1 bg-slate-100 dark:bg-[#151A21] rounded-xl">
-                              <Button type="button" variant={metalType === 'Gold' ? 'default' : 'ghost'} className="flex-1 h-10 font-bold" onClick={() => setMetalType('Gold')}><span className="w-2.5 h-2.5 rounded-full bg-[#F4C542] mr-2" /> 24K Gold</Button>
-                              <Button type="button" variant={metalType === 'Silver' ? 'default' : 'ghost'} className="flex-1 h-10 font-bold" onClick={() => setMetalType('Silver')}><span className="w-2.5 h-2.5 rounded-full bg-slate-400 mr-2" /> Silver</Button>
+                        <div className="space-y-3">
+                           <div>
+                              <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Bullion Type</label>
+                              <div className="flex gap-2 p-1 bg-slate-100 dark:bg-[#151A21] rounded-xl border border-slate-200 dark:border-slate-800">
+                                 <Button type="button" variant={metalType === 'Gold' ? 'default' : 'ghost'} className="flex-1 h-9 font-bold text-xs" onClick={() => setMetalType('Gold')}>
+                                    <span className="w-2.5 h-2.5 rounded-full bg-[#F4C542] mr-2" /> Gold
+                                 </Button>
+                                 <Button type="button" variant={metalType === 'Silver' ? 'default' : 'ghost'} className="flex-1 h-9 font-bold text-xs" onClick={() => setMetalType('Silver')}>
+                                    <span className="w-2.5 h-2.5 rounded-full bg-slate-400 mr-2" /> Silver (999)
+                                 </Button>
+                              </div>
                            </div>
+
+                           {metalType === 'Gold' && (
+                              <div>
+                                 <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Select Gold Karat / Purity Rate</label>
+                                 <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 dark:bg-[#151A21] rounded-xl border border-slate-200 dark:border-slate-800">
+                                    <button
+                                       type="button"
+                                       onClick={() => setGoldPurity('24K')}
+                                       className={`py-2 px-1 rounded-lg text-xs font-bold transition-all text-center ${goldPurity === '24K' ? 'bg-[#F4C542] text-slate-950 shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                                    >
+                                       24K (99.9%)
+                                       <span className="block text-[9px] font-mono opacity-80 mt-0.5">₹14,826/g</span>
+                                    </button>
+                                    <button
+                                       type="button"
+                                       onClick={() => setGoldPurity('22K')}
+                                       className={`py-2 px-1 rounded-lg text-xs font-bold transition-all text-center ${goldPurity === '22K' ? 'bg-[#F4C542] text-slate-950 shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                                    >
+                                       22K (91.6%)
+                                       <span className="block text-[9px] font-mono opacity-80 mt-0.5">₹13,590/g</span>
+                                    </button>
+                                    <button
+                                       type="button"
+                                       onClick={() => setGoldPurity('18K')}
+                                       className={`py-2 px-1 rounded-lg text-xs font-bold transition-all text-center ${goldPurity === '18K' ? 'bg-[#F4C542] text-slate-950 shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                                    >
+                                       18K (75.0%)
+                                       <span className="block text-[9px] font-mono opacity-80 mt-0.5">₹11,165/g</span>
+                                    </button>
+                                 </div>
+                              </div>
+                           )}
                         </div>
                      ) : (
                         <div className="grid grid-cols-2 gap-4">

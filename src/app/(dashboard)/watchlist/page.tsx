@@ -146,11 +146,11 @@ function WatchlistContent() {
     if (!user) {
       // Demo watchlist items for non-logged in institutional UX
       const demoWatchlist: WatchlistItem[] = [
-        { id: 'demo-w1', name: 'Physical Gold Bullion (24K)', symbol: 'GOLD_INR_1G', type: 'Commodity', currentPrice: 7842.00, change: 50.00, changePercent: 0.64, targetPrice: 8000 },
-        { id: 'demo-w2', name: 'Nippon India Small Cap Growth', symbol: '122639', type: 'Mutual Fund', currentPrice: 168.40, change: 2.10, changePercent: 1.26 },
-        { id: 'demo-w3', name: 'Reliance Industries Ltd', symbol: 'RELIANCE.NS', type: 'Equity', currentPrice: 2950.00, change: -14.25, changePercent: -0.48, targetPrice: 2900 },
-        { id: 'demo-w4', name: 'TATA Consultancy Services', symbol: 'TCS.NS', type: 'Equity', currentPrice: 4120.50, change: 35.80, changePercent: 0.88 },
-        { id: 'demo-w5', name: 'Bitcoin Secure Custody', symbol: 'BTC-INR', type: 'Crypto', currentPrice: 5420000, change: 110000, changePercent: 2.07 }
+        { id: 'demo-w1', name: 'Physical Gold Bullion (24K - 99.9%)', symbol: 'GOLD_24K_1G', type: 'Commodity', currentPrice: 14826.00, change: 76.00, changePercent: 0.52, targetPrice: 15000 },
+        { id: 'demo-w2', name: 'Physical Gold Jewelry (22K - 91.6%)', symbol: 'GOLD_22K_1G', type: 'Commodity', currentPrice: 13590.00, change: -95.00, changePercent: -0.70, targetPrice: 13800 },
+        { id: 'demo-w3', name: 'Nippon India Small Cap Growth', symbol: '122639', type: 'Mutual Fund', currentPrice: 89.58, change: 1.03, changePercent: 1.16 },
+        { id: 'demo-w4', name: 'Reliance Industries Ltd', symbol: 'RELIANCE.NS', type: 'Equity', currentPrice: 1174.60, change: 7.90, changePercent: 0.68 },
+        { id: 'demo-w5', name: 'Bitcoin Secure Custody', symbol: 'BTC-INR', type: 'Crypto', currentPrice: 7782222, change: -135473, changePercent: -1.71 }
       ]
       setWatchlist(demoWatchlist)
       setLoading(false)
@@ -166,8 +166,8 @@ function WatchlistContent() {
     if (error || !data || data.length === 0) {
       if (!data || data.length === 0) {
          const demoWatchlist: WatchlistItem[] = [
-           { id: 'demo-w1', name: 'Physical Gold Bullion (24K)', symbol: 'GOLD_INR_1G', type: 'Commodity', currentPrice: 7842.00, change: 50.00, changePercent: 0.64, targetPrice: 8000 },
-           { id: 'demo-w2', name: 'Reliance Industries Ltd', symbol: 'RELIANCE.NS', type: 'Equity', currentPrice: 2950.00, change: -14.25, changePercent: -0.48, targetPrice: 2900 }
+           { id: 'demo-w1', name: 'Physical Gold Bullion (24K)', symbol: 'GOLD_24K_1G', type: 'Commodity', currentPrice: 14826.00, change: 76.00, changePercent: 0.52, targetPrice: 15000 },
+           { id: 'demo-w2', name: 'Physical Gold Jewelry (22K)', symbol: 'GOLD_22K_1G', type: 'Commodity', currentPrice: 13590.00, change: -95.00, changePercent: -0.70, targetPrice: 13800 }
          ]
          setWatchlist(demoWatchlist)
       }
