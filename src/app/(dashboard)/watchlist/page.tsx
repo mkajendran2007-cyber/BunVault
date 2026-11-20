@@ -27,10 +27,17 @@ import {
   Smartphone,
   Share2,
   Sliders,
-  Check
+  Check,
+  RefreshCw
 } from "lucide-react"
+
+
 import { AreaChart, Area, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts"
 import { toast } from "sonner"
+import { useMarketPrices } from "@/hooks/useMarketPrices"
+import { SyncStatusBadge } from "@/components/SyncStatusBadge"
+
+
 
 type WatchlistItem = {
   id: string
@@ -42,6 +49,7 @@ type WatchlistItem = {
   changePercent?: number
   targetPrice?: number
 }
+
 
 function WatchlistContent() {
   const [mounted, setMounted] = useState(false)
@@ -193,7 +201,7 @@ function WatchlistContent() {
 
     const itemsWithLivePrices = data.map(item => {
       const priceData = priceMap[item.symbol]
-      const cur = priceData?.price || 100
+      const cur = priceData?.price || item.currentPrice || 100
       const tgt = savedAlerts[item.id] || item.targetPrice
 
       // Check if price crossed target alert threshold
@@ -212,11 +220,12 @@ function WatchlistContent() {
       return { 
          ...item, 
          currentPrice: cur,
-         change: priceData?.change || (Math.random() * 20 - 10),
-         changePercent: priceData?.changePercent || (Math.random() * 4 - 2),
+         change: priceData?.change || 0,
+         changePercent: priceData?.changePercent || 0,
          targetPrice: tgt
       }
     })
+
 
     setWatchlist(itemsWithLivePrices)
     setLoading(false)
@@ -428,10 +437,8 @@ function WatchlistContent() {
   if (!mounted) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center min-h-[70vh] gap-4">
-        <div className="relative h-16 w-16 rounded-2xl gold-gradient-bg p-[2px] shadow-xl animate-pulse">
-          <div className="flex items-center justify-center h-full w-full bg-[#08090B] rounded-[14px]">
-            <img src="/logo.png" alt="Bun Vault" className="h-8 w-8 object-contain" />
-          </div>
+        <div className="relative h-14 w-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shadow-lg animate-pulse">
+          <RefreshCw className="h-7 w-7 text-amber-500 animate-spin" />
         </div>
         <div className="text-center space-y-1">
           <span className="text-xs font-mono font-bold text-[#F4C542] tracking-widest uppercase animate-pulse">INITIALIZING WATCHLIST RADAR...</span>

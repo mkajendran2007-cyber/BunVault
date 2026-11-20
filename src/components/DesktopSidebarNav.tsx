@@ -45,25 +45,25 @@ export default function DesktopSidebarNav() {
   ]
 
   return (
-    <div className="flex h-full max-h-screen flex-col justify-between relative z-10 select-none bg-white dark:bg-[#0A0D12] border-r border-slate-200/80 dark:border-slate-800/60 shadow-xl shadow-slate-900/5 transition-colors overflow-hidden">
+    <div className="flex h-full max-h-screen flex-col justify-between relative z-10 select-none bg-transparent transition-colors overflow-hidden">
       {/* 1. FIXED TOP HEADER: Logo & App Name (Never Scrolls) */}
-      <div className="px-4 pt-5 pb-4 shrink-0 border-b border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-[#0A0D12] z-20">
-        <Link href="/dashboard" className="block transition-transform hover:scale-[1.02] active:scale-[0.99]">
+      <div className="px-5 pt-6 pb-4 shrink-0 border-b border-slate-200/50 dark:border-white/[0.06] bg-transparent z-20">
+        <Link href="/dashboard" className="block transition-transform hover:scale-[1.02] active:scale-[0.98]">
           <AppBrandLogo size="sidebar" />
         </Link>
       </div>
 
       {/* 2. SCROLLABLE NAVIGATION AREA: Starts right from Dashboard downwards */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-4 space-y-4">
+      <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-4 space-y-4">
         {/* Section Label */}
-        <div className="px-1">
-          <p className="text-[10px] font-extrabold tracking-widest text-slate-400 dark:text-slate-500 uppercase">
+        <div className="px-3">
+          <p className="text-[10px] font-black tracking-widest text-slate-400/80 dark:text-slate-500 uppercase">
             Executive Suite
           </p>
         </div>
         
         {/* Navigation Items */}
-        <nav className="space-y-1.5">
+        <nav className="space-y-1">
           {navItems.map((item) => {
             const isActive = pathname === item.href || (item.href === "/analytics" && pathname === "/ai-assistant")
             const Icon = item.icon
@@ -75,14 +75,14 @@ export default function DesktopSidebarNav() {
                 onClick={() => engine.playClick()}
                 className={`group relative flex items-center justify-between rounded-2xl px-3.5 py-2.5 text-sm transition-all duration-200 ${
                   isActive 
-                    ? "text-slate-950 font-bold shadow-md shadow-amber-500/15" 
-                    : "font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-[#151A24]/70"
+                    ? "text-slate-950 font-bold shadow-sm" 
+                    : "font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/60 dark:hover:bg-white/[0.04]"
                 }`}
               >
                 {isActive && (
                   <motion.div 
                      layoutId="sidebar-active-glow"
-                     className="absolute inset-0 gold-gradient-bg rounded-2xl border border-amber-400/50 shadow-inner"
+                     className="absolute inset-0 bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 rounded-2xl border border-amber-300 shadow-md shadow-amber-500/20"
                      transition={{ type: "spring", stiffness: 350, damping: 30 }}
                   />
                 )}
@@ -91,7 +91,7 @@ export default function DesktopSidebarNav() {
                    <div className={`flex items-center justify-center h-8 w-8 rounded-xl transition-all duration-200 group-hover:scale-105 ${
                       isActive 
                         ? 'bg-slate-950/15 text-slate-950 shadow-xs' 
-                        : 'bg-slate-200/50 dark:bg-[#151A24] text-slate-500 dark:text-slate-400 group-hover:text-amber-500 dark:group-hover:text-[#F4C542] group-hover:bg-slate-200 dark:group-hover:bg-[#1E2533]'
+                        : 'bg-slate-200/50 dark:bg-white/[0.06] text-slate-500 dark:text-slate-400 group-hover:text-amber-500 dark:group-hover:text-[#F4C542] group-hover:bg-slate-200 dark:group-hover:bg-white/[0.1]'
                    }`}>
                       <Icon className="h-4 w-4" />
                    </div>

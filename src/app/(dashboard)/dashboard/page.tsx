@@ -56,7 +56,13 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { engine } from "@/lib/AudioEngine"
 
+import { usePortfolio } from "@/hooks/usePortfolio"
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber"
+import { SyncStatusBadge } from "@/components/SyncStatusBadge"
+import { DEMO_HOLDINGS } from "@/services/holdings.service"
+
 const COLORS = ['#F4C542', '#3B82F6', '#00E676', '#FF3B30', '#8B5CF6', '#06B6D4']
+
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -392,111 +398,40 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* 1. LIVE MARKET TICKER BAR (CONTINUOUS AUTOMATIC SCROLLING) */}
-      <div className="relative overflow-hidden rounded-2xl bg-white dark:glass-panel border-2 border-yellow-500/35 dark:border-border/40 p-3 sm:p-4 bg-gradient-to-r from-yellow-500/15 via-yellow-500/5 to-yellow-500/15 dark:from-slate-950/80 dark:via-slate-900/60 dark:to-slate-950/80 shadow-md flex items-center gap-4">
-        <div className="flex items-center gap-2 text-yellow-600 dark:text-[#F4C542] shrink-0 font-bold tracking-wider uppercase px-2.5 py-1.5 rounded-xl bg-yellow-500/20 dark:bg-[#F4C542]/10 border border-yellow-500/30 dark:border-[#F4C542]/20 shadow-sm z-10 bg-white dark:bg-[#080A0F]">
-          <Activity className="h-3.5 w-3.5 animate-pulse" /> <span className="hidden md:inline">Live Market Prices:</span><span className="md:hidden">MARKET:</span>
-        </div>
-
-        <div className="flex overflow-hidden relative w-full select-none">
-          <div className="ticker-track gap-6 py-0.5 flex items-center shrink-0 font-bold text-xs whitespace-nowrap">
-            {[...Array(2)].map((_, loopIdx) => (
-              <React.Fragment key={loopIdx}>
-                {/* NIFTY 50 */}
-                <div className="flex items-center gap-2.5 shrink-0 bg-white dark:bg-[#151A21] px-3.5 py-1.5 rounded-xl border-2 border-slate-300 dark:border-slate-800 shadow-sm">
-                  <span className="h-5 px-1.5 rounded bg-blue-500/20 text-blue-600 dark:text-blue-400 font-mono font-bold flex items-center justify-center text-[10px]">
-                    NSE
-                  </span>
-                  <span className="text-slate-800 dark:text-muted-foreground font-bold">NIFTY 50</span>
-                  <span className="font-mono font-bold text-slate-950 dark:text-foreground text-sm">
-                    {marketRates['^NSEI']?.price ? marketRates['^NSEI'].price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "24,850.25"}
-                  </span>
-                  <span className="flex items-center gap-0.5 text-emerald-700 dark:text-[#00E676] font-bold bg-emerald-500/15 dark:bg-[#00E676]/10 px-1.5 py-0.5 rounded text-[10px]">
-                    <TrendingUp className="h-3 w-3" /> +{marketRates['^NSEI']?.changePercent ? marketRates['^NSEI'].changePercent.toFixed(2) : "0.42"}%
-                  </span>
-                </div>
-
-                {/* GOLD 24K (1g) */}
-                <div className="flex items-center gap-2.5 shrink-0 bg-white dark:bg-[#151A21] px-3.5 py-1.5 rounded-xl border-2 border-slate-300 dark:border-slate-800 shadow-sm">
-                  <span className="h-5 w-5 rounded bg-yellow-500/20 text-yellow-600 dark:text-[#F4C542] flex items-center justify-center">
-                    <Coins className="h-3.5 w-3.5" />
-                  </span>
-                  <span className="text-slate-800 dark:text-muted-foreground font-bold">Gold 24K /g</span>
-                  <span className="font-mono font-bold text-slate-950 dark:text-foreground text-sm">
-                    ₹{marketRates['GOLD_INR_1G']?.price ? marketRates['GOLD_INR_1G'].price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "14,101.00"}
-                  </span>
-                  <span className="flex items-center gap-0.5 text-emerald-700 dark:text-[#00E676] font-bold bg-emerald-500/15 dark:bg-[#00E676]/10 px-1.5 py-0.5 rounded text-[10px]">
-                    <TrendingUp className="h-3 w-3" /> +{marketRates['GOLD_INR_1G']?.changePercent ? marketRates['GOLD_INR_1G'].changePercent.toFixed(2) : "0.48"}%
-                  </span>
-                </div>
-
-                {/* SILVER (1g) */}
-                <div className="flex items-center gap-2.5 shrink-0 bg-white dark:bg-[#151A21] px-3.5 py-1.5 rounded-xl border-2 border-slate-300 dark:border-slate-800 shadow-sm">
-                  <span className="h-5 w-5 rounded bg-slate-400/20 text-slate-700 dark:text-slate-300 flex items-center justify-center">
-                    <Sparkles className="h-3.5 w-3.5" />
-                  </span>
-                  <span className="text-slate-800 dark:text-muted-foreground font-bold">Silver Bullion /g</span>
-                  <span className="font-mono font-bold text-slate-950 dark:text-foreground text-sm">
-                    ₹{marketRates['SILVER_INR_1G']?.price ? marketRates['SILVER_INR_1G'].price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "216.45"}
-                  </span>
-                  <span className="flex items-center gap-0.5 text-emerald-700 dark:text-[#00E676] font-bold bg-emerald-500/15 dark:bg-[#00E676]/10 px-1.5 py-0.5 rounded text-[10px]">
-                    <TrendingUp className="h-3 w-3" /> +{marketRates['SILVER_INR_1G']?.changePercent ? marketRates['SILVER_INR_1G'].changePercent.toFixed(2) : "1.25"}%
-                  </span>
-                </div>
-
-                {/* BITCOIN (1 BTC) */}
-                <div className="flex items-center gap-2.5 shrink-0 bg-white dark:bg-[#151A21] px-3.5 py-1.5 rounded-xl border-2 border-slate-300 dark:border-slate-800 shadow-sm">
-                  <span className="h-5 w-5 rounded bg-amber-600/20 text-amber-500 flex items-center justify-center font-bold text-[10px]">
-                    ₿
-                  </span>
-                  <span className="text-slate-800 dark:text-muted-foreground font-bold">Bitcoin (BTC)</span>
-                  <span className="font-mono font-bold text-slate-950 dark:text-foreground text-sm">
-                    ₹54,20,000
-                  </span>
-                  <span className="flex items-center gap-0.5 text-emerald-700 dark:text-[#00E676] font-bold bg-emerald-500/15 dark:bg-[#00E676]/10 px-1.5 py-0.5 rounded text-[10px]">
-                    <TrendingUp className="h-3 w-3" /> +2.14%
-                  </span>
-                </div>
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* 2. INSTITUTIONAL WEALTH COMMAND HEADER */}
-      <div className="hidden md:flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-4">
+      {/* 2. INSTITUTIONAL WEALTH COMMAND HEADER (Apple Frosted Glass) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-[24px] apple-glass border border-slate-200/80 dark:border-white/[0.08] shadow-sm">
         <div>
-          <div className="flex items-center gap-2.5 mb-1.5">
-             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-[11px] font-bold text-yellow-600 dark:text-yellow-500">
+          <div className="flex items-center gap-2 mb-2">
+             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-[11px] font-black text-amber-600 dark:text-amber-400">
                 <Trophy className="h-3.5 w-3.5" /> PERSONAL WEALTH DASHBOARD
              </span>
-             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-bold text-emerald-400">
-                <ShieldCheck className="h-3.5 w-3.5" /> Live Prices Synced
+             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[11px] font-black text-emerald-600 dark:text-emerald-400">
+                <ShieldCheck className="h-3.5 w-3.5" /> Live Spot Synced
              </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-             Welcome, {userName}
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground flex items-center gap-2">
+             Welcome, {userName || "Investor"}
           </h1>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
            <Button
              onClick={() => { engine.playSwipe(); setIsCustomizeModalOpen(true); }}
              variant="outline"
-             className="h-11 px-3.5 rounded-xl border-border/60 hover:bg-muted/40 font-bold text-xs gap-2 shadow-sm bg-white dark:bg-[#151A21]"
+             className="h-11 px-4 rounded-xl border-slate-200/80 dark:border-white/[0.08] hover:bg-slate-100/60 dark:hover:bg-white/[0.06] font-bold text-xs gap-2 shadow-xs apple-glass-subtle"
            >
-             <SlidersHorizontal className="h-4 w-4 text-[#F4C542]" /> Customize Layout
+             <SlidersHorizontal className="h-4 w-4 text-amber-500" /> Customize Layout
            </Button>
            <Button
              onClick={() => router.push('/watchlist')}
-             className="h-11 px-3.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-[#00E676] border border-emerald-500/30 font-bold text-xs gap-2 shadow-sm"
+             className="h-11 px-4 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-600 dark:text-[#00E676] border border-emerald-500/30 font-bold text-xs gap-2 shadow-xs"
            >
-             <Bell className="h-4 w-4 animate-bounce" /> Price Alerts (Push / Telegram)
+             <Bell className="h-4 w-4 animate-bounce" /> Price Alerts
            </Button>
-           <div className="flex flex-col items-end px-4 py-2 rounded-2xl bg-slate-100 dark:bg-[#151A21] border border-border/40">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Financial Health Score</span>
-              <div className="flex items-center gap-1.5 font-mono font-bold text-sm text-[#F4C542]">
+           <div className="flex flex-col items-end px-4 py-2 rounded-2xl apple-glass-subtle border border-slate-200/80 dark:border-white/[0.08]">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Health Score</span>
+              <div className="flex items-center gap-1.5 font-mono font-black text-sm text-amber-600 dark:text-[#F4C542]">
                  <span>{healthScore} / 100</span>
-                 <span className="text-[10px] bg-[#F4C542]/20 px-1.5 py-0.5 rounded font-sans text-foreground">EXCELLENT</span>
+                 <span className="text-[10px] bg-amber-500/15 px-1.5 py-0.5 rounded-md font-sans text-amber-700 dark:text-amber-300">EXCELLENT</span>
               </div>
            </div>
         </div>
@@ -508,101 +443,147 @@ export default function DashboardPage() {
           if (hiddenWidgets[widgetId]) return null
           switch (widgetId) {
 
+            case "ai-prompt":
+              return (
+                <motion.div 
+                  key="ai-prompt"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="apple-glass apple-glass-card revolut-glow-indigo p-5 sm:p-6 border border-indigo-500/20"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5">
+                      <div className="p-3 rounded-2xl bg-gradient-to-tr from-purple-500 via-indigo-500 to-amber-400 text-white shadow-md shadow-purple-500/20">
+                        <Sparkles className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base font-black text-foreground">Apple AI Financial Co-Pilot</h3>
+                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/25">
+                            READY
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground font-semibold mt-0.5">
+                          Instant smart insights on your 24K gold valuation, SIP compounding & expense velocity.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={() => router.push('/analytics')}
+                        className="h-10 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 text-slate-950 font-bold text-xs shadow-md shadow-amber-500/20 hover:brightness-105 gap-1.5"
+                      >
+                        Launch AI Co-Pilot <ArrowRight className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              )
+
             case "pillars":
               return (
                 <div key="pillars" className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
                   {/* PILLAR 1: CAPITAL DEPLOYED (Amount Invested) */}
                   <motion.div 
-                    initial={{ opacity: 0, y: 12 }}
+                    initial={{ opacity: 0, y: 14 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="relative overflow-hidden rounded-[24px] bg-gradient-to-br from-[#08090B] via-[#0E1524] to-[#121B2E] p-6 sm:p-7 text-white shadow-2xl border border-blue-500/40 group hover-lift"
+                    transition={{ duration: 0.35 }}
+                    className="apple-glass apple-glass-card revolut-glow-indigo p-6 sm:p-7 group border-indigo-500/20"
                   >
-                    <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-blue-500/15 blur-3xl pointer-events-none group-hover:bg-blue-500/25 transition-all" />
                     <div className="flex items-center justify-between relative z-10 mb-4">
-                       <span className="text-xs font-bold uppercase tracking-widest text-blue-400 flex items-center gap-1.5">
-                         <DollarSign className="h-4 w-4" /> Total Amount Invested
+                       <span className="text-xs font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                         <span className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-500">
+                           <DollarSign className="h-4 w-4" />
+                         </span>
+                         Capital Deployed
                        </span>
-                       <span className="text-[10px] font-bold uppercase bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full border border-blue-500/30">
+                       <span className="text-[10px] font-black uppercase bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 px-2.5 py-0.5 rounded-full border border-indigo-500/25">
                          INVESTED
                        </span>
                     </div>
                     <div className="relative z-10 space-y-1">
-                       <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold font-mono tracking-tight text-white">
-                         ₹{invested.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                       <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black font-mono tracking-tight text-slate-900 dark:text-white">
+                         <AnimatedNumber value={invested} type="currency" />
                        </h2>
-                       <p className="text-xs font-semibold text-slate-400 flex items-center justify-between pt-2">
-                         <span>Total purchase price across all holdings</span>
-                         <span className="text-blue-400 font-mono font-bold">
+                       <div className="flex items-center justify-between pt-3 border-t border-slate-200/50 dark:border-white/[0.06] text-xs font-semibold text-slate-500 dark:text-slate-400">
+                         <span>Total purchase price</span>
+                         <span className="text-indigo-600 dark:text-indigo-400 font-mono font-bold">
                            {netWorth > 0 ? `${((invested / netWorth) * 100).toFixed(1)}% of Total` : '82.0%'}
                          </span>
-                       </p>
+                       </div>
                     </div>
                   </motion.div>
 
                   {/* PILLAR 2: CURRENT PORTFOLIO VALUE */}
                   <motion.div 
-                    initial={{ opacity: 0, y: 12 }}
+                    initial={{ opacity: 0, y: 14 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.1 }}
-                    className="relative overflow-hidden rounded-[24px] bg-gradient-to-br from-[#08090B] via-[#0F141C] to-[#151A21] p-6 sm:p-7 text-white shadow-2xl border border-[#F4C542]/45 group hover-lift"
+                    transition={{ duration: 0.35, delay: 0.08 }}
+                    className="apple-glass apple-glass-card revolut-glow-amber p-6 sm:p-7 group border-amber-400/30 dark:border-amber-400/20"
                   >
-                    <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-[#F4C542]/15 blur-3xl pointer-events-none group-hover:bg-[#F4C542]/25 transition-all" />
                     <div className="flex items-center justify-between relative z-10 mb-4">
-                       <span className="text-xs font-bold uppercase tracking-widest text-[#F4C542] flex items-center gap-1.5">
-                         <Wallet className="h-4 w-4" /> Current Portfolio Value
+                       <span className="text-xs font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 flex items-center gap-2">
+                         <span className="p-1.5 rounded-lg bg-amber-500/10 text-amber-500">
+                           <Wallet className="h-4 w-4" />
+                         </span>
+                         Portfolio Valuation
                        </span>
-                       <span className="h-2 w-2 rounded-full bg-[#00E676] animate-ping" title="Live Spot Synced" />
+                       <span className="flex items-center gap-1.5 text-[10px] font-black uppercase bg-amber-500/15 text-amber-700 dark:text-amber-300 px-2.5 py-0.5 rounded-full border border-amber-500/25">
+                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                         LIVE SYNC
+                       </span>
                     </div>
                     <div className="relative z-10 space-y-1">
-                       <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold font-mono tracking-tight text-white">
-                         ₹{netWorth.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                       <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black font-mono tracking-tight text-slate-950 dark:text-white">
+                         <AnimatedNumber value={netWorth} type="currency" />
                        </h2>
-                       <p className="text-xs font-semibold text-slate-400 flex items-center justify-between pt-2">
-                         <span>Stocks, Mutual Funds, Gold & Bank Balances</span>
-                         <span className="text-[#F4C542] font-mono font-bold">100.0% Total</span>
-                       </p>
+                       <div className="flex items-center justify-between pt-3 border-t border-slate-200/50 dark:border-white/[0.06] text-xs font-semibold text-slate-500 dark:text-slate-400">
+                         <span>Stocks, Gold, Silver & Bank</span>
+                         <span className="text-amber-600 dark:text-amber-400 font-mono font-bold">100.0% Wealth</span>
+                       </div>
                     </div>
                   </motion.div>
 
                   {/* PILLAR 3: TOTAL PROFIT & LOSS */}
                   <motion.div 
-                    initial={{ opacity: 0, y: 12 }}
+                    initial={{ opacity: 0, y: 14 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.2 }}
-                    className={`relative overflow-hidden rounded-[24px] p-6 sm:p-7 shadow-2xl border group hover-lift ${
+                    transition={{ duration: 0.35, delay: 0.16 }}
+                    className={`apple-glass apple-glass-card p-6 sm:p-7 group ${
                       change24h >= 0 
-                        ? 'bg-gradient-to-br from-[#F0FFF8] via-[#DCFCE7] to-[#F0FFF8] dark:from-[#08090B] dark:via-[#0D1813] dark:to-[#122119] border-[#00C853] dark:border-[#00E676]/45' 
-                        : 'bg-gradient-to-br from-[#FFF5F5] via-[#FFE4E4] to-[#FFF5F5] dark:from-[#08090B] dark:via-[#1C0D11] dark:to-[#241317] border-[#D32F2F] dark:border-[#FF3B30]/45'
+                        ? 'revolut-glow-emerald border-emerald-500/30 dark:border-emerald-500/20' 
+                        : 'revolut-glow-rose border-rose-500/30 dark:border-rose-500/20'
                     }`}
                   >
-                    <div className={`absolute -right-16 -top-16 h-56 w-56 rounded-full blur-3xl pointer-events-none transition-all ${
-                      change24h >= 0 ? 'bg-[#00E676]/20 dark:bg-[#00E676]/15 group-hover:bg-[#00E676]/35 dark:group-hover:bg-[#00E676]/25' : 'bg-[#FF3B30]/20 dark:bg-[#FF3B30]/15 group-hover:bg-[#FF3B30]/35 dark:group-hover:bg-[#FF3B30]/25'
-                    }`} />
                     <div className="flex items-center justify-between relative z-10 mb-4">
-                       <span className={`text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 ${
-                         change24h >= 0 ? 'text-[#00A040] dark:text-[#00E676]' : 'text-[#D32F2F] dark:text-[#FF3B30]'
+                       <span className={`text-xs font-black uppercase tracking-widest flex items-center gap-2 ${
+                         change24h >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                        }`}>
-                         {change24h >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />} Total Profit & Loss
+                         <span className={`p-1.5 rounded-lg ${change24h >= 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
+                           {change24h >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                         </span>
+                         Total Return & Gains
                        </span>
-                       <span className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded-full border ${
+                       <span className={`text-xs font-mono font-black px-2.5 py-0.5 rounded-full border ${
                          change24h >= 0 
-                           ? 'bg-[#00C853]/20 dark:bg-[#00E676]/20 text-[#00A040] dark:text-[#00E676] border-[#00C853]/50 dark:border-[#00E676]/40' 
-                           : 'bg-[#D32F2F]/20 dark:bg-[#FF3B30]/20 text-[#D32F2F] dark:text-[#FF3B30] border-[#D32F2F]/50 dark:border-[#FF3B30]/40'
+                           ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30' 
+                           : 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30'
                        }`}>
                          {change24h >= 0 ? '+' : ''}{change24hPct.toFixed(2)}%
                        </span>
                     </div>
                     <div className="relative z-10 space-y-1">
-                       <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-bold font-mono tracking-tight ${
-                         change24h >= 0 ? 'text-[#007A30] dark:text-[#00E676]' : 'text-[#C62828] dark:text-[#FF3B30]'
+                       <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-black font-mono tracking-tight ${
+                         change24h >= 0 ? 'text-emerald-600 dark:text-[#00E676]' : 'text-rose-600 dark:text-[#FF3B30]'
                        }`}>
-                         {change24h >= 0 ? '+₹' : '-₹'}{Math.abs(change24h).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                         <AnimatedNumber value={change24h} type="currency" prefix={change24h >= 0 ? '+₹' : '-₹'} />
                        </h2>
-                       <p className={`text-xs font-semibold flex items-center justify-between pt-2 ${change24h >= 0 ? 'text-green-700 dark:text-slate-400' : 'text-red-700 dark:text-slate-400'}`}>
-                         <span>Total gain or loss on your investments</span>
-                         <span className={`font-bold ${change24h >= 0 ? 'text-green-800 dark:text-slate-300' : 'text-red-800 dark:text-slate-300'}`}>Annual Return: {cagr.toFixed(1)}%</span>
-                       </p>
+                       <div className="flex items-center justify-between pt-3 border-t border-slate-200/50 dark:border-white/[0.06] text-xs font-semibold text-slate-500 dark:text-slate-400">
+                         <span>Total lifetime returns</span>
+                         <span className={`font-mono font-bold ${change24h >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                           CAGR: {cagr.toFixed(1)}%
+                         </span>
+                       </div>
                     </div>
                   </motion.div>
                 </div>
@@ -610,7 +591,7 @@ export default function DashboardPage() {
 
             case "todays-spending":
               return (
-                <Card key="todays-spending" className="glass-panel border-border/40 shadow-xl overflow-hidden p-5 sm:p-6 bg-gradient-to-br from-slate-100/80 via-white/40 to-slate-100/80 dark:from-[#11151C]/80 dark:via-[#151A21]/60 dark:to-[#11151C]/80">
+                <div key="todays-spending" className="apple-glass apple-glass-card p-5 sm:p-6 border border-slate-200/80 dark:border-white/[0.08]">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                       <div className={`p-3 rounded-2xl border ${todaySummary.statusColor}`}>
@@ -646,13 +627,13 @@ export default function DashboardPage() {
                   </div>
 
                   {todaySummary.expensesToday.length > 0 ? (
-                    <div className="flex items-center gap-2 mt-4 pt-3 border-t border-border/30 overflow-x-auto no-scrollbar">
+                    <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-200/50 dark:border-white/[0.06] overflow-x-auto no-scrollbar">
                       <span className="text-[10px] font-bold uppercase text-muted-foreground shrink-0">Logged Today:</span>
                       {todaySummary.expensesToday.slice(0, 5).map((tx, idx) => (
-                        <div key={idx} className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-200/60 dark:bg-slate-800/60 border border-slate-300/40 dark:border-slate-700/40 text-xs font-bold shrink-0">
+                        <div key={idx} className="flex items-center gap-1.5 px-3 py-1 rounded-xl apple-glass-subtle text-xs font-bold shrink-0">
                           <span>{tx.category_icon || "💸"}</span>
                           <span className="truncate max-w-[110px]">{tx.description || tx.category}</span>
-                          <span className="font-mono font-bold text-[#FF3B30]">−₹{fmtINR(tx.amount)}</span>
+                          <span className="font-mono font-bold text-rose-600 dark:text-[#FF3B30]">−₹{fmtINR(tx.amount)}</span>
                         </div>
                       ))}
                       {todaySummary.expensesToday.length > 5 && (
@@ -660,49 +641,49 @@ export default function DashboardPage() {
                       )}
                     </div>
                   ) : (
-                    <div className="mt-3 pt-2 border-t border-border/30 text-xs font-bold text-muted-foreground flex items-center gap-1.5">
+                    <div className="mt-3 pt-2 border-t border-slate-200/50 dark:border-white/[0.06] text-xs font-bold text-muted-foreground flex items-center gap-1.5">
                       <CheckCircle2 className="h-3.5 w-3.5 text-[#00E676]" /> No expenses recorded today yet. You are completely under budget!
                     </div>
                   )}
-                </Card>
+                </div>
               )
 
             case "holdings-overview":
               return (
                 <div key="holdings-overview" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* LEFT 2 COLUMNS: LIVE HOLDINGS TABLE */}
-                  <Card className="lg:col-span-2 glass-panel overflow-hidden shadow-xl border border-border/40 flex flex-col justify-between">
-                     <CardHeader className="p-6 border-b border-border/40 flex flex-row items-center justify-between">
+                  {/* LEFT 2 COLUMNS: LIVE HOLDINGS TABLE (Apple Glass) */}
+                  <div className="lg:col-span-2 apple-glass apple-glass-card border border-slate-200/80 dark:border-white/[0.08] flex flex-col justify-between overflow-hidden shadow-sm">
+                     <div className="p-6 border-b border-slate-200/60 dark:border-white/[0.06] flex flex-row items-center justify-between">
                         <div>
-                           <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
-                              <Coins className="h-5 w-5 text-[#F4C542]" /> My Top Investments & Gold
-                           </CardTitle>
-                           <CardDescription className="text-xs font-semibold mt-0.5">
-                              Live market valuation updated with current spot prices.
-                           </CardDescription>
+                           <h3 className="text-lg font-black text-foreground flex items-center gap-2">
+                              <Coins className="h-5 w-5 text-amber-500" /> Top Investments & Gold
+                           </h3>
+                           <p className="text-xs font-medium text-muted-foreground mt-0.5">
+                              Live valuation updated with current spot prices.
+                           </p>
                         </div>
                         <Button 
                            onClick={() => router.push('/holdings')} 
                            variant="ghost" 
                            size="sm" 
-                           className="text-xs font-bold text-[#F4C542] hover:text-[#F4C542] gap-1 rounded-xl"
+                           className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-500 gap-1 rounded-xl"
                         >
                            View All Holdings <ArrowRight className="h-3.5 w-3.5" />
                         </Button>
-                     </CardHeader>
-                     <CardContent className="p-0 flex-1">
+                     </div>
+                     <div className="p-0 flex-1">
                         <div className="overflow-x-auto">
                            <table className="w-full text-left text-xs">
                               <thead>
-                                 <tr className="border-b border-border/40 bg-slate-100/80 dark:bg-[#151A21]/80 text-muted-foreground font-bold uppercase tracking-wider">
-                                    <th className="p-4 pl-6">Investment Name</th>
+                                 <tr className="border-b border-slate-200/60 dark:border-white/[0.06] bg-slate-100/50 dark:bg-white/[0.02] text-muted-foreground font-bold uppercase tracking-wider">
+                                    <th className="p-4 pl-6">Asset Name</th>
                                     <th className="p-4 text-right">Quantity</th>
                                     <th className="p-4 text-right">Live Price</th>
                                     <th className="p-4 text-right">Current Value</th>
                                     <th className="p-4 text-right pr-6">P&L Status</th>
                                  </tr>
                               </thead>
-                              <tbody className="divide-y divide-border/30 font-semibold">
+                              <tbody className="divide-y divide-slate-200/40 dark:divide-white/[0.04] font-semibold">
                                  {holdings && holdings.length > 0 ? (
                                     holdings.slice(0, 5).map((h, i) => {
                                        const val = Number(h.qty) * Number(h.currentPrice || h.buy_price || 0)
@@ -710,19 +691,21 @@ export default function DashboardPage() {
                                        const pl = val - inv
                                        const plPct = inv > 0 ? (pl / inv) * 100 : 0
                                        return (
-                                          <tr key={i} onClick={() => router.push('/holdings')} className="hover:bg-muted/40 transition-colors">
+                                          <tr key={i} onClick={() => router.push('/holdings')} className="hover:bg-slate-100/40 dark:hover:bg-white/[0.03] transition-colors cursor-pointer">
                                              <td className="p-4 pl-6 font-bold text-foreground">
                                                 <div className="flex items-center gap-2">
-                                                   <span className="h-2 w-2 rounded-full bg-[#F4C542]" />
+                                                   <span className="h-2 w-2 rounded-full bg-amber-500" />
                                                    {h.name || "Physical Gold 24K"}
                                                 </div>
                                              </td>
-                                             <td className="p-4 text-right font-mono">{h.qty} {h.type === 'Commodity' ? 'g' : 'units'}</td>
-                                             <td className="p-4 text-right font-mono">₹{fmtINR(Number(h.currentPrice || h.buy_price || 0))}</td>
+                                             <td className="p-4 text-right font-mono text-muted-foreground">{h.qty} {h.type === 'Commodity' ? 'g' : 'units'}</td>
+                                             <td className="p-4 text-right font-mono font-medium">₹{fmtINR(Number(h.currentPrice || h.buy_price || 0))}</td>
                                              <td className="p-4 text-right font-mono font-bold text-foreground">₹{fmtINR(val)}</td>
                                              <td className="p-4 text-right pr-6">
-                                                <span className={`inline-flex items-center gap-1 font-mono font-bold text-xs px-2 py-0.5 rounded-full ${
-                                                   pl >= 0 ? "text-[#00E676] bg-[#00E676]/10" : "text-[#FF3B30] bg-[#FF3B30]/10"
+                                                <span className={`inline-flex items-center gap-1 font-mono font-black text-xs px-2.5 py-0.5 rounded-full ${
+                                                   pl >= 0 
+                                                     ? "text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 border border-emerald-500/25" 
+                                                     : "text-rose-700 dark:text-rose-300 bg-rose-500/15 border border-rose-500/25"
                                                 }`}>
                                                    {pl >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                                                    {pl >= 0 ? '+' : ''}₹{fmtINR(pl)} ({plPct.toFixed(1)}%)
@@ -739,20 +722,20 @@ export default function DashboardPage() {
                               </tbody>
                            </table>
                         </div>
-                     </CardContent>
-                  </Card>
+                     </div>
+                  </div>
 
-                  {/* RIGHT COLUMN: PORTFOLIO BREAKDOWN CHART */}
-                  <Card className="glass-panel flex flex-col justify-between shadow-xl border border-border/40">
-                     <CardHeader className="p-6 border-b border-border/40">
-                        <CardTitle className="text-lg font-bold flex items-center gap-2 text-foreground">
-                           <ShieldAlert className="h-5 w-5 text-[#F4C542]" /> Portfolio Breakdown
-                        </CardTitle>
-                        <CardDescription className="text-xs font-semibold mt-0.5">
-                           Real-time percentage allocation by investment type.
-                        </CardDescription>
-                     </CardHeader>
-                     <CardContent className="p-6 flex flex-col items-center justify-center gap-6 my-auto">
+                  {/* RIGHT COLUMN: PORTFOLIO BREAKDOWN CHART (Apple Glass) */}
+                  <div className="apple-glass apple-glass-card border border-slate-200/80 dark:border-white/[0.08] flex flex-col justify-between shadow-sm p-6">
+                     <div className="pb-4 border-b border-slate-200/60 dark:border-white/[0.06]">
+                        <h3 className="text-lg font-black flex items-center gap-2 text-foreground">
+                           <ShieldAlert className="h-5 w-5 text-amber-500" /> Portfolio Breakdown
+                        </h3>
+                        <p className="text-xs font-medium text-muted-foreground mt-0.5">
+                           Percentage allocation by investment type.
+                        </p>
+                     </div>
+                     <div className="py-6 flex flex-col items-center justify-center gap-6 my-auto">
                         <div className="relative h-48 w-48">
                            <ResponsiveContainer width="100%" height="100%">
                               <PieChart>
@@ -775,7 +758,7 @@ export default function DashboardPage() {
                               </PieChart>
                            </ResponsiveContainer>
                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                              <span className="text-2xl font-bold text-foreground font-mono">
+                              <span className="text-2xl font-black text-foreground font-mono">
                                  {pieData.length > 0 && netWorth > 0 
                                     ? `${Math.round((pieData[0]?.value || 0) / netWorth * 100)}%` 
                                     : "45%"}
@@ -786,7 +769,7 @@ export default function DashboardPage() {
                            </div>
                         </div>
 
-                        <div className="w-full space-y-2.5 pt-3 border-t border-border/40">
+                        <div className="w-full space-y-2.5 pt-3 border-t border-slate-200/50 dark:border-white/[0.06]">
                            {(pieData.length > 0 ? pieData : [
                               { name: 'Gold / Silver', value: 461100 },
                               { name: 'Stocks', value: 177000 },
@@ -796,7 +779,7 @@ export default function DashboardPage() {
                               return (
                                  <div key={item.name} className="flex items-center justify-between text-xs font-bold">
                                     <div className="flex items-center gap-2">
-                                       <div className="h-3 w-3 rounded-md shadow-sm" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
+                                       <div className="h-3 w-3 rounded-md shadow-xs" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
                                        <span className="text-foreground">{item.name}</span>
                                     </div>
                                     <span className="font-mono text-muted-foreground font-bold">{pct}% (₹{item.value.toLocaleString(undefined, { maximumFractionDigits: 0 })})</span>
@@ -804,49 +787,47 @@ export default function DashboardPage() {
                               )
                            })}
                         </div>
-                     </CardContent>
-                  </Card>
+                     </div>
+                  </div>
                 </div>
               )
 
             case "growth-chart":
               return (
-                <Card key="growth-chart" className="glass-panel overflow-hidden shadow-xl border border-border/40">
-                   <CardHeader className="border-b border-border/40 p-6">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                         <div>
-                            <CardTitle className="text-lg font-bold flex items-center gap-2 text-foreground">
-                               <BarChart3 className="h-5 w-5 text-[#F4C542]" /> Portfolio Growth vs Nifty 50 Index
-                            </CardTitle>
-                            <CardDescription className="text-xs font-semibold mt-0.5">
-                               Historical comparison showing how your investments are growing compared to the stock market.
-                            </CardDescription>
-                         </div>
-                         <div className="flex gap-1 bg-slate-100 dark:bg-[#151A21] p-1 rounded-xl border border-border/40 self-start sm:self-auto">
-                            {["1M", "3M", "6M", "1Y", "ALL"].map(rng => (
-                               <button
-                                  key={rng}
-                                  onClick={() => setTimeRange(rng)}
-                                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                                     timeRange === rng 
-                                        ? "gold-gradient-bg text-slate-950 shadow-sm" 
-                                        : "text-muted-foreground hover:text-foreground"
-                                  }`}
-                               >
-                                  {rng}
-                               </button>
-                            ))}
-                         </div>
+                <div key="growth-chart" className="apple-glass apple-glass-card border border-slate-200/80 dark:border-white/[0.08] shadow-sm p-6">
+                   <div className="pb-5 border-b border-slate-200/60 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                         <h3 className="text-lg font-black flex items-center gap-2 text-foreground">
+                            <BarChart3 className="h-5 w-5 text-amber-500" /> Portfolio Growth vs Nifty 50 Index
+                         </h3>
+                         <p className="text-xs font-medium text-muted-foreground mt-0.5">
+                            Historical comparison showing how your investments are growing compared to the stock market.
+                         </p>
                       </div>
-                   </CardHeader>
-                   <CardContent className="p-6">
+                      <div className="flex gap-1 apple-glass-subtle p-1 rounded-xl border border-slate-200/60 dark:border-white/[0.06] self-start sm:self-auto">
+                         {["1M", "3M", "6M", "1Y", "ALL"].map(rng => (
+                            <button
+                               key={rng}
+                               onClick={() => setTimeRange(rng)}
+                               className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                                  timeRange === rng 
+                                     ? "gold-gradient-bg text-slate-950 shadow-xs" 
+                                     : "text-muted-foreground hover:text-foreground"
+                               }`}
+                            >
+                               {rng}
+                            </button>
+                         ))}
+                      </div>
+                   </div>
+                   <div className="pt-6">
                       <div className="h-[280px] w-full">
                          <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={chartData}>
                                <defs>
                                   <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
-                                     <stop offset="5%" stopColor="#F4C542" stopOpacity={0.45} />
-                                     <stop offset="95%" stopColor="#F4C542" stopOpacity={0} />
+                                     <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.4} />
+                                     <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
                                   </linearGradient>
                                   <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1">
                                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.25} />
@@ -857,43 +838,43 @@ export default function DashboardPage() {
                                <XAxis dataKey="name" stroke="currentColor" className="text-muted-foreground" fontSize={11} tickLine={false} axisLine={false} dy={8} fontStyle="bold" />
                                <YAxis stroke="currentColor" className="text-muted-foreground" fontSize={11} tickLine={false} axisLine={false} dx={-8} tickFormatter={val => `₹${(val/1000).toFixed(0)}k`} />
                                <RechartsTooltip 
-                                  contentStyle={{ backgroundColor: "#0D1117", borderColor: "rgba(244,197,66,0.3)", borderRadius: "14px", boxShadow: "0 14px 40px -5px rgba(0,0,0,0.6)", color: "#fff" }}
+                                  contentStyle={{ backgroundColor: "#070A11", borderColor: "rgba(255,255,255,0.12)", borderRadius: "16px", boxShadow: "0 16px 40px rgba(0,0,0,0.5)", color: "#fff" }}
                                   itemStyle={{ fontSize: "12px", fontWeight: "800" }}
                                   formatter={(val: number, name: string) => [`₹${fmtINR(val)}`, name === 'value' ? 'My Portfolio Value' : 'Nifty 50 Benchmark']}
                                />
                                <Area type="monotone" dataKey="nifty" stroke="#3B82F6" strokeWidth={2} fill="url(#blueGrad)" name="Nifty 50 Benchmark" />
-                               <Area type="monotone" dataKey="value" stroke="#F4C542" strokeWidth={3} fill="url(#goldGrad)" name="My Portfolio Value" />
+                               <Area type="monotone" dataKey="value" stroke="#F59E0B" strokeWidth={3} fill="url(#goldGrad)" name="My Portfolio Value" />
                             </AreaChart>
                          </ResponsiveContainer>
                       </div>
-                   </CardContent>
-                </Card>
+                   </div>
+                </div>
               )
 
             case "quick-actions":
               return (
-                <div key="quick-actions" className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl glass-panel border border-border/40 bg-slate-100/50 dark:bg-[#11151C]/60">
-                   <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      <Zap className="h-4 w-4 text-[#F4C542]" /> Quick Actions:
+                <div key="quick-actions" className="flex flex-wrap items-center justify-between gap-3 p-5 rounded-[22px] apple-glass border border-slate-200/80 dark:border-white/[0.08] shadow-xs">
+                   <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                      <Zap className="h-4 w-4 text-amber-500" /> Quick Actions:
                    </div>
                    <div className="flex flex-wrap items-center gap-2.5">
                       <Button
                         onClick={() => router.push('/expenses?openAdd=expense')}
-                        className="bg-[#FF3B30] hover:bg-[#FF3B30]/90 text-white font-bold rounded-xl px-4 py-2 text-xs h-10 shadow-md flex items-center gap-1.5 transition-all"
+                        className="bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl px-4 py-2 text-xs h-10 shadow-sm flex items-center gap-1.5 transition-all"
                       >
                         <Receipt className="h-3.5 w-3.5" /> + Log Expense
                       </Button>
                       
                       <Button
                         onClick={() => router.push('/expenses?openAdd=investment')}
-                        className="bg-[#00E676] hover:bg-[#00E676]/90 text-slate-950 font-bold rounded-xl px-4 py-2 text-xs h-10 shadow-md flex items-center gap-1.5 transition-all"
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl px-4 py-2 text-xs h-10 shadow-sm flex items-center gap-1.5 transition-all"
                       >
                         <PlusCircle className="h-3.5 w-3.5" /> + Add Investment / SIP
                       </Button>
 
                       <Button
                         onClick={() => router.push('/holdings?action=sell')}
-                        className="gold-gradient-bg text-slate-950 hover:brightness-105 font-bold rounded-xl px-4 py-2 text-xs h-10 shadow-md flex items-center gap-1.5 transition-all"
+                        className="gold-gradient-bg text-slate-950 hover:brightness-105 font-bold rounded-xl px-4 py-2 text-xs h-10 shadow-sm flex items-center gap-1.5 transition-all"
                       >
                         <MinusCircle className="h-3.5 w-3.5" /> Manage / Sell Holdings
                       </Button>
@@ -902,9 +883,9 @@ export default function DashboardPage() {
                         onClick={handleDownloadPDF}
                         disabled={isGenerating}
                         variant="outline"
-                        className="bg-background/80 hover:bg-background text-foreground border-border font-bold rounded-xl px-4 py-2 text-xs h-10 transition-all shadow-sm"
+                        className="apple-glass-subtle border-slate-200/80 dark:border-white/[0.08] text-foreground font-bold rounded-xl px-4 py-2 text-xs h-10 transition-all shadow-xs"
                       >
-                        <Download className="mr-1.5 h-3.5 w-3.5 text-[#F4C542]" /> Download PDF Report
+                        <Download className="mr-1.5 h-3.5 w-3.5 text-amber-500" /> Download PDF Report
                       </Button>
                    </div>
                 </div>
@@ -921,15 +902,15 @@ export default function DashboardPage() {
                    </div>
 
                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <Card 
+                      <div 
                          onClick={() => router.push('/holdings')}
-                         className="glass-panel p-5 cursor-pointer hover-lift group flex flex-col justify-between space-y-4 border border-border/40"
+                         className="apple-glass apple-glass-card p-5 cursor-pointer group flex flex-col justify-between space-y-4 border border-slate-200/80 dark:border-white/[0.08] shadow-xs"
                       >
                          <div className="flex items-center justify-between">
-                            <div className="p-3 rounded-2xl bg-[#F4C542]/10 text-[#F4C542] group-hover:scale-110 transition-transform">
+                            <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-500 group-hover:scale-110 transition-transform">
                                <Wallet className="h-5 w-5" />
                             </div>
-                            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-[#F4C542] group-hover:translate-x-1 transition-all" />
+                            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-amber-500 group-hover:translate-x-1 transition-all" />
                          </div>
                          <div>
                             <h4 className="text-base font-bold text-foreground">Holdings & Portfolio</h4>
@@ -937,17 +918,17 @@ export default function DashboardPage() {
                                Manage your stocks, mutual funds, 24K gold & silver with live price updates.
                             </p>
                          </div>
-                      </Card>
+                      </div>
 
-                      <Card 
+                      <div 
                          onClick={() => router.push('/expenses')}
-                         className="glass-panel p-5 cursor-pointer hover-lift group flex flex-col justify-between space-y-4 border border-border/40"
+                         className="apple-glass apple-glass-card p-5 cursor-pointer group flex flex-col justify-between space-y-4 border border-slate-200/80 dark:border-white/[0.08] shadow-xs"
                       >
                          <div className="flex items-center justify-between">
-                            <div className="p-3 rounded-2xl bg-[#FF3B30]/10 text-[#FF3B30] group-hover:scale-110 transition-transform">
+                            <div className="p-3 rounded-2xl bg-rose-500/10 text-rose-500 group-hover:scale-110 transition-transform">
                                <Receipt className="h-5 w-5" />
                             </div>
-                            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-[#FF3B30] group-hover:translate-x-1 transition-all" />
+                            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-rose-500 group-hover:translate-x-1 transition-all" />
                          </div>
                          <div>
                             <h4 className="text-base font-bold text-foreground">Expense Tracker</h4>
@@ -955,11 +936,11 @@ export default function DashboardPage() {
                                Track daily spending across your <strong className="text-foreground">Bank Accounts</strong> and <strong className="text-foreground">Credit Cards</strong> easily.
                             </p>
                          </div>
-                      </Card>
+                      </div>
 
-                      <Card 
+                      <div 
                          onClick={() => router.push('/analytics')}
-                         className="glass-panel p-5 cursor-pointer hover-lift group flex flex-col justify-between space-y-4 border border-border/40"
+                         className="apple-glass apple-glass-card p-5 cursor-pointer group flex flex-col justify-between space-y-4 border border-slate-200/80 dark:border-white/[0.08] shadow-xs"
                       >
                          <div className="flex items-center justify-between">
                             <div className="p-3 rounded-2xl bg-purple-500/10 text-purple-400 group-hover:scale-110 transition-transform">
@@ -973,11 +954,11 @@ export default function DashboardPage() {
                                Get smart recommendations to save taxes, balance risk, and grow your wealth.
                             </p>
                          </div>
-                      </Card>
+                      </div>
 
-                      <Card 
+                      <div 
                          onClick={() => router.push('/sip-planner')}
-                         className="glass-panel p-5 cursor-pointer hover-lift group flex flex-col justify-between space-y-4 border border-border/40"
+                         className="apple-glass apple-glass-card p-5 cursor-pointer group flex flex-col justify-between space-y-4 border border-slate-200/80 dark:border-white/[0.08] shadow-xs"
                       >
                          <div className="flex items-center justify-between">
                             <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-500 group-hover:scale-110 transition-transform">
@@ -991,7 +972,7 @@ export default function DashboardPage() {
                                Calculate compound interest and plan your future wealth timelines with visual charts.
                             </p>
                          </div>
-                      </Card>
+                      </div>
                    </div>
                 </div>
               )
@@ -1004,8 +985,8 @@ export default function DashboardPage() {
 
       {/* CUSTOMIZE DASHBOARD MODAL */}
       {isCustomizeModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-[#111622] rounded-[28px] border-2 border-amber-500/40 shadow-2xl max-w-xl w-full p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-2xl animate-in fade-in duration-200">
+          <div className="apple-glass rounded-[32px] border border-white/20 dark:border-white/10 shadow-2xl max-w-xl w-full p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-border/40">
               <div className="flex items-center gap-3">
                 <div className="p-3 rounded-2xl gold-gradient-bg text-slate-950 shadow-md">

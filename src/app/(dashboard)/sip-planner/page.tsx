@@ -5,7 +5,8 @@ import { fmtINR } from "@/lib/utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
-import { Plus, X, Trash2, Calculator, Pencil, Sparkles, Trophy, TrendingUp, Layers, CheckCircle2, SlidersHorizontal } from "lucide-react"
+import { Plus, X, Trash2, Calculator, Pencil, Sparkles, Trophy, TrendingUp, Layers, CheckCircle2, SlidersHorizontal, RefreshCw } from "lucide-react"
+
 import { toast } from "sonner"
 import confetti from "canvas-confetti"
 
@@ -355,17 +356,15 @@ function SIPPlannerContent() {
   if (!mounted) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center min-h-[70vh] gap-4">
-        <div className="relative h-16 w-16 rounded-2xl gold-gradient-bg p-[2px] shadow-xl animate-pulse">
-          <div className="flex items-center justify-center h-full w-full bg-[#08090B] rounded-[14px]">
-            <img src="/logo.png" alt="Bun Vault" className="h-8 w-8 object-contain" />
-          </div>
+        <div className="relative h-14 w-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shadow-lg animate-pulse">
+          <RefreshCw className="h-7 w-7 text-amber-500 animate-spin" />
         </div>
         <div className="text-center space-y-1">
           <span className="text-xs font-mono font-bold text-[#F4C542] tracking-widest uppercase animate-pulse">INITIALIZING SIP ENGINE...</span>
           <p className="text-[11px] font-mono text-slate-500">Syncing compound velocity & wealth projection curves</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (

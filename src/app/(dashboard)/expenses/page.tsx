@@ -561,30 +561,40 @@ function ExpensesContent() {
   // Async cloud sync for local user preferences (budgets, due dates, limits)
   useEffect(() => {
     async function syncCloudSettings() {
-      const cloudBudgets = await getUserSetting("budgets");
-      if (cloudBudgets) setBudgets({ ...DEFAULT_BUDGETS, ...cloudBudgets });
+      try {
+        const [cloudBudgets, cloudDue, cloudRec] = await Promise.all([
+          getUserSetting("budgets"),
+          getUserSetting("cc_due_day"),
+          getUserSetting("recurring_expenses"),
+        ]);
 
-      const cloudDue = await getUserSetting("cc_due_day");
-      if (cloudDue) setCcDueDay(Number(cloudDue));
+        if (cloudBudgets) setBudgets({ ...DEFAULT_BUDGETS, ...cloudBudgets });
+        if (cloudDue) setCcDueDay(Number(cloudDue));
+        if (cloudRec) setRecurringList(cloudRec);
 
-      const cloudRec = await getUserSetting("recurring_expenses");
-      if (cloudRec) setRecurringList(cloudRec);
-
-      const overrides: Record<string, number> = {};
-      for (const acc of ACCOUNTS) {
-        if (acc.creditLimit !== null) {
+        const limitPromises = ACCOUNTS.filter((acc) => acc.creditLimit !== null).map(async (acc) => {
           const cloudLimit = await getUserSetting(`cc_limit_${acc.id}`);
-          if (cloudLimit && !isNaN(Number(cloudLimit))) {
-            overrides[acc.id] = Number(cloudLimit);
+          return { id: acc.id, limit: cloudLimit };
+        });
+
+        const limitResults = await Promise.all(limitPromises);
+        const overrides: Record<string, number> = {};
+        limitResults.forEach((item) => {
+          if (item.limit && !isNaN(Number(item.limit))) {
+            overrides[item.id] = Number(item.limit);
           }
+        });
+
+        if (Object.keys(overrides).length > 0) {
+          setCCLimitsOverride((prev) => ({ ...prev, ...overrides }));
         }
-      }
-      if (Object.keys(overrides).length > 0) {
-        setCCLimitsOverride(prev => ({ ...prev, ...overrides }));
+      } catch (err) {
+        console.error("Cloud settings sync error:", err);
       }
     }
     syncCloudSettings();
   }, []);
+
 
   // ── Load from local first, then fetch from Supabase
   useEffect(() => {
@@ -756,6 +766,12 @@ function ExpensesContent() {
 
   // ── CC Due Date info
   const ccDueInfo = useMemo(() => {
+    const totalUtkarshCCUsed = ccUsed["utkarsh"] || 0;
+    // If credit card has 0 usage / 0 balance, hide bill due warning banner!
+    if (totalUtkarshCCUsed <= 0) {
+      return { daysLeft: 0, urgency: "safe" };
+    }
+
     const today = new Date();
     const currentDay = today.getDate();
     let daysLeft = ccDueDay - currentDay;
@@ -768,7 +784,8 @@ function ExpensesContent() {
     const urgency =
       daysLeft <= 3 ? "critical" : daysLeft <= 7 ? "warning" : "safe";
     return { daysLeft, urgency };
-  }, [ccDueDay]);
+  }, [ccDueDay, ccUsed]);
+
 
   // ── Handlers: Budget
   const saveBudget = (cat: string) => {
@@ -1221,14 +1238,8 @@ function ExpensesContent() {
   if (!mounted) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center min-h-[70vh] gap-4">
-        <div className="relative h-16 w-16 rounded-2xl gold-gradient-bg p-[2px] shadow-xl animate-pulse">
-          <div className="flex items-center justify-center h-full w-full bg-[#08090B] rounded-[14px]">
-            <img
-              src="/logo.png"
-              alt="Bun Vault"
-              className="h-8 w-8 object-contain"
-            />
-          </div>
+        <div className="relative h-14 w-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shadow-lg animate-pulse">
+          <RefreshCw className="h-7 w-7 text-amber-500 animate-spin" />
         </div>
         <div className="text-center space-y-1">
           <span className="text-xs font-mono font-bold text-[#F4C542] tracking-widest uppercase animate-pulse">
@@ -1241,6 +1252,7 @@ function ExpensesContent() {
       </div>
     );
   }
+
 
   return (
     <div className="flex-1 space-y-6 pb-20 w-full max-w-full min-w-0 overflow-x-hidden">
@@ -1380,24 +1392,24 @@ function ExpensesContent() {
         </button>
       </div>
 
-      {/* ── FLOATING QUICK ACTION BAR ── */}
+      {/* ── FLOATING QUICK ACTION BAR (Apple Dynamic Glass Dock) ── */}
       <div className="fixed bottom-20 md:bottom-6 left-0 right-0 z-40 px-4 pointer-events-none flex justify-center">
-        <div className="flex items-center gap-2 p-2 bg-slate-900/90 dark:bg-[#0D1117]/90 backdrop-blur-xl border border-slate-700 rounded-[2rem] shadow-2xl pointer-events-auto">
+        <div className="flex items-center gap-2 p-1.5 apple-glass rounded-full border border-white/80 dark:border-white/10 shadow-2xl pointer-events-auto">
           <Button
             onClick={() => setActiveTab("income")}
-            className="rounded-full bg-emerald-500/20 text-[#00E676] hover:bg-emerald-500/30 font-bold px-5"
+            className="rounded-full bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 dark:text-[#00E676] border border-emerald-500/25 font-black px-5 text-xs shadow-xs"
           >
             + Income
           </Button>
           <Button
             onClick={() => setActiveTab("expense")}
-            className="rounded-full bg-red-500/20 text-[#FF3B30] hover:bg-red-500/30 font-bold px-5"
+            className="rounded-full bg-rose-500/15 hover:bg-rose-500/25 text-rose-700 dark:text-[#FF3B30] border border-rose-500/25 font-black px-5 text-xs shadow-xs"
           >
-            - Expense
+            − Expense
           </Button>
           <Button
             onClick={() => setActiveTab("transfer")}
-            className="rounded-full bg-amber-500/20 text-[#F4C542] hover:bg-amber-500/30 font-bold px-5"
+            className="rounded-full bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-[#F4C542] border border-amber-500/25 font-black px-5 text-xs shadow-xs"
           >
             ↔ Transfer
           </Button>
@@ -1406,132 +1418,126 @@ function ExpensesContent() {
 
       <AnimatePresence mode="wait">
         {/* ══════════════════════════════════════════════════════
-            UNIFIED DASHBOARD VIEW
+            UNIFIED DASHBOARD VIEW (Apple / Revolut Glassmorphism)
         ══════════════════════════════════════════════════════ */}
         <div className="space-y-6">
           {/* Summary KPI Cards */}
           <div className="grid gap-4 sm:gap-5 sm:grid-cols-3">
             {/* TOTAL INCOME CARD */}
-            <Card
+            <div
               onClick={() => {
                 setHistoryFilter("income");
                 setActiveTab("history");
               }}
-              className="border-0 bg-gradient-to-br from-emerald-100 via-emerald-50 to-emerald-100 dark:from-emerald-900/40 dark:via-[#0D1813] dark:to-emerald-950/30 p-5 sm:p-6 rounded-2xl space-y-3 relative overflow-hidden shadow-lg dark:shadow-xl cursor-pointer hover:scale-[1.02] hover:shadow-emerald-200 dark:hover:shadow-none transition-all duration-300 group border border-emerald-400 dark:border-emerald-500/30 hover:border-emerald-600 dark:hover:border-[#00E676]"
+              className="apple-glass apple-glass-card revolut-glow-emerald border border-emerald-500/25 p-5 sm:p-6 rounded-[24px] space-y-3 cursor-pointer shadow-sm group"
             >
-              <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-emerald-500/30 dark:bg-emerald-500/10 blur-2xl group-hover:bg-emerald-500/50 dark:group-hover:bg-emerald-500/20 transition-all" />
               <div className="flex items-center justify-between relative z-10">
-                <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-700 dark:text-muted-foreground group-hover:text-emerald-800 dark:group-hover:text-foreground transition-colors flex items-center gap-1.5">
+                <span className="text-[11px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400 group-hover:text-emerald-800 dark:group-hover:text-emerald-300 transition-colors flex items-center gap-1.5">
                   Total Income
                 </span>
-                <div className="p-2.5 rounded-xl bg-emerald-500/20 dark:bg-[#00E676]/20 text-emerald-600 dark:text-[#00E676] shadow-sm group-hover:scale-110 transition-transform">
+                <div className="p-2.5 rounded-xl bg-emerald-500/15 dark:bg-[#00E676]/20 text-emerald-600 dark:text-[#00E676] shadow-xs group-hover:scale-110 transition-transform">
                   <ArrowUpRight className="h-4 w-4" />
                 </div>
               </div>
-              <div className="text-3xl sm:text-4xl font-bold font-mono text-emerald-800 dark:text-[#00E676] tracking-tight relative z-10">
+              <div className="text-3xl sm:text-4xl font-black font-mono text-emerald-700 dark:text-[#00E676] tracking-tight relative z-10">
                 ₹{fmtINR(totalIncome)}
               </div>
-              <div className="flex items-center justify-between pt-2 border-t border-emerald-400/40 dark:border-emerald-500/20 relative z-10">
-                <p className="text-xs text-emerald-600 dark:text-muted-foreground font-semibold flex items-center gap-1">
+              <div className="flex items-center justify-between pt-2.5 border-t border-emerald-500/20 relative z-10">
+                <p className="text-xs text-emerald-700/80 dark:text-slate-400 font-semibold flex items-center gap-1">
                   🟢 {transactions.filter((t) => t.tx_type === "income").length}{" "}
                   income entries logged
                 </p>
-                <span className="text-[11px] font-bold text-emerald-600 dark:text-[#00E676] flex items-center gap-0.5 opacity-80 group-hover:opacity-100 transition-opacity">
+                <span className="text-[11px] font-black text-emerald-700 dark:text-[#00E676] flex items-center gap-0.5 opacity-80 group-hover:opacity-100 transition-opacity">
                   View List <ChevronRight className="h-3.5 w-3.5" />
                 </span>
               </div>
-            </Card>
+            </div>
 
             {/* TOTAL EXPENSES CARD */}
-            <Card
+            <div
               onClick={() => {
                 setHistoryFilter("expense");
                 setActiveTab("history");
               }}
-              className="border-0 bg-gradient-to-br from-red-100 via-red-50 to-red-100 dark:from-red-900/40 dark:via-[#1C0D11] dark:to-red-950/30 p-5 sm:p-6 rounded-2xl space-y-3 relative overflow-hidden shadow-lg dark:shadow-xl cursor-pointer hover:scale-[1.02] hover:shadow-red-200 dark:hover:shadow-none transition-all duration-300 group border border-red-400 dark:border-red-500/30 hover:border-red-600 dark:hover:border-[#FF3B30]"
+              className="apple-glass apple-glass-card revolut-glow-rose border border-rose-500/25 p-5 sm:p-6 rounded-[24px] space-y-3 cursor-pointer shadow-sm group"
             >
-              <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-red-500/30 dark:bg-red-500/10 blur-2xl group-hover:bg-red-500/50 dark:group-hover:bg-red-500/20 transition-all" />
               <div className="flex items-center justify-between relative z-10">
-                <span className="text-[11px] font-bold uppercase tracking-widest text-red-700 dark:text-muted-foreground group-hover:text-red-800 dark:group-hover:text-foreground transition-colors flex items-center gap-1.5">
+                <span className="text-[11px] font-black uppercase tracking-widest text-rose-700 dark:text-rose-400 group-hover:text-rose-800 dark:group-hover:text-rose-300 transition-colors flex items-center gap-1.5">
                   Total Expenses
                 </span>
-                <div className="p-2.5 rounded-xl bg-red-500/20 dark:bg-[#FF3B30]/20 text-red-600 dark:text-[#FF3B30] shadow-sm group-hover:scale-110 transition-transform">
+                <div className="p-2.5 rounded-xl bg-rose-500/15 dark:bg-[#FF3B30]/20 text-rose-600 dark:text-[#FF3B30] shadow-xs group-hover:scale-110 transition-transform">
                   <ArrowDownRight className="h-4 w-4" />
                 </div>
               </div>
-              <div className="text-3xl sm:text-4xl font-bold font-mono text-red-800 dark:text-[#FF3B30] tracking-tight relative z-10">
+              <div className="text-3xl sm:text-4xl font-black font-mono text-rose-700 dark:text-[#FF3B30] tracking-tight relative z-10">
                 ₹{fmtINR(totalExpense)}
               </div>
-              <div className="flex items-center justify-between pt-2 border-t border-red-400/40 dark:border-red-500/20 relative z-10">
-                <p className="text-xs text-red-600 dark:text-muted-foreground font-semibold flex items-center gap-1">
+              <div className="flex items-center justify-between pt-2.5 border-t border-rose-500/20 relative z-10">
+                <p className="text-xs text-rose-700/80 dark:text-slate-400 font-semibold flex items-center gap-1">
                   🔴{" "}
                   {transactions.filter((t) => t.tx_type === "expense").length}{" "}
                   spending items recorded
                 </p>
-                <span className="text-[11px] font-bold text-red-600 dark:text-[#FF3B30] flex items-center gap-0.5 opacity-80 group-hover:opacity-100 transition-opacity">
+                <span className="text-[11px] font-black text-rose-700 dark:text-[#FF3B30] flex items-center gap-0.5 opacity-80 group-hover:opacity-100 transition-opacity">
                   View List <ChevronRight className="h-3.5 w-3.5" />
                 </span>
               </div>
-            </Card>
+            </div>
 
             {/* NET CASH BALANCE CARD */}
-            <Card
+            <div
               onClick={() => {
                 setHistoryFilter("all");
                 setActiveTab("history");
               }}
-              className={`border p-5 sm:p-6 rounded-2xl space-y-3 relative overflow-hidden shadow-lg dark:shadow-xl cursor-pointer hover:scale-[1.02] transition-all duration-300 group ${
+              className={`apple-glass apple-glass-card p-5 sm:p-6 rounded-[24px] space-y-3 cursor-pointer shadow-sm group ${
                 totalIncome - totalExpense >= 0
-                  ? "bg-gradient-to-br from-[#FFFADF] via-[#FFFEF0] to-[#FFF4C0] dark:from-amber-900/30 dark:via-[#12100A] dark:to-amber-950/20 border-amber-300/80 dark:border-amber-500/30 hover:border-amber-500 dark:hover:border-[#F4C542] hover:shadow-amber-200 dark:hover:shadow-none"
-                  : "bg-gradient-to-br from-[#FFE5E5] via-[#FFF0F0] to-[#FFD9D9] dark:from-red-900/40 dark:via-[#1C0D11] dark:to-red-950/30 border-red-300/80 dark:border-red-500/30 hover:border-red-500 dark:hover:border-[#FF3B30] hover:shadow-red-200 dark:hover:shadow-none"
+                  ? "revolut-glow-amber border border-amber-500/25"
+                  : "revolut-glow-rose border border-rose-500/25"
               }`}
             >
-              <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full blur-2xl transition-all ${
-                totalIncome - totalExpense >= 0 ? "bg-amber-400/20 dark:bg-amber-500/10 group-hover:bg-amber-400/40 dark:group-hover:bg-amber-500/20" : "bg-red-400/20 dark:bg-red-500/10 group-hover:bg-red-400/40 dark:group-hover:bg-red-500/20"
-              }`} />
               <div className="flex items-center justify-between relative z-10">
-                <span className={`text-[11px] font-bold uppercase tracking-widest transition-colors flex items-center gap-1.5 ${
-                  totalIncome - totalExpense >= 0 ? "text-amber-700 dark:text-muted-foreground group-hover:text-amber-800 dark:group-hover:text-foreground" : "text-red-700 dark:text-muted-foreground group-hover:text-red-800 dark:group-hover:text-foreground"
+                <span className={`text-[11px] font-black uppercase tracking-widest transition-colors flex items-center gap-1.5 ${
+                  totalIncome - totalExpense >= 0 ? "text-amber-700 dark:text-amber-400" : "text-rose-700 dark:text-rose-400"
                 }`}>
                   Net Cash Balance
                 </span>
-                <div className={`p-2.5 rounded-xl shadow-sm group-hover:scale-110 transition-transform ${
-                  totalIncome - totalExpense >= 0 ? "bg-amber-500/20 dark:bg-[#F4C542]/20 text-amber-600 dark:text-[#F4C542]" : "bg-red-500/20 dark:bg-[#FF3B30]/20 text-red-600 dark:text-[#FF3B30]"
+                <div className={`p-2.5 rounded-xl shadow-xs group-hover:scale-110 transition-transform ${
+                  totalIncome - totalExpense >= 0 ? "bg-amber-500/15 text-amber-600 dark:text-[#F4C542]" : "bg-rose-500/15 text-rose-600 dark:text-[#FF3B30]"
                 }`}>
                   <Coins className="h-4 w-4" />
                 </div>
               </div>
-              <div className={`text-3xl sm:text-4xl font-bold font-mono tracking-tight relative z-10 ${
-                totalIncome - totalExpense >= 0 ? "text-amber-700 dark:text-[#F4C542]" : "text-red-600 dark:text-[#FF3B30]"
+              <div className={`text-3xl sm:text-4xl font-black font-mono tracking-tight relative z-10 ${
+                totalIncome - totalExpense >= 0 ? "text-amber-700 dark:text-[#F4C542]" : "text-rose-700 dark:text-[#FF3B30]"
               }`}>
                 ₹{fmtINR(Math.abs(totalIncome - totalExpense))}
               </div>
-              <div className={`flex items-center justify-between pt-2 border-t relative z-10 ${
-                totalIncome - totalExpense >= 0 ? "border-amber-400/40 dark:border-amber-500/20" : "border-red-400/40 dark:border-red-500/20"
+              <div className={`flex items-center justify-between pt-2.5 border-t relative z-10 ${
+                totalIncome - totalExpense >= 0 ? "border-amber-500/20" : "border-rose-500/20"
               }`}>
                 <p className={`text-xs font-semibold ${
-                  totalIncome - totalExpense >= 0 ? "text-amber-700 dark:text-muted-foreground" : "text-red-600 dark:text-muted-foreground"
+                  totalIncome - totalExpense >= 0 ? "text-amber-700/80 dark:text-slate-400" : "text-rose-700/80 dark:text-slate-400"
                 }`}>
                   {totalIncome - totalExpense >= 0
                     ? "✅ Healthy Surplus"
                     : "⚠️ Monthly Deficit"}{" "}
                   · Transfers: ₹{fmtINR(totalTransfers)}
                 </p>
-                <span className={`text-[11px] font-bold flex items-center gap-0.5 opacity-80 group-hover:opacity-100 transition-opacity ${
-                  totalIncome - totalExpense >= 0 ? "text-amber-600 dark:text-[#F4C542]" : "text-red-600 dark:text-[#FF3B30]"
+                <span className={`text-[11px] font-black flex items-center gap-0.5 opacity-80 group-hover:opacity-100 transition-opacity ${
+                  totalIncome - totalExpense >= 0 ? "text-amber-700 dark:text-[#F4C542]" : "text-rose-700 dark:text-[#FF3B30]"
                 }`}>
                   All Entries <ChevronRight className="h-3.5 w-3.5" />
                 </span>
               </div>
-            </Card>
+            </div>
           </div>
 
-          {/* Premium Account Balance Cards */}
+          {/* Premium Account Balance Cards (SBI, Utkarsh CC, Cash) */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-bold text-foreground uppercase tracking-widest flex items-center gap-2">
-                <Wallet className="h-4 w-4 text-[#F4C542]" /> Connected Accounts
-                & Cards
+              <h3 className="text-xs font-black text-foreground uppercase tracking-widest flex items-center gap-2">
+                <Wallet className="h-4 w-4 text-amber-500" /> Connected Accounts & Cards
               </h3>
               <span className="text-xs text-muted-foreground font-semibold">
                 Live balances synced automatically
@@ -1548,19 +1554,17 @@ function ExpensesContent() {
                 const available =
                   isCredit && activeLimit !== null ? activeLimit - ccSpent : null;
                 return (
-                  <Card
+                  <div
                     key={acc.id}
-                    className="p-6 rounded-3xl bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-[#121721] dark:via-[#0D1117] dark:to-[#080A0F] border border-slate-200 dark:border-slate-800 shadow-xl relative overflow-hidden group hover:border-[#D4A017]/60 dark:hover:border-[#F4C542]/50 hover:shadow-amber-100 dark:hover:shadow-none transition-all duration-300"
+                    className="apple-glass apple-glass-card p-6 rounded-[26px] border border-slate-200/80 dark:border-white/[0.08] shadow-sm relative overflow-hidden group"
                   >
-                    <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-amber-500/5 dark:bg-amber-500/5 blur-3xl group-hover:bg-amber-500/10 dark:group-hover:bg-amber-500/15 transition-all" />
-
                     <div className="flex items-start justify-between relative z-10">
                       <div className="flex items-center gap-3">
-                        <div className={`p-3 rounded-2xl border shadow-md ${acc.bg}`}>
-                          <Icon className="h-5 w-5" />
+                        <div className="p-3 rounded-2xl apple-glass-subtle text-foreground shadow-xs">
+                          <Icon className="h-5 w-5 text-amber-500" />
                         </div>
                         <div>
-                          <div className="font-bold text-base text-foreground tracking-tight">
+                          <div className="font-black text-base text-foreground tracking-tight">
                             {acc.name}
                           </div>
                           <div className="text-[11px] text-muted-foreground font-mono font-bold mt-0.5">
@@ -1570,7 +1574,7 @@ function ExpensesContent() {
                       </div>
                       {activeLimit !== null && (
                         <div className="flex flex-col items-end gap-1.5">
-                          <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-purple-200 dark:bg-purple-500/20 text-purple-900 dark:text-purple-300 border border-purple-400 dark:border-purple-500/40">
+                          <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/25">
                             LIMIT ₹{fmtINR(activeLimit)}
                           </span>
                           <button
@@ -1579,7 +1583,7 @@ function ExpensesContent() {
                               setCCLimitInput(String(activeLimit));
                               setShowCCLimitModal(true);
                             }}
-                            className="text-[9px] font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors flex items-center gap-0.5 underline underline-offset-2"
+                            className="text-[10px] font-black text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-0.5"
                           >
                             ✏ Edit Limit
                           </button>
@@ -1588,53 +1592,52 @@ function ExpensesContent() {
                     </div>
 
                     {activeLimit !== null ? (
-                      <div className="space-y-3 pt-3 relative z-10">
+                      <div className="space-y-3 pt-4 relative z-10">
                         <div className="flex justify-between text-xs font-bold">
-                          <span className="text-slate-600 dark:text-muted-foreground">Used Credit</span>
-                          <span className="text-red-600 dark:text-[#FF3B30] font-mono font-bold text-sm">₹{fmtINR(ccSpent)}</span>
+                          <span className="text-slate-600 dark:text-slate-300">Used Credit</span>
+                          <span className="text-rose-600 dark:text-rose-400 font-mono font-black text-sm">₹{fmtINR(ccSpent)}</span>
                         </div>
-                        <div className="w-full h-2.5 bg-slate-200 dark:bg-slate-800/80 rounded-full overflow-hidden p-0.5 border border-slate-300/60 dark:border-slate-700/60">
+                        <div className="w-full h-2.5 bg-slate-200/80 dark:bg-white/[0.06] rounded-full overflow-hidden p-0.5 border border-slate-300/40 dark:border-white/[0.04]">
                           <motion.div
-                            className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
+                            className="h-full bg-gradient-to-r from-purple-500 to-rose-500 rounded-full"
                             initial={{ width: 0 }}
                             animate={{ width: `${Math.min(100, (ccSpent / activeLimit) * 100)}%` }}
                             transition={{ duration: 0.8, ease: "easeOut" }}
                           />
                         </div>
-                        <div className="flex justify-between text-xs font-bold pt-1 border-t border-slate-200 dark:border-slate-800/80">
-                          <span className="text-slate-600 dark:text-muted-foreground">Available Credit</span>
-                          <span className="text-emerald-600 dark:text-[#00E676] font-mono font-bold text-sm">₹{fmtINR(Math.max(0, activeLimit - ccSpent))}</span>
+                        <div className="flex justify-between text-xs font-bold pt-2 border-t border-slate-200/60 dark:border-white/[0.06]">
+                          <span className="text-slate-600 dark:text-slate-300">Available Credit</span>
+                          <span className="text-emerald-600 dark:text-emerald-400 font-mono font-black text-sm">₹{fmtINR(Math.max(0, activeLimit - ccSpent))}</span>
                         </div>
                       </div>
                     ) : (
-                      <div className="space-y-1.5 pt-4 relative z-10 border-t border-slate-200 dark:border-slate-800/80 mt-2">
-                        <div className="text-[11px] text-slate-500 dark:text-muted-foreground font-bold uppercase tracking-wider">
+                      <div className="space-y-1.5 pt-4 relative z-10 border-t border-slate-200/60 dark:border-white/[0.06] mt-3">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-wider">
                           Available Balance
                         </div>
-                        <div className={`text-3xl font-bold font-mono tracking-tight ${bal >= 0 ? "text-slate-800 dark:text-white" : "text-red-600 dark:text-[#FF3B30]"}`}>
+                        <div className={`text-3xl font-black font-mono tracking-tight ${bal >= 0 ? "text-slate-900 dark:text-white" : "text-rose-600 dark:text-[#FF3B30]"}`}>
                           ₹{fmtINR(Math.abs(bal))}
                         </div>
                         {bal < 0 && (
-                          <p className="text-xs text-red-600 dark:text-[#FF3B30] font-bold">⚠ Overspent Account</p>
+                          <p className="text-xs text-rose-600 dark:text-[#FF3B30] font-bold">⚠ Overspent Account</p>
                         )}
                       </div>
                     )}
-                  </Card>
+                  </div>
                 );
               })}
             </div>
           </div>
 
-          {/* Category Breakdown Section */}
+          {/* Category Breakdown Section (Apple Glass) */}
           {categoryBreakdown.length > 0 && (
-            <Card className="glass-panel border-border/40 shadow-xl overflow-hidden">
-              <CardHeader className="p-5 border-b border-border/40">
-                <CardTitle className="text-sm font-bold flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-[#F4C542]" /> Expense
-                  Breakdown by Category
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-5">
+            <div className="apple-glass apple-glass-card rounded-[26px] border border-slate-200/80 dark:border-white/[0.08] shadow-sm p-6">
+              <div className="pb-4 border-b border-slate-200/60 dark:border-white/[0.06] mb-5">
+                <h3 className="text-sm font-black flex items-center gap-2 text-foreground">
+                  <Sparkles className="h-4 w-4 text-amber-500" /> Expense Breakdown by Category
+                </h3>
+              </div>
+              <div>
                 <div className="flex flex-col md:flex-row items-center gap-6">
                   <div className="h-52 w-52 shrink-0">
                     <ResponsiveContainer width="100%" height="100%">
@@ -1662,9 +1665,9 @@ function ExpensesContent() {
                             "Amount",
                           ]}
                           contentStyle={{
-                            backgroundColor: "#08090B",
-                            borderColor: "#F4C542",
-                            borderRadius: "12px",
+                            backgroundColor: "#070A11",
+                            borderColor: "rgba(255,255,255,0.12)",
+                            borderRadius: "14px",
                             color: "#fff",
                             fontSize: "12px",
                             fontWeight: "800",
@@ -1695,7 +1698,7 @@ function ExpensesContent() {
                               </span>
                             </span>
                           </div>
-                          <div className="w-full h-1.5 bg-slate-100 dark:bg-[#151A21] rounded-full overflow-hidden">
+                          <div className="w-full h-1.5 bg-slate-200/80 dark:bg-white/[0.06] rounded-full overflow-hidden">
                             <motion.div
                               className="h-full rounded-full"
                               style={{ backgroundColor: cat.color }}
@@ -1709,11 +1712,11 @@ function ExpensesContent() {
                     })}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
 
-          {/* Premium Quick Action Tiles */}
+          {/* Premium Quick Action Tiles (Apple Glass) */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
             {[
               {
@@ -1722,7 +1725,7 @@ function ExpensesContent() {
                 desc: "Salary, Dividends, Pocket Money",
                 icon: TrendingUp,
                 color:
-                  "border-emerald-500/40 bg-emerald-500/10 text-[#00E676] hover:bg-emerald-500/20 hover:border-emerald-400",
+                  "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-[#00E676] hover:bg-emerald-500/15",
               },
               {
                 tab: "expense" as TabId,
@@ -1730,7 +1733,7 @@ function ExpensesContent() {
                 desc: "Food, Bills, Shopping & Groceries",
                 icon: TrendingDown,
                 color:
-                  "border-red-500/40 bg-red-500/10 text-[#FF3B30] hover:bg-red-500/20 hover:border-red-400",
+                  "border-rose-500/25 bg-rose-500/10 text-rose-700 dark:text-[#FF3B30] hover:bg-rose-500/15",
               },
               {
                 tab: "transfer" as TabId,
@@ -1738,7 +1741,7 @@ function ExpensesContent() {
                 desc: "Move between Bank, CC & Cash",
                 icon: ArrowLeftRight,
                 color:
-                  "border-amber-500/40 bg-amber-500/10 text-[#F4C542] hover:bg-amber-500/20 hover:border-amber-400",
+                  "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-[#F4C542] hover:bg-amber-500/15",
               },
             ].map((a) => {
               const Icon = a.icon;
@@ -1746,13 +1749,13 @@ function ExpensesContent() {
                 <button
                   key={a.tab}
                   onClick={() => setActiveTab(a.tab)}
-                  className={`flex items-center gap-4 p-5 rounded-2xl border transition-all duration-300 group text-left shadow-lg hover:scale-[1.02] ${a.color}`}
+                  className={`apple-glass apple-glass-card flex items-center gap-4 p-5 rounded-[22px] border transition-all duration-300 group text-left shadow-xs hover:scale-[1.02] ${a.color}`}
                 >
-                  <div className="p-3 rounded-xl bg-white/10 dark:bg-black/20 group-hover:scale-110 transition-transform shrink-0 shadow-inner">
+                  <div className="p-3 rounded-2xl apple-glass-subtle group-hover:scale-110 transition-transform shrink-0 shadow-xs">
                     <Icon className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-bold text-sm tracking-tight text-foreground">
+                    <div className="font-black text-sm tracking-tight text-foreground">
                       {a.label}
                     </div>
                     <div className="text-[11px] font-semibold opacity-80 truncate mt-0.5">

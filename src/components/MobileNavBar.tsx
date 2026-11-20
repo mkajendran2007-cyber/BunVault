@@ -24,7 +24,7 @@ export default function MobileNavBar() {
   ]
 
   return (
-    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[420px] h-16 bg-white/95 dark:bg-[#151A24]/95 backdrop-blur-2xl border border-slate-200 dark:border-slate-800/80 rounded-full flex justify-around items-center px-2 z-50 md:hidden shadow-2xl">
+    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[420px] h-16 bg-white/80 dark:bg-[#0A0E17]/80 backdrop-blur-3xl border border-white/80 dark:border-white/10 rounded-full flex justify-around items-center px-2 z-50 md:hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
       {navItems.map((item) => {
         const isActive = pathname === item.href || (item.href === "/analytics" && pathname === "/ai-assistant")
         const Icon = item.icon

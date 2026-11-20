@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { getUserSetting, setUserSetting } from "@/lib/userSettings"
 import { supabase } from "@/lib/supabase"
-import { Plus, X, Trash2, Pencil, Coins, Calendar, Trophy, Sparkles, Link, CheckCircle2, Flame, Layers } from "lucide-react"
+import { Plus, X, Trash2, Pencil, Coins, Calendar, Trophy, Sparkles, Link, CheckCircle2, Flame, Layers, RefreshCw } from "lucide-react"
+
 import { toast } from "sonner"
 import confetti from "canvas-confetti"
 
@@ -347,17 +348,15 @@ function GoalsContent() {
   if (!mounted) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center min-h-[70vh] gap-4">
-        <div className="relative h-16 w-16 rounded-2xl gold-gradient-bg p-[2px] shadow-xl animate-pulse">
-          <div className="flex items-center justify-center h-full w-full bg-[#08090B] rounded-[14px]">
-            <img src="/logo.png" alt="Bun Vault" className="h-8 w-8 object-contain" />
-          </div>
+        <div className="relative h-14 w-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shadow-lg animate-pulse">
+          <RefreshCw className="h-7 w-7 text-amber-500 animate-spin" />
         </div>
         <div className="text-center space-y-1">
-          <span className="text-xs font-mono font-bold text-[#F4C542] tracking-widest uppercase animate-pulse">LOADING GOALS...</span>
-          <p className="text-[11px] font-medium text-slate-500">Syncing your savings targets</p>
+          <span className="text-xs font-mono font-bold text-[#F4C542] tracking-widest uppercase animate-pulse">INITIALIZING GOALS TRACKER...</span>
+          <p className="text-[11px] font-mono text-slate-500">Syncing target milestones & progress velocity</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
