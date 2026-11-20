@@ -27,28 +27,20 @@ export default function SmoothSplash() {
 
   return (
     <div
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white dark:bg-[#0f172a] transition-opacity duration-400 ease-in-out"
       style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        backgroundColor: '#0f172a',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 9999,
         opacity: visible ? 1 : 0,
         pointerEvents: visible ? 'auto' : 'none',
-        transition: 'opacity 0.4s ease-in-out',
       }}
     >
       <div className="flex flex-col items-center justify-center gap-6 animate-pulse">
          <AppBrandLogo size="splash" />
-         <div className="h-1.5 w-48 bg-slate-800/40 rounded-full overflow-hidden border border-amber-500/20">
+         <div className="h-1.5 w-48 bg-slate-200 dark:bg-slate-800/40 rounded-full overflow-hidden border border-slate-300 dark:border-amber-500/20">
             <div className="h-full bg-gradient-to-r from-amber-500 via-emerald-400 to-amber-500 animate-loading-bar"></div>
          </div>
+         <span className="text-[10px] font-mono tracking-widest text-slate-500 dark:text-slate-400 uppercase font-bold">
+           INITIALIZING BUN VAULT...
+         </span>
       </div>
     </div>
   );

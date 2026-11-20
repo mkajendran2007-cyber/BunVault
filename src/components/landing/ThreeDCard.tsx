@@ -31,8 +31,8 @@ export default function ThreeDCard({
   const smoothMouseY = useSpring(mouseY, springConfig)
 
   // Map mouse coordinate (-0.5 to 0.5) to tilt degrees
-  const rotateX = useTransform(smoothMouseY, [-0.5, 0.5], [12, -12])
-  const rotateY = useTransform(smoothMouseX, [-0.5, 0.5], [-12, 12])
+  const rotateX = useTransform(smoothMouseY, [-0.5, 0.5], [10, -10])
+  const rotateY = useTransform(smoothMouseX, [-0.5, 0.5], [-10, 10])
 
   // Specular sheen highlight coordinate
   const [glarePos, setGlarePos] = useState({ x: 50, y: 50 })
@@ -66,11 +66,11 @@ export default function ThreeDCard({
   }
 
   const glowStyles = {
-    gold: "hover:border-[#F4C542]/40 hover:shadow-2xl hover:shadow-[#F4C542]/15",
-    emerald: "hover:border-emerald-500/40 hover:shadow-2xl hover:shadow-emerald-500/15",
-    cyan: "hover:border-cyan-500/40 hover:shadow-2xl hover:shadow-cyan-500/15",
-    indigo: "hover:border-indigo-500/40 hover:shadow-2xl hover:shadow-indigo-500/15",
-    rose: "hover:border-rose-500/40 hover:shadow-2xl hover:shadow-rose-500/15"
+    gold: "hover:border-amber-400/60 dark:hover:border-[#F4C542]/40 hover:shadow-xl hover:shadow-amber-500/10",
+    emerald: "hover:border-emerald-500/60 dark:hover:border-emerald-500/40 hover:shadow-xl hover:shadow-emerald-500/10",
+    cyan: "hover:border-cyan-500/60 dark:hover:border-cyan-500/40 hover:shadow-xl hover:shadow-cyan-500/10",
+    indigo: "hover:border-indigo-500/60 dark:hover:border-indigo-500/40 hover:shadow-xl hover:shadow-indigo-500/10",
+    rose: "hover:border-rose-500/60 dark:hover:border-rose-500/40 hover:shadow-xl hover:shadow-rose-500/10"
   }
 
   return (
@@ -89,19 +89,19 @@ export default function ThreeDCard({
           rotateY,
           transformStyle: "preserve-3d"
         }}
-        className={`relative rounded-3xl transition-colors duration-300 backdrop-blur-2xl border border-white/10 dark:border-white/10 bg-[#0E131F]/80 overflow-hidden cursor-pointer ${glowStyles[glowColor]} ${className}`}
+        className={`relative rounded-3xl transition-colors duration-200 backdrop-blur-2xl border border-slate-200/90 dark:border-white/10 bg-white/95 dark:bg-[#0E131F]/80 shadow-[0_2px_8px_rgba(0,0,0,0.03),0_12px_24px_-4px_rgba(0,0,0,0.04)] dark:shadow-2xl overflow-hidden cursor-pointer ${glowStyles[glowColor]} ${className}`}
       >
         {/* Dynamic Specular Sheen / Glare overlay */}
         <div
           className="pointer-events-none absolute inset-0 z-20 transition-opacity duration-300 rounded-3xl"
           style={{
-            opacity: isHovered ? 0.45 : 0,
-            background: `radial-gradient(circle 320px at ${glarePos.x}% ${glarePos.y}%, rgba(255,255,255,0.2), transparent 70%)`
+            opacity: isHovered ? 0.35 : 0,
+            background: `radial-gradient(circle 320px at ${glarePos.x}% ${glarePos.y}%, rgba(255,255,255,0.4), transparent 70%)`
           }}
         />
 
         {/* Ambient subtle border rim */}
-        <div className="absolute inset-0 rounded-3xl border border-white/[0.08] pointer-events-none z-10" />
+        <div className="absolute inset-0 rounded-3xl border border-black/[0.03] dark:border-white/[0.08] pointer-events-none z-10" />
 
         {/* Card Content with elevated 3D depth */}
         <div

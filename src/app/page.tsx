@@ -86,8 +86,8 @@ const FAQ_ITEMS = [
     a: "Yes. Bun Vault provides a unified cash flow velocity ledger supporting SBI, HDFC, ICICI savings accounts, and credit cards like Utkarsh CC with real-time limit tracking and expense classification."
   },
   {
-    q: "What makes the 3D Apple & Revolut experience unique?",
-    a: "Bun Vault combines spatial 3D physics, WebGL hardware acceleration, and frosted glassmorphic UI tokens to deliver the smoothest, most luxurious wealth management experience available."
+    q: "What makes the Google & Apple Corporate experience unique?",
+    a: "Bun Vault combines spatial 3D physics, WebGL hardware acceleration, and Apple/Google Material ceramic design tokens to deliver high-contrast clarity, executive elegance, and maximum readability."
   }
 ]
 
@@ -113,7 +113,7 @@ export default function LuxuryLandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#06080C] text-slate-100 selection:bg-[#F4C542] selection:text-slate-950 font-sans overflow-x-hidden relative">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#06080C] text-slate-900 dark:text-slate-100 selection:bg-amber-500/20 selection:text-slate-950 font-sans overflow-x-hidden relative">
       
       {/* 3D WEBGL BACKGROUND CANVAS */}
       <ThreeVaultCanvas scrollProgress={scrollProgress} />
@@ -125,17 +125,17 @@ export default function LuxuryLandingPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-[#040609] z-[99999] flex flex-col items-center justify-center gap-6 backdrop-blur-3xl"
+            className="fixed inset-0 bg-white/95 dark:bg-[#040609] z-[99999] flex flex-col items-center justify-center gap-6 backdrop-blur-3xl"
           >
-            <div className="relative h-24 w-24 rounded-3xl gold-gradient-bg p-[2.5px] shadow-2xl shadow-amber-500/30 animate-pulse">
-              <div className="flex items-center justify-center h-full w-full bg-slate-950 rounded-[22px] overflow-hidden">
-                <img src="/logo.png" className="h-14 w-14 object-contain" alt="Bun Vault" />
+            <div className="relative h-20 w-20 rounded-3xl bg-slate-900 dark:gold-gradient-bg p-[2px] shadow-xl animate-pulse">
+              <div className="flex items-center justify-center h-full w-full bg-white dark:bg-slate-950 rounded-[22px] overflow-hidden">
+                <img src="/logo.png" className="h-12 w-12 object-contain" alt="Bun Vault" />
               </div>
             </div>
             <div className="text-center space-y-1">
-              <h2 className="text-white font-bold text-2xl tracking-[0.25em] font-mono">ENTERING BUN VAULT</h2>
-              <p className="text-[#F4C542] text-xs font-mono font-bold tracking-widest uppercase animate-pulse">
-                Initializing your private 3D environment...
+              <h2 className="text-slate-900 dark:text-white font-bold text-xl tracking-[0.25em] font-mono">ENTERING BUN VAULT</h2>
+              <p className="text-amber-600 dark:text-[#F4C542] text-xs font-mono font-bold tracking-widest uppercase animate-pulse">
+                Initializing your private sovereign workspace...
               </p>
             </div>
           </motion.div>
@@ -143,46 +143,46 @@ export default function LuxuryLandingPage() {
       </AnimatePresence>
 
       {/* =========================================================================
-          1. STICKY FROSTED GLASS HEADER
+          1. STICKY FROSTED GLASS HEADER (Apple & Google Corporate Style)
          ========================================================================= */}
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-[#06080C]/80 backdrop-blur-2xl">
+      <header className="fixed top-0 left-0 right-0 z-50 border-b border-slate-200/80 dark:border-white/10 bg-white/85 dark:bg-[#06080C]/80 backdrop-blur-2xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
           
           <Link href="/" className="flex items-center gap-3.5 group">
-            <div className="relative flex items-center justify-center h-12 w-12 rounded-2xl gold-gradient-bg p-[1.5px] shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-all duration-300">
-              <div className="flex items-center justify-center h-full w-full bg-slate-950 rounded-[14px] overflow-hidden">
-                <img src="/logo.png" alt="Bun Vault" className="h-8 w-8 object-contain" />
+            <div className="relative flex items-center justify-center h-11 w-11 rounded-2xl bg-slate-900 dark:gold-gradient-bg p-[1.5px] shadow-sm group-hover:scale-105 transition-all duration-300">
+              <div className="flex items-center justify-center h-full w-full bg-white dark:bg-slate-950 rounded-[14px] overflow-hidden">
+                <img src="/logo.png" alt="Bun Vault" className="h-7 w-7 object-contain" />
               </div>
             </div>
             <div className="flex flex-col">
-              <span className="font-bold tracking-wider text-xl text-white font-mono leading-none flex items-center gap-1.5">
-                BUN VAULT <span className="text-[10px] px-2 py-0.5 rounded gold-gradient-bg text-slate-950 font-bold tracking-widest">3D PRO</span>
+              <span className="font-bold tracking-tight text-xl text-slate-900 dark:text-white font-mono leading-none flex items-center gap-1.5">
+                BUN VAULT <span className="text-[10px] px-2 py-0.5 rounded bg-slate-900 text-white dark:gold-gradient-bg dark:text-slate-950 font-bold tracking-wider">EXECUTIVE</span>
               </span>
-              <span className="text-[10px] font-mono font-bold text-slate-400 tracking-widest uppercase mt-1">
-                Sovereign Wealth Operating System
+              <span className="text-[10px] font-mono font-semibold text-slate-500 dark:text-slate-400 tracking-wider uppercase mt-1">
+                Sovereign Wealth Management
               </span>
             </div>
           </Link>
 
-          <div className="hidden md:flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono font-semibold text-slate-300">
-            <span className="h-2 w-2 rounded-full bg-[#00E676] animate-pulse" />
-            <span>3D SPATIAL ENGINE</span>
-            <span className="text-slate-600">•</span>
-            <span className="text-[#F4C542]">100% PRIVATE & ENCRYPTED</span>
+          <div className="hidden md:flex items-center gap-3 px-4 py-1.5 rounded-full bg-white dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10 text-xs font-mono font-semibold text-slate-600 dark:text-slate-300 shadow-xs">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>EXECUTIVE 4.0</span>
+            <span className="text-slate-300 dark:text-slate-600">•</span>
+            <span className="text-amber-700 dark:text-[#F4C542]">ZERO-KNOWLEDGE RLS</span>
           </div>
 
           <nav className="flex items-center gap-3 sm:gap-4">
             <button
               onClick={() => handleNavigate("/login")}
-              className="text-xs sm:text-sm font-bold text-slate-300 hover:text-white transition-colors px-4 py-2.5 rounded-xl hover:bg-white/10"
+              className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white transition-colors px-4 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10"
             >
               Sign In
             </button>
             <button
               onClick={() => handleNavigate("/dashboard")}
-              className="gold-gradient-bg text-slate-950 font-bold text-xs sm:text-sm px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl hover:brightness-110 transition-all shadow-xl shadow-amber-500/20 active:scale-95 flex items-center gap-2"
+              className="bg-slate-900 hover:bg-slate-800 dark:gold-gradient-bg text-white dark:text-slate-950 font-bold text-xs sm:text-sm px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl hover:brightness-105 transition-all shadow-sm active:scale-[0.98] flex items-center gap-2"
             >
-              Enter Vault <ArrowRight className="h-4 w-4 stroke-[3]" />
+              Enter Vault <ArrowRight className="h-4 w-4 stroke-[2.5]" />
             </button>
           </nav>
 
@@ -190,25 +190,25 @@ export default function LuxuryLandingPage() {
       </header>
 
       {/* =========================================================================
-          2. LIVE SPOT TICKER BAR
+          2. LIVE SPOT TICKER BAR (Crisp White / Dark Bar)
          ========================================================================= */}
-      <div className="fixed top-20 left-0 right-0 z-40 bg-[#0A0D14]/90 border-b border-white/10 py-2 overflow-hidden font-mono select-none backdrop-blur-md">
+      <div className="fixed top-20 left-0 right-0 z-40 bg-white/95 dark:bg-[#0A0D14]/90 border-b border-slate-200/80 dark:border-white/10 py-2 overflow-hidden font-mono select-none backdrop-blur-md">
         <div className="ticker-track">
           {[...LIVE_TICKERS, ...LIVE_TICKERS, ...LIVE_TICKERS].map((t, idx) => (
             <div key={idx} className="flex items-center gap-2.5 px-6 whitespace-nowrap text-xs">
-              <span className="font-extrabold text-slate-400">{t.label}</span>
-              <span className="font-bold text-white">{t.value}</span>
-              <span className={`font-bold px-1.5 py-0.5 rounded text-[10px] ${t.up ? 'bg-[#00E676]/15 text-[#00E676]' : 'bg-destructive/15 text-destructive'}`}>
+              <span className="font-bold text-slate-500 dark:text-slate-400">{t.label}</span>
+              <span className="font-bold text-slate-900 dark:text-white">{t.value}</span>
+              <span className={`font-semibold px-1.5 py-0.5 rounded text-[10px] ${t.up ? 'bg-emerald-50 dark:bg-[#00E676]/15 text-emerald-700 dark:text-[#00E676]' : 'bg-rose-50 dark:bg-destructive/15 text-rose-700 dark:text-destructive'}`}>
                 {t.change}
               </span>
-              <span className="text-slate-700 ml-3">•</span>
+              <span className="text-slate-300 dark:text-slate-700 ml-3">•</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* =========================================================================
-          3. HERO SECTION (3D Spatial Perspective & Physics)
+          3. HERO SECTION (Apple & Google Taste Skill Elegance)
          ========================================================================= */}
       <section className="pt-52 pb-32 relative min-h-screen flex items-center justify-center overflow-hidden">
         
@@ -216,7 +216,7 @@ export default function LuxuryLandingPage() {
         <div
           className="absolute inset-0 opacity-15 pointer-events-none"
           style={{
-            backgroundImage: `linear-gradient(to right, #262B34 1px, transparent 1px), linear-gradient(to bottom, #262B34 1px, transparent 1px)`,
+            backgroundImage: `linear-gradient(to right, #CBD5E1 1px, transparent 1px), linear-gradient(to bottom, #CBD5E1 1px, transparent 1px)`,
             backgroundSize: '64px 64px'
           }}
         />
@@ -228,9 +228,9 @@ export default function LuxuryLandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-[#F4C542]/40 bg-[#F4C542]/10 text-[#F4C542] text-xs font-mono font-bold uppercase tracking-widest shadow-lg shadow-amber-500/10"
+            className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-amber-300 dark:border-[#F4C542]/40 bg-amber-50 dark:bg-[#F4C542]/10 text-amber-800 dark:text-[#F4C542] text-xs font-mono font-bold uppercase tracking-wider shadow-xs"
           >
-            <Sparkles className="h-4 w-4" /> REVOLUTIONARY 3D WEALTH ARCHITECTURE
+            <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400" /> REVOLUTIONARY 3D WEALTH ARCHITECTURE
           </motion.div>
 
           {/* Headline */}
@@ -240,11 +240,11 @@ export default function LuxuryLandingPage() {
             transition={{ duration: 0.7, delay: 0.1 }}
             className="space-y-4 max-w-4xl mx-auto"
           >
-            <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-[1.08]">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.08]">
               Private Wealth Management In{" "}
-              <span className="gold-gradient-text">Pure 3D Dimension</span>
+              <span className="text-amber-600 dark:gold-gradient-text">Pure 3D Clarity</span>
             </h1>
-            <p className="text-slate-400 text-base sm:text-xl max-w-2xl mx-auto leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-400 text-base sm:text-xl max-w-2xl mx-auto leading-relaxed">
               Consolidate your Indian equities, 24K physical gold, mutual funds, and dual-card bank cash flows into an institutional-grade, zero-knowledge vault.
             </p>
           </motion.div>
@@ -258,13 +258,13 @@ export default function LuxuryLandingPage() {
           >
             <button
               onClick={() => handleNavigate("/dashboard")}
-              className="w-full sm:w-auto gold-gradient-bg text-slate-950 font-extrabold text-sm sm:text-base px-8 py-4 rounded-2xl hover:brightness-110 transition-all shadow-2xl shadow-amber-500/30 flex items-center justify-center gap-2.5 active:scale-95 group"
+              className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 dark:gold-gradient-bg text-white dark:text-slate-950 font-bold text-sm sm:text-base px-8 py-4 rounded-2xl transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2.5 group"
             >
-              Launch Private Vault <ArrowRight className="h-5 w-5 stroke-[2.5] group-hover:translate-x-1 transition-transform" />
+              Launch Private Vault <ArrowRight className="h-5 w-5 stroke-[2] group-hover:translate-x-1 transition-transform" />
             </button>
             <button
               onClick={() => handleNavigate("/expenses")}
-              className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/15 text-slate-200 font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-white hover:bg-slate-50 dark:bg-white/[0.05] dark:hover:bg-white/[0.1] border border-slate-200/90 dark:border-white/15 text-slate-700 dark:text-slate-200 font-semibold text-sm sm:text-base transition-all duration-200 shadow-xs flex items-center justify-center gap-2"
             >
               Explore Cash Flow Ledger
             </button>
@@ -281,51 +281,51 @@ export default function LuxuryLandingPage() {
               <div className="space-y-6">
                 
                 {/* Internal Hero Card Header */}
-                <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-white/10">
+                <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-200/80 dark:border-white/10">
                   <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-2xl gold-gradient-bg p-[1px] flex items-center justify-center">
-                      <div className="h-full w-full bg-slate-950 rounded-[15px] flex items-center justify-center">
-                        <Award className="h-6 w-6 text-[#F4C542]" />
+                    <div className="h-12 w-12 rounded-2xl bg-slate-900 dark:gold-gradient-bg p-[1px] flex items-center justify-center shadow-xs">
+                      <div className="h-full w-full bg-white dark:bg-slate-950 rounded-[15px] flex items-center justify-center">
+                        <Award className="h-6 w-6 text-amber-600 dark:text-[#F4C542]" />
                       </div>
                     </div>
                     <div className="text-left">
-                      <div className="text-xs font-mono font-bold text-[#F4C542]">EXECUTIVE PORTFOLIO</div>
-                      <div className="text-lg font-extrabold text-white">Consolidated Sovereign Wealth</div>
+                      <div className="text-xs font-mono font-bold text-amber-700 dark:text-[#F4C542]">EXECUTIVE PORTFOLIO</div>
+                      <div className="text-lg font-bold text-slate-900 dark:text-white">Consolidated Sovereign Wealth</div>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" /> HEALTH SCORE 94/100
+                    <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> HEALTH SCORE 94/100
                     </span>
                   </div>
                 </div>
 
                 {/* 3 Core Pillars in Hero Card */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
-                  <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
-                    <span className="text-xs text-slate-400 font-mono block">CAPITAL DEPLOYED</span>
-                    <span className="text-2xl font-bold font-mono text-white mt-1 block">₹4,25,000.00</span>
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10">
+                    <span className="text-xs text-slate-500 dark:text-slate-400 font-mono block font-medium">CAPITAL DEPLOYED</span>
+                    <span className="text-2xl font-bold font-mono text-slate-900 dark:text-white mt-1 block">₹4,25,000.00</span>
                     <span className="text-[11px] text-slate-400 font-mono">Principal Invested</span>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
-                    <span className="text-xs text-slate-400 font-mono block">PORTFOLIO VALUATION</span>
-                    <span className="text-2xl font-bold font-mono text-amber-400 mt-1 block">₹6,08,595.40</span>
-                    <span className="text-[11px] text-emerald-400 font-mono font-bold">+₹1,83,595.40 (+43.2%)</span>
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10">
+                    <span className="text-xs text-slate-500 dark:text-slate-400 font-mono block font-medium">PORTFOLIO VALUATION</span>
+                    <span className="text-2xl font-bold font-mono text-amber-700 dark:text-amber-400 mt-1 block">₹6,08,595.40</span>
+                    <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-mono font-bold">+₹1,83,595.40 (+43.2%)</span>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
-                    <span className="text-xs text-slate-400 font-mono block">24K PHYSICAL GOLD</span>
-                    <span className="text-2xl font-bold font-mono text-emerald-400 mt-1 block">₹14,826.00</span>
-                    <span className="text-[11px] text-emerald-400 font-mono font-bold">+0.52% Spot Rate (1g)</span>
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10">
+                    <span className="text-xs text-slate-500 dark:text-slate-400 font-mono block font-medium">24K PHYSICAL GOLD</span>
+                    <span className="text-2xl font-bold font-mono text-emerald-700 dark:text-emerald-400 mt-1 block">₹14,826.00</span>
+                    <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-mono font-bold">+0.52% Spot Rate (1g)</span>
                   </div>
                 </div>
 
                 {/* Quick Hint */}
-                <div className="flex items-center justify-between text-xs text-slate-400 font-mono pt-2">
+                <div className="flex items-between justify-between text-xs text-slate-500 dark:text-slate-400 font-mono pt-2">
                   <span className="flex items-center gap-1.5">
-                    <ShieldCheck className="h-4 w-4 text-emerald-400" /> AES-256 ZERO-KNOWLEDGE
+                    <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> AES-256 ZERO-KNOWLEDGE
                   </span>
                   <span>MOVE CURSOR TO TILT IN 3D SPACE</span>
                 </div>
@@ -335,18 +335,18 @@ export default function LuxuryLandingPage() {
           </motion.div>
 
           {/* Social Proof Badges */}
-          <div className="pt-10 flex flex-wrap items-center justify-center gap-6 sm:gap-12 text-xs font-mono text-slate-400">
+          <div className="pt-10 flex flex-wrap items-center justify-center gap-6 sm:gap-12 text-xs font-mono text-slate-500 dark:text-slate-400 font-semibold">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
               <span>₹100Cr+ ASSETS MONITORED</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
               <span>SUB-MINUTE REAL-TIME TICKER</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-              <span>ZERO TRACKERS OR COOKIES</span>
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              <span>ZERO TRACKERS OR ADS</span>
             </div>
           </div>
 
@@ -372,17 +372,17 @@ export default function LuxuryLandingPage() {
       {/* =========================================================================
           7. HOLOGRAPHIC SECURITY PILLARS
          ========================================================================= */}
-      <section className="py-24 relative bg-[#06080C] text-slate-100 overflow-hidden">
+      <section className="py-24 relative bg-transparent text-foreground overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 space-y-16">
           
           <div className="text-center max-w-3xl mx-auto space-y-4">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-mono font-bold tracking-widest uppercase">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-emerald-300 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 text-xs font-mono font-bold tracking-widest uppercase">
               <ShieldCheck className="h-3.5 w-3.5" /> FORTRESS ARCHITECTURE
             </div>
-            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-              Cryptographically Isolated <span className="text-[#F4C542]">Security</span>
+            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
+              Cryptographically Isolated <span className="text-amber-600 dark:text-[#F4C542]">Security</span>
             </h2>
-            <p className="text-slate-400 text-sm sm:text-base">
+            <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base">
               Your financial records are your sovereignty. Bun Vault is architected from the database up to ensure zero unauthorized access.
             </p>
           </div>
@@ -391,11 +391,11 @@ export default function LuxuryLandingPage() {
             {SECURITY_PILLARS.map((p, idx) => (
               <ThreeDCard key={idx} glowColor={p.color} depth={25}>
                 <div className="space-y-4">
-                  <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10">
-                    <p.icon className="h-6 w-6 text-[#F4C542]" />
+                  <div className="h-12 w-12 rounded-2xl bg-slate-100 dark:bg-white/10 flex items-center justify-center border border-slate-200/80 dark:border-white/10">
+                    <p.icon className="h-6 w-6 text-amber-600 dark:text-[#F4C542]" />
                   </div>
-                  <h3 className="text-lg font-bold text-white">{p.title}</h3>
-                  <p className="text-slate-400 text-xs leading-relaxed">{p.desc}</p>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">{p.title}</h3>
+                  <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">{p.desc}</p>
                 </div>
               </ThreeDCard>
             ))}
@@ -407,14 +407,14 @@ export default function LuxuryLandingPage() {
       {/* =========================================================================
           8. INTERACTIVE FAQ ACCORDION
          ========================================================================= */}
-      <section className="py-24 relative bg-[#06080C] text-slate-100">
+      <section className="py-24 relative bg-transparent text-foreground">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-12">
           
           <div className="text-center space-y-3">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-slate-700 bg-white/5 text-slate-300 text-xs font-mono font-bold tracking-widest uppercase">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 text-xs font-mono font-bold tracking-widest uppercase">
               FREQUENTLY ASKED QUESTIONS
             </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
               Everything You Need to Know
             </h2>
           </div>
@@ -425,16 +425,16 @@ export default function LuxuryLandingPage() {
               return (
                 <div
                   key={idx}
-                  className="rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-xl overflow-hidden transition-colors hover:border-white/20"
+                  className="rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-white/[0.02] backdrop-blur-xl overflow-hidden transition-colors hover:border-slate-300 dark:hover:border-white/20 shadow-xs"
                 >
                   <button
                     onClick={() => setOpenFaq(isOpen ? null : idx)}
                     className="w-full p-6 text-left flex items-center justify-between gap-4"
                   >
-                    <span className="font-bold text-base text-white">{item.q}</span>
+                    <span className="font-bold text-base text-slate-900 dark:text-white">{item.q}</span>
                     <ChevronDown
                       className={`h-5 w-5 text-slate-400 shrink-0 transition-transform duration-300 ${
-                        isOpen ? "rotate-180 text-[#F4C542]" : ""
+                        isOpen ? "rotate-180 text-amber-600 dark:text-[#F4C542]" : ""
                       }`}
                     />
                   </button>
@@ -447,7 +447,7 @@ export default function LuxuryLandingPage() {
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3 }}
                       >
-                        <div className="px-6 pb-6 text-sm text-slate-400 leading-relaxed border-t border-white/5 pt-4">
+                        <div className="px-6 pb-6 text-sm text-slate-600 dark:text-slate-400 leading-relaxed border-t border-slate-100 dark:border-white/5 pt-4">
                           {item.a}
                         </div>
                       </motion.div>
@@ -464,18 +464,18 @@ export default function LuxuryLandingPage() {
       {/* =========================================================================
           9. 3D GRAND CTA PORTAL & FOOTER
          ========================================================================= */}
-      <footer className="pt-20 pb-16 relative bg-[#040609] border-t border-white/10 text-slate-400 text-xs overflow-hidden">
+      <footer className="pt-20 pb-16 relative bg-white dark:bg-[#040609] border-t border-slate-200/80 dark:border-white/10 text-slate-500 text-xs overflow-hidden">
         
         {/* Ambient Portal Glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[300px] bg-amber-500/10 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[300px] bg-amber-500/5 dark:bg-amber-500/10 rounded-full blur-[140px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 space-y-16">
           
           {/* Grand CTA Banner */}
-          <div className="rounded-3xl p-8 sm:p-14 border border-[#F4C542]/30 bg-gradient-to-b from-[#111624] to-[#0A0D15] text-center space-y-6 relative overflow-hidden shadow-2xl">
+          <div className="rounded-3xl p-8 sm:p-14 border border-slate-200 dark:border-[#F4C542]/30 bg-slate-900 text-white text-center space-y-6 relative overflow-hidden shadow-xl">
             <div className="absolute -top-24 -left-24 w-72 h-72 bg-amber-500/20 rounded-full blur-3xl pointer-events-none" />
             
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 text-[#F4C542] font-mono font-bold text-xs uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-amber-400/40 bg-amber-500/10 text-[#F4C542] font-mono font-bold text-xs uppercase tracking-widest">
               <Sparkles className="h-3.5 w-3.5" /> SECURE YOUR FINANCIAL FUTURE
             </div>
 
@@ -483,14 +483,14 @@ export default function LuxuryLandingPage() {
               Ready to Experience the Sovereign Wealth Vault?
             </h2>
 
-            <p className="text-slate-400 max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
+            <p className="text-slate-300 max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
               Step into high-velocity financial clarity. Completely private, real-time sync, and intelligent wealth compounding.
             </p>
 
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
                 onClick={() => handleNavigate("/dashboard")}
-                className="w-full sm:w-auto gold-gradient-bg text-slate-950 font-extrabold text-sm px-8 py-4 rounded-2xl hover:brightness-110 transition-all shadow-2xl shadow-amber-500/30 flex items-center justify-center gap-2 active:scale-95"
+                className="w-full sm:w-auto gold-gradient-bg text-slate-950 font-extrabold text-sm px-8 py-4 rounded-2xl hover:brightness-110 transition-all shadow-xl shadow-amber-500/20 flex items-center justify-center gap-2 active:scale-[0.98]"
               >
                 Enter Bun Vault Now <ArrowRight className="h-4 w-4 stroke-[3]" />
               </button>
@@ -498,21 +498,21 @@ export default function LuxuryLandingPage() {
           </div>
 
           {/* Footer Bottom Links */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-8 border-t border-white/5">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-8 border-t border-slate-200/80 dark:border-white/5">
             <div className="flex items-center gap-3">
               <img src="/logo.png" alt="Bun Vault" className="h-6 w-6 object-contain" />
-              <span className="font-mono font-bold text-white tracking-wider">BUN VAULT · 3D EXECUTIVE EDITION</span>
+              <span className="font-mono font-bold text-slate-900 dark:text-white tracking-wider">BUN VAULT · EXECUTIVE EDITION</span>
             </div>
 
-            <div className="flex items-center gap-6 font-mono text-[11px]">
-              <Link href="/dashboard" className="hover:text-white transition-colors">DASHBOARD</Link>
-              <Link href="/expenses" className="hover:text-white transition-colors">EXPENSES</Link>
-              <Link href="/holdings" className="hover:text-white transition-colors">HOLDINGS</Link>
-              <Link href="/watchlist" className="hover:text-white transition-colors">WATCHLIST</Link>
-              <Link href="/sip-planner" className="hover:text-white transition-colors">SIP PLANNER</Link>
+            <div className="flex items-center gap-6 font-mono text-[11px] font-semibold text-slate-600 dark:text-slate-400">
+              <Link href="/dashboard" className="hover:text-slate-900 dark:hover:text-white transition-colors">DASHBOARD</Link>
+              <Link href="/expenses" className="hover:text-slate-900 dark:hover:text-white transition-colors">EXPENSES</Link>
+              <Link href="/holdings" className="hover:text-slate-900 dark:hover:text-white transition-colors">HOLDINGS</Link>
+              <Link href="/watchlist" className="hover:text-slate-900 dark:hover:text-white transition-colors">WATCHLIST</Link>
+              <Link href="/sip-planner" className="hover:text-slate-900 dark:hover:text-white transition-colors">SIP PLANNER</Link>
             </div>
 
-            <div className="font-mono text-slate-500 text-[11px]">
+            <div className="font-mono text-slate-400 text-[11px]">
               © {new Date().getFullYear()} Bun Vault. All Rights Reserved.
             </div>
           </div>

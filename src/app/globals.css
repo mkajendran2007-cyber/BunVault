@@ -2,43 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
-
 @layer base {
   :root {
-    /* Premium High-Contrast Light Mode */
-    --background: 220 16% 96%; /* Cool light gray */
-    --foreground: 222 50% 6%; /* Near black */
+    /* ========================================================
+       GOOGLE & APPLE CORPORATE LIGHT MODE (Taste Skill Primary)
+    =========================================================== */
+    --background: 210 20% 98%; /* #F8FAFC - crisp light ceramic */
+    --foreground: 222 47% 11%; /* #0F172A - deep obsidian text */
 
-    --card: 0 0% 100%; /* Pure white */
+    --card: 0 0% 100%; /* Pure crisp white surface */
     --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 48 96% 53%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 222 47% 11%; /* #0F172A - Apple executive dark slate */
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 220 20% 90%;
+    --secondary: 210 20% 95%; /* Clean neutral surface */
     --secondary-foreground: 222 47% 15%;
 
-    --muted: 220 20% 92%;
-    --muted-foreground: 220 25% 40%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 16% 47%; /* Slate 500 */
 
-    --accent: 48 96% 53%;
+    --accent: 38 92% 50%; /* Apple executive amber gold */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 82%; /* Stronger border contrast */
-    --input: 220 20% 85%;
-    --ring: 48 96% 53%;
+    --border: 214 32% 91%; /* #E2E8F0 - crisp hairline border */
+    --input: 214 32% 91%;
+    --ring: 222 47% 11%;
 
-    --radius: 1.25rem; /* Clean 20px rounded corners */
+    --radius: 1.25rem; /* Clean rounded squircles */
   }
 
   .dark {
-    /* Premium Modern Dark Mode - True OLED Black & Vibrant Gold/Emerald Contrast */
+    /* ========================================================
+       APPLE OLED DARK MODE (Secondary High-Contrast Mode)
+    =========================================================== */
     --background: 224 30% 2%;
     --foreground: 210 40% 98%;
 
@@ -75,24 +78,22 @@
   }
 
   body {
-    @apply bg-background text-foreground selection:bg-amber-500/30 selection:text-white antialiased;
+    @apply bg-background text-foreground selection:bg-amber-500/20 selection:text-slate-900 antialiased;
     background-attachment: fixed;
     position: relative;
     overflow-x: hidden;
   }
 
-  /* Light mode premium Apple glass frosted background */
+  /* Light mode: Apple & Google Corporate subtle ceramic canvas */
   :root body {
-    background-color: #F6F8FC;
+    background-color: #F8FAFC;
     background-image:
-      radial-gradient(circle at 10% 10%, rgba(245, 158, 11, 0.08) 0%, transparent 45%),
-      radial-gradient(circle at 85% 15%, rgba(16, 185, 129, 0.07) 0%, transparent 45%),
-      radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.05) 0%, transparent 55%),
-      radial-gradient(circle at 80% 85%, rgba(59, 130, 246, 0.07) 0%, transparent 45%),
-      radial-gradient(circle at 20% 80%, rgba(244, 63, 94, 0.05) 0%, transparent 40%);
+      radial-gradient(circle at 10% 5%, rgba(26, 115, 232, 0.035) 0%, transparent 45%),
+      radial-gradient(circle at 90% 10%, rgba(245, 158, 11, 0.04) 0%, transparent 45%),
+      radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.035) 0%, transparent 45%);
   }
 
-  /* Dark mode OLED Apple/Revolut deep ambient background */
+  /* Dark mode: OLED Apple/Revolut deep ambient background */
   .dark body {
     background-color: #030712;
     background-image:
@@ -104,19 +105,19 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
   }
 }
 
 /* ========================================================
-   APPLE & REVOLUT MODERN GLASSMORPHISM SYSTEM
+   APPLE & GOOGLE CORPORATE SURFACE SYSTEM (Taste Skill)
 =========================================================== */
 .apple-glass {
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(28px) saturate(190%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04), inset 0 1px 1px 0 rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 6px 18px -4px rgba(0, 0, 0, 0.04);
 }
 
 .dark .apple-glass {
@@ -128,28 +129,38 @@
 }
 
 .apple-glass-card {
-  border-radius: 24px;
+  background: #FFFFFF;
+  border-radius: 20px;
   position: relative;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03), 0 8px 24px -4px rgba(0, 0, 0, 0.04);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark .apple-glass-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 12px 35px -8px rgba(0, 0, 0, 0.5);
 }
 
 .apple-glass-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.08), inset 0 1px 1px 0 rgba(255, 255, 255, 1);
+  transform: translateY(-2px);
+  border-color: rgba(203, 213, 225, 0.95);
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.05), 0 12px 28px -4px rgba(0, 0, 0, 0.05);
 }
 
 .dark .apple-glass-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 24px 50px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.7);
   border-color: rgba(255, 255, 255, 0.16);
 }
 
 .apple-glass-subtle {
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.75);
 }
 
 .dark .apple-glass-subtle {
@@ -160,40 +171,60 @@
 }
 
 .apple-glass-input {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 16px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 14px;
+  color: #0F172A;
   transition: all 0.2s ease;
 }
 
 .dark .apple-glass-input {
   background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #F8FAFC;
 }
 
 .apple-glass-input:focus {
   outline: none;
+  border-color: #0F172A;
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+}
+
+.dark .apple-glass-input:focus {
   border-color: rgba(245, 158, 11, 0.6);
   box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
 }
 
-/* Vibrancy Glow Orbs for Revolut Accent Cards */
+/* Subtle Vibrancy Glow Accents */
 .revolut-glow-emerald {
-  background: radial-gradient(circle at 85% 15%, rgba(16, 185, 129, 0.25) 0%, transparent 65%);
+  background: radial-gradient(circle at 85% 15%, rgba(16, 185, 129, 0.12) 0%, transparent 65%);
 }
 
 .revolut-glow-rose {
-  background: radial-gradient(circle at 85% 15%, rgba(244, 63, 94, 0.25) 0%, transparent 65%);
+  background: radial-gradient(circle at 85% 15%, rgba(244, 63, 94, 0.12) 0%, transparent 65%);
 }
 
 .revolut-glow-amber {
-  background: radial-gradient(circle at 85% 15%, rgba(245, 158, 11, 0.25) 0%, transparent 65%);
+  background: radial-gradient(circle at 85% 15%, rgba(245, 158, 11, 0.14) 0%, transparent 65%);
 }
 
 .revolut-glow-indigo {
+  background: radial-gradient(circle at 85% 15%, rgba(99, 102, 241, 0.12) 0%, transparent 65%);
+}
+
+.dark .revolut-glow-emerald {
+  background: radial-gradient(circle at 85% 15%, rgba(16, 185, 129, 0.25) 0%, transparent 65%);
+}
+
+.dark .revolut-glow-rose {
+  background: radial-gradient(circle at 85% 15%, rgba(244, 63, 94, 0.25) 0%, transparent 65%);
+}
+
+.dark .revolut-glow-amber {
+  background: radial-gradient(circle at 85% 15%, rgba(245, 158, 11, 0.25) 0%, transparent 65%);
+}
+
+.dark .revolut-glow-indigo {
   background: radial-gradient(circle at 85% 15%, rgba(99, 102, 241, 0.25) 0%, transparent 65%);
 }
 
@@ -202,12 +233,12 @@
 =========================================================== */
 .glass-panel {
   @apply apple-glass;
-  border-radius: 22px;
+  border-radius: 20px;
 }
 
 .glass-surface {
   @apply apple-glass-subtle;
-  border-radius: 18px;
+  border-radius: 16px;
 }
 
 /* ========================================================
@@ -222,65 +253,84 @@
 }
 
 .gold-gradient-text {
+  background: linear-gradient(135deg, #B45309 0%, #D97706 50%, #B45309 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark .gold-gradient-text {
   background: linear-gradient(135deg, #FEF08A 0%, #FACC15 50%, #EAB308 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-:root .gold-gradient-text {
-  background: linear-gradient(135deg, #EAB308 0%, #CA8A04 50%, #A16207 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
 /* ========================================================
-   EXECUTIVE BADGES (#FF3B30 Expense / #00E676 Investment)
+   EXECUTIVE TONAL BADGES (Google & Apple Materiality)
 =========================================================== */
 .badge-expense {
-  @apply bg-red-100 dark:bg-[#FF3B30]/15 text-red-700 dark:text-[#FF5252] border border-red-400 dark:border-[#FF3B30]/30 font-black px-2.5 py-1 rounded-full text-[11px] uppercase tracking-wider inline-flex items-center gap-1 shadow-sm;
+  @apply bg-rose-50 text-rose-700 border border-rose-200/80 font-semibold px-2.5 py-0.5 rounded-full text-[11px] inline-flex items-center gap-1 dark:bg-rose-500/15 dark:text-rose-400 dark:border-rose-500/30;
 }
 
 .badge-investment {
-  @apply bg-emerald-100 dark:bg-[#00E676]/15 text-emerald-700 dark:text-[#00E676] border border-emerald-400 dark:border-[#00E676]/30 font-black px-2.5 py-1 rounded-full text-[11px] uppercase tracking-wider inline-flex items-center gap-1 shadow-sm;
+  @apply bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-semibold px-2.5 py-0.5 rounded-full text-[11px] inline-flex items-center gap-1 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30;
 }
 
 .badge-wealth {
-  @apply bg-[#F4C542]/15 text-[#D4A017] dark:text-[#F4C542] border border-[#F4C542]/30 font-black px-2.5 py-1 rounded-full text-[11px] uppercase tracking-wider inline-flex items-center gap-1 shadow-sm;
+  @apply bg-amber-50 text-amber-800 border border-amber-200/80 font-semibold px-2.5 py-0.5 rounded-full text-[11px] inline-flex items-center gap-1 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/30;
+}
+
+.badge-corporate {
+  @apply bg-blue-50 text-blue-700 border border-blue-200/80 font-semibold px-2.5 py-0.5 rounded-full text-[11px] inline-flex items-center gap-1 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/30;
 }
 
 .badge-neutral {
-  @apply bg-slate-500/15 text-slate-600 dark:text-slate-300 border border-slate-500/30 font-bold px-2.5 py-1 rounded-full text-[11px] uppercase tracking-wider inline-flex items-center gap-1;
+  @apply bg-slate-100 text-slate-700 border border-slate-200/80 font-medium px-2.5 py-0.5 rounded-full text-[11px] inline-flex items-center gap-1 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700;
 }
 
 /* ========================================================
-   MICRO-INTERACTIONS & HOVER EFFECTS
+   MICRO-INTERACTIONS & CORPORATE BUTTONS (Taste Skill)
 =========================================================== */
 .hover-lift {
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .hover-lift:hover {
-  transform: translateY(-3px) scale(1.008);
-  box-shadow: 0 14px 35px -5px rgba(0,0,0,0.18);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.08);
 }
 
 .btn-premium {
-  @apply relative overflow-hidden transition-all duration-300 font-extrabold px-5 py-2.5 rounded-2xl flex items-center justify-center gap-2 active:scale-95;
+  @apply relative overflow-hidden transition-all duration-200 font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98];
+}
+
+.btn-corporate {
+  @apply btn-premium bg-slate-900 text-white hover:bg-slate-800 shadow-sm dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100;
+}
+
+.btn-google {
+  @apply btn-premium bg-[#1A73E8] text-white hover:bg-[#1557B0] shadow-sm;
 }
 
 .btn-gold {
-  @apply btn-premium gold-gradient-bg text-slate-950 shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 hover:brightness-105;
+  @apply btn-premium gold-gradient-bg text-slate-950 shadow-md shadow-amber-500/20 hover:brightness-105;
 }
 
 .btn-outline-gold {
-  @apply btn-premium bg-[#151A21]/60 text-[#F4C542] border border-[#F4C542]/40 hover:bg-[#F4C542]/15 hover:border-[#F4C542];
+  @apply btn-premium bg-white text-amber-700 border border-amber-300 hover:bg-amber-50/50 dark:bg-[#151A21]/60 dark:text-[#F4C542] dark:border-[#F4C542]/40;
 }
 
 /* ========================================================
    GRID SYSTEMS & TICKERS
 =========================================================== */
 .hero-grid {
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.dark .hero-grid {
   background-image:
     linear-gradient(to right, rgba(244, 197, 66, 0.05) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(244, 197, 66, 0.05) 1px, transparent 1px);
@@ -302,16 +352,16 @@
    TABLE HOVER & SCROLLBAR
 =========================================================== */
 tbody tr {
-  @apply transition-colors duration-150 hover:bg-muted/40 active:bg-muted/60 cursor-pointer;
+  @apply transition-colors duration-150 hover:bg-slate-50 dark:hover:bg-white/[0.04] cursor-pointer;
 }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  @apply bg-muted-foreground/20 rounded-full;
+  @apply bg-slate-300 dark:bg-muted-foreground/20 rounded-full;
 }
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-muted-foreground/40;
+  @apply bg-slate-400 dark:bg-muted-foreground/40;
 }
 
 /* ========================================================

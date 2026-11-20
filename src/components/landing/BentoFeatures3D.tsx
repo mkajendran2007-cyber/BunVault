@@ -38,23 +38,23 @@ export default function BentoFeatures3D() {
   ]
 
   return (
-    <section className="py-28 relative bg-[#06080C] text-slate-100 overflow-hidden">
+    <section className="py-24 relative bg-transparent text-foreground overflow-hidden">
       
-      {/* Ambient Glows */}
-      <div className="absolute top-1/3 right-10 w-96 h-96 bg-indigo-500/10 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-10 left-10 w-96 h-96 bg-amber-500/10 rounded-full blur-[140px] pointer-events-none" />
+      {/* Subtle Ambient Backlights */}
+      <div className="absolute top-1/3 right-10 w-96 h-96 bg-blue-500/5 dark:bg-indigo-500/10 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-10 left-10 w-96 h-96 bg-amber-500/5 dark:bg-amber-500/10 rounded-full blur-[140px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 space-y-16">
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 text-xs font-mono font-bold tracking-widest uppercase">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-blue-500/30 bg-blue-50 dark:bg-indigo-500/10 text-blue-700 dark:text-indigo-400 text-xs font-mono font-bold tracking-widest uppercase">
             <Layers className="h-3.5 w-3.5" /> BENTO 3D ARCHITECTURE
           </div>
-          <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-            Engineered for High-Net-Worth <span className="text-[#F4C542]">Clarity</span>
+          <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
+            Engineered for High-Net-Worth <span className="text-amber-600 dark:text-[#F4C542]">Clarity</span>
           </h2>
-          <p className="text-slate-400 text-sm sm:text-base">
+          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base">
             Every pillar of Bun Vault is crafted with physics-based 3D depth, live real-time feeds, and bank-grade zero-knowledge privacy.
           </p>
         </div>
@@ -68,46 +68,46 @@ export default function BentoFeatures3D() {
               <div className="flex flex-col justify-between h-full space-y-6">
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-mono font-bold px-3 py-1 rounded-full bg-amber-500/15 text-[#F4C542] border border-amber-500/30 flex items-center gap-1.5">
+                    <span className="text-[11px] font-mono font-bold px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-500/15 text-amber-800 dark:text-[#F4C542] border border-amber-200 dark:border-amber-500/30 flex items-center gap-1.5">
                       <Briefcase className="h-3 w-3" /> MULTI-ASSET LEDGER
                     </span>
-                    <span className="text-xs font-mono text-emerald-400 font-bold flex items-center gap-1">
-                      <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" /> SUB-60s SYNC
+                    <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> SUB-60s SYNC
                     </span>
                   </div>
 
-                  <h3 className="text-2xl font-bold text-white mt-4">
+                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-4">
                     Institutional Portfolio & Asset Tracking
                   </h3>
-                  <p className="text-slate-400 text-xs sm:text-sm mt-2 leading-relaxed">
+                  <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm mt-2 leading-relaxed">
                     Track your stocks, mutual funds, 24K Sovereign Gold, silver, and crypto in one unified institutional dashboard. Auto-calculates capital invested, current valuation, and total returns.
                   </p>
                 </div>
 
                 {/* Live Mini Preview Grid */}
-                <div className="grid grid-cols-3 gap-3 p-4 rounded-2xl bg-black/40 border border-white/5">
+                <div className="grid grid-cols-3 gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-black/40 border border-slate-200/80 dark:border-white/5">
                   <div className="text-center">
-                    <span className="text-[10px] font-mono text-slate-400 block">TOTAL VALUATION</span>
-                    <span className="text-base sm:text-xl font-bold text-white font-mono mt-1 block">₹6,08,595</span>
-                    <span className="text-[10px] font-bold text-emerald-400 font-mono">+43.20%</span>
+                    <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 block">TOTAL VALUATION</span>
+                    <span className="text-base sm:text-xl font-bold text-slate-900 dark:text-white font-mono mt-1 block">₹6,08,595</span>
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 font-mono">+43.20%</span>
                   </div>
-                  <div className="text-center border-x border-white/10">
-                    <span className="text-[10px] font-mono text-slate-400 block">24K GOLD (1G)</span>
-                    <span className="text-base sm:text-xl font-bold text-amber-400 font-mono mt-1 block">₹14,826</span>
-                    <span className="text-[10px] font-bold text-emerald-400 font-mono">+0.52% SPOT</span>
+                  <div className="text-center border-x border-slate-200/80 dark:border-white/10">
+                    <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 block">24K GOLD (1G)</span>
+                    <span className="text-base sm:text-xl font-bold text-amber-600 dark:text-amber-400 font-mono mt-1 block">₹14,826</span>
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 font-mono">+0.52% SPOT</span>
                   </div>
                   <div className="text-center">
-                    <span className="text-[10px] font-mono text-slate-400 block">NIFTY 50</span>
-                    <span className="text-base sm:text-xl font-bold text-cyan-400 font-mono mt-1 block">24,320</span>
-                    <span className="text-[10px] font-bold text-emerald-400 font-mono">+0.59%</span>
+                    <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 block">NIFTY 50</span>
+                    <span className="text-base sm:text-xl font-bold text-blue-600 dark:text-cyan-400 font-mono mt-1 block">24,320</span>
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 font-mono">+0.59%</span>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between pt-2">
-                  <Link href="/holdings" className="text-xs font-bold text-[#F4C542] hover:underline flex items-center gap-1.5 font-mono">
+                  <Link href="/holdings" className="text-xs font-bold text-amber-700 dark:text-[#F4C542] hover:underline flex items-center gap-1.5 font-mono">
                     EXPLORE HOLDINGS ENGINE <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
-                  <span className="text-[10px] font-mono text-slate-500">RLS PROTECTED</span>
+                  <span className="text-[10px] font-mono text-slate-400">RLS PROTECTED</span>
                 </div>
               </div>
             </ThreeDCard>
@@ -119,16 +119,16 @@ export default function BentoFeatures3D() {
               <div className="flex flex-col justify-between h-full space-y-6">
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-mono font-bold px-3 py-1 rounded-full bg-violet-500/15 text-violet-400 border border-violet-500/30 flex items-center gap-1.5">
+                    <span className="text-[11px] font-mono font-bold px-3 py-1 rounded-full bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-400 border border-violet-200 dark:border-violet-500/30 flex items-center gap-1.5">
                       <Bot className="h-3 w-3" /> AI CO-PILOT
                     </span>
-                    <span className="text-[10px] font-mono text-slate-400">GEMINI PRO</span>
+                    <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">GEMINI PRO</span>
                   </div>
 
-                  <h3 className="text-xl font-bold text-white mt-4">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-4">
                     Intelligent Tax & Risk Advisor
                   </h3>
-                  <p className="text-slate-400 text-xs mt-2 leading-relaxed">
+                  <p className="text-slate-600 dark:text-slate-400 text-xs mt-2 leading-relaxed">
                     Interactive AI tuned for Indian tax deductions, portfolio diversification, and risk balancing.
                   </p>
                 </div>
@@ -145,8 +145,8 @@ export default function BentoFeatures3D() {
                         }}
                         className={`text-[10px] font-mono px-2.5 py-1 rounded-lg transition-all ${
                           selectedPrompt === pIdx
-                            ? "bg-violet-500 text-white font-bold"
-                            : "bg-white/5 text-slate-400 hover:text-white"
+                            ? "bg-violet-600 text-white font-bold"
+                            : "bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                         }`}
                       >
                         Prompt #{pIdx + 1}
@@ -154,17 +154,17 @@ export default function BentoFeatures3D() {
                     ))}
                   </div>
 
-                  <div className="p-3 rounded-xl bg-black/50 border border-violet-500/20 text-xs space-y-2">
-                    <div className="text-slate-300 font-semibold text-[11px]">
+                  <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-black/50 border border-slate-200/80 dark:border-violet-500/20 text-xs space-y-2">
+                    <div className="text-slate-800 dark:text-slate-300 font-semibold text-[11px]">
                       "{PROMPTS[selectedPrompt].q}"
                     </div>
-                    <div className="text-violet-300 text-[11px] leading-relaxed">
+                    <div className="text-violet-700 dark:text-violet-300 text-[11px] leading-relaxed">
                       {PROMPTS[selectedPrompt].a}
                     </div>
                   </div>
                 </div>
 
-                <Link href="/analytics" className="text-xs font-bold text-violet-400 hover:underline flex items-center gap-1.5 font-mono pt-2">
+                <Link href="/analytics" className="text-xs font-bold text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1.5 font-mono pt-2">
                   LAUNCH AI STUDIO <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
@@ -176,30 +176,30 @@ export default function BentoFeatures3D() {
             <ThreeDCard glowColor="emerald" depth={30} className="h-full">
               <div className="flex flex-col justify-between h-full space-y-6">
                 <div>
-                  <span className="text-[11px] font-mono font-bold px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 w-fit">
+                  <span className="text-[11px] font-mono font-bold px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 flex items-center gap-1.5 w-fit">
                     <Receipt className="h-3 w-3" /> CASH VELOCITY
                   </span>
 
-                  <h3 className="text-xl font-bold text-white mt-4">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-4">
                     Bank Accounts & Credit Card Sync
                   </h3>
-                  <p className="text-slate-400 text-xs mt-2 leading-relaxed">
+                  <p className="text-slate-600 dark:text-slate-400 text-xs mt-2 leading-relaxed">
                     Track SBI savings, Utkarsh Credit Card, and liquid cash with zero latency. Auto-classifies investments vs lifestyle expenses.
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <div className="p-3 rounded-xl bg-white/[0.04] border border-white/5 flex items-center justify-between text-xs">
-                    <span className="text-slate-300 font-medium">Utkarsh Credit Card</span>
-                    <span className="font-mono font-bold text-white">₹14,250 (18%)</span>
+                  <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/5 flex items-center justify-between text-xs">
+                    <span className="text-slate-700 dark:text-slate-300 font-medium">Utkarsh Credit Card</span>
+                    <span className="font-mono font-bold text-slate-900 dark:text-white">₹14,250 (18%)</span>
                   </div>
-                  <div className="p-3 rounded-xl bg-white/[0.04] border border-white/5 flex items-center justify-between text-xs">
-                    <span className="text-slate-300 font-medium">SBI Primary Savings</span>
-                    <span className="font-mono font-bold text-emerald-400">₹68,200</span>
+                  <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/5 flex items-center justify-between text-xs">
+                    <span className="text-slate-700 dark:text-slate-300 font-medium">SBI Primary Savings</span>
+                    <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">₹68,200</span>
                   </div>
                 </div>
 
-                <Link href="/expenses" className="text-xs font-bold text-emerald-400 hover:underline flex items-center gap-1.5 font-mono pt-2">
+                <Link href="/expenses" className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1.5 font-mono pt-2">
                   MANAGE EXPENSES <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
@@ -211,28 +211,28 @@ export default function BentoFeatures3D() {
             <ThreeDCard glowColor="cyan" depth={30} className="h-full">
               <div className="flex flex-col justify-between h-full space-y-6">
                 <div>
-                  <span className="text-[11px] font-mono font-bold px-3 py-1 rounded-full bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 flex items-center gap-1.5 w-fit">
+                  <span className="text-[11px] font-mono font-bold px-3 py-1 rounded-full bg-cyan-50 dark:bg-cyan-500/15 text-cyan-700 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-500/30 flex items-center gap-1.5 w-fit">
                     <ShieldCheck className="h-3 w-3" /> BANK GRADE PRIVACY
                   </span>
 
-                  <h3 className="text-xl font-bold text-white mt-4">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-4">
                     Zero-Knowledge Encryption
                   </h3>
-                  <p className="text-slate-400 text-xs mt-2 leading-relaxed">
+                  <p className="text-slate-600 dark:text-slate-400 text-xs mt-2 leading-relaxed">
                     Row-Level Security (RLS) ensures nobody but you can view your financial records. No third-party data tracking. No ads.
                   </p>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-black/40 border border-cyan-500/20 text-xs space-y-2 font-mono">
-                  <div className="flex items-center gap-2 text-cyan-300">
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-black/40 border border-slate-200/80 dark:border-cyan-500/20 text-xs space-y-2 font-mono">
+                  <div className="flex items-center gap-2 text-cyan-700 dark:text-cyan-300 font-bold">
                     <Lock className="h-3.5 w-3.5" /> AES-256 ENCRYPTED
                   </div>
-                  <div className="text-[11px] text-slate-400">
-                    Database policies enforce hardware-isolated tenant isolation.
+                  <div className="text-[11px] text-slate-600 dark:text-slate-400">
+                    Database policies enforce hardware-isolated tenant separation.
                   </div>
                 </div>
 
-                <span className="text-xs font-bold text-cyan-400 flex items-center gap-1.5 font-mono pt-2">
+                <span className="text-xs font-bold text-cyan-700 dark:text-cyan-400 flex items-center gap-1.5 font-mono pt-2">
                   100% PRIVATE ARCHITECTURE
                 </span>
               </div>
@@ -244,24 +244,24 @@ export default function BentoFeatures3D() {
             <ThreeDCard glowColor="rose" depth={30} className="h-full">
               <div className="flex flex-col justify-between h-full space-y-6">
                 <div>
-                  <span className="text-[11px] font-mono font-bold px-3 py-1 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center gap-1.5 w-fit">
+                  <span className="text-[11px] font-mono font-bold px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30 flex items-center gap-1.5 w-fit">
                     <FileText className="h-3 w-3" /> AUDITED REPORTS
                   </span>
 
-                  <h3 className="text-xl font-bold text-white mt-4">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-4">
                     One-Click PDF Wealth Dossier
                   </h3>
-                  <p className="text-slate-400 text-xs mt-2 leading-relaxed">
+                  <p className="text-slate-600 dark:text-slate-400 text-xs mt-2 leading-relaxed">
                     Generate clean, professional PDF reports of your net worth, equity holdings, and capital gains ready for your chartered accountant.
                   </p>
                 </div>
 
-                <div className="p-3 rounded-xl bg-white/[0.04] border border-white/5 flex items-center justify-between text-xs font-mono">
-                  <span className="text-slate-300">Annual Statement</span>
-                  <span className="text-rose-400 font-bold">READY TO EXPORT</span>
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/5 flex items-center justify-between text-xs font-mono">
+                  <span className="text-slate-700 dark:text-slate-300">Annual Statement</span>
+                  <span className="text-rose-600 dark:text-rose-400 font-bold">READY TO EXPORT</span>
                 </div>
 
-                <Link href="/reports" className="text-xs font-bold text-rose-400 hover:underline flex items-center gap-1.5 font-mono pt-2">
+                <Link href="/reports" className="text-xs font-bold text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-1.5 font-mono pt-2">
                   GENERATE PDF REPORT <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
